@@ -50,8 +50,14 @@
       etiquetas: ["insertar O(log n)", "heapsort O(n log n)"],
       archivo: "monticulo.cpp",
     },
+    {
+      slug: "tabla-hash",
+      titulo: "Tabla hash",
+      resumen: "Una función hash lleva cada clave directo a su cubeta. Funciones hash, colisiones con encadenamiento y con sondeo, y rehash.",
+      etiquetas: ["buscar O(1) promedio", "colisiones"],
+      archivo: "tabla_hash.cpp",
+    },
     { slug: "arbol-binario-busqueda", titulo: "Árbol binario de búsqueda", resumen: "Búsqueda, inserción y recorridos.", etiquetas: ["próximamente"], proximamente: true },
-    { slug: "tabla-hash", titulo: "Tabla hash", resumen: "Funciones hash y manejo de colisiones.", etiquetas: ["próximamente"], proximamente: true },
     { slug: "grafos", titulo: "Grafos", resumen: "Representación, BFS y DFS.", etiquetas: ["próximamente"], proximamente: true },
   ];
 

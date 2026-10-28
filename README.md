@@ -22,6 +22,7 @@ Cada tema tiene:
 | Pila (stack) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/pila/) | [`pila.cpp`](ejemplos/cpp/pila.cpp) |
 | Cola (queue) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/cola/) | [`cola.cpp`](ejemplos/cpp/cola.cpp) |
 | Montículo (min-heap, max-heap) y heapsort | [ver](https://jmoisesct.github.io/learn-data-structures/temas/monticulo/) | [`monticulo.cpp`](ejemplos/cpp/monticulo.cpp) |
+| Tabla hash (funciones hash, encadenamiento, sondeo y rehash) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/tabla-hash/) | [`tabla_hash.cpp`](ejemplos/cpp/tabla_hash.cpp) |
 
 Los próximos temas están en [ROADMAP.md](ROADMAP.md).
 
