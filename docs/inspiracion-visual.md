@@ -3,8 +3,10 @@
 El dueño del repositorio pidió que el sitio tenga **un formato más interesante, como las páginas de
 programación que tienen animaciones**. Estas son las referencias propuestas y qué tomar de cada una.
 
-> Estado: **pendiente de que el dueño elija una dirección** (ver "Direcciones posibles" al final).
-> No rediseñar hasta tener esa respuesta.
+> Estado: el dueño señaló como referencia principal su otro proyecto,
+> [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation) (estilo inspirado en
+> Brilliant: pasos cortos, mucho espacio en blanco, tarjetas, feedback inmediato). Las referencias de
+> abajo quedan como ideas complementarias.
 
 ## Referencias
 

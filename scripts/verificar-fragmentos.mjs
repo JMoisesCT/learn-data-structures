@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
-const dirTemas = join(raiz, "site", "temas");
+const dirTemas = join(raiz, "temas");
 let errores = 0;
 let revisados = 0;
 

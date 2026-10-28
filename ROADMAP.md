@@ -24,7 +24,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 ## Ideas para el sitio
 
-- **Rediseño visual** con un formato más atractivo, inspirado en sitios de programación con animaciones. Referencias y direcciones en [docs/inspiracion-visual.md](docs/inspiracion-visual.md); pendiente de que el dueño elija.
+- **Rediseño visual** con un formato más atractivo, inspirado en sitios de programación con animaciones. Referencia principal: [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation); más ideas en [docs/inspiracion-visual.md](docs/inspiracion-visual.md).
 - Atajos de teclado para la reproducción (espacio, flechas).
 - Selector de lenguaje para mostrar los ejemplos también en Python o Java.
 - Modo "pregunta": antes de cada paso, preguntar al estudiante qué va a pasar.

@@ -233,7 +233,7 @@
           el("span", {}, copiar, " ", el("a", { class: "boton", href: enGithub, target: "_blank", rel: "noopener", text: "GitHub" }))),
         pre);
 
-      fetch(`${raiz}codigo/${archivo}`)
+      fetch(`${raiz}ejemplos/cpp/${archivo}`)
         .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
         .then((texto) => {
           pre.innerHTML = resaltarCpp(texto.replace(/\s+$/, ""));

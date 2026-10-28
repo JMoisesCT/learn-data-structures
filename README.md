@@ -27,22 +27,21 @@ Los próximos temas están en [ROADMAP.md](ROADMAP.md).
 
 ## Estructura del repositorio
 
+El repositorio **es** el sitio: GitHub Pages publica `main` tal cual, sin pasos de construcción.
+
 ```
-ejemplos/cpp/              Programas C++ completos, uno por tema
-site/                      Sitio estático (HTML + CSS + JS, sin dependencias)
-  index.html               Portada
-  assets/css/estilos.css   Estilos compartidos (modo claro y oscuro)
-  assets/js/visualizador.js  Motor de animaciones, resaltado C++ y lista de temas
-  temas/<tema>/index.html  Página del tema
-  temas/<tema>/<tema>.js   Animación del tema
+index.html                 Portada
+assets/css/estilos.css     Estilos compartidos (modo claro y oscuro)
+assets/js/visualizador.js  Motor de animaciones, resaltado C++ y lista de temas
+temas/<tema>/index.html    Página del tema
+temas/<tema>/<tema>.js     Animación del tema
+ejemplos/cpp/              Programas C++ completos, uno por tema (las páginas los muestran)
 docs/                      Notas del proyecto (p. ej. inspiración para el rediseño visual)
 scripts/
   compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos (con sanitizadores)
   verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp
-  construir-sitio.sh       Arma _site/ (lo que se publica en GitHub Pages)
 .github/workflows/
   verificar.yml            CI de cada pull request
-  pages.yml                Publica el sitio al hacer merge en main
 ```
 
 ## Usarlo en tu computadora
@@ -53,17 +52,13 @@ Compilar un ejemplo:
 g++ -std=c++17 -Wall -Wextra ejemplos/cpp/pila.cpp -o pila && ./pila
 ```
 
-Ver el sitio:
+Ver el sitio (desde la raíz del repositorio):
 
 ```bash
-scripts/construir-sitio.sh
+python3 -m http.server 8000
 ```
 
-```bash
-python3 -m http.server -d _site 8000
-```
-
-Luego abre http://localhost:8000.
+Luego abre http://localhost:8000. También puedes abrir `index.html` con doble clic: todo funciona salvo el bloque "Código completo", que el navegador solo carga con un servidor.
 
 Ejecutar las mismas verificaciones que el CI:
 
@@ -77,8 +72,8 @@ node scripts/verificar-fragmentos.mjs
 
 ## GitHub Pages
 
-El sitio se publica solo con el workflow [`pages.yml`](.github/workflows/pages.yml) cada vez que se hace merge a `main`.
-Para activarlo **una sola vez**: en el repositorio ve a **Settings → Pages → Build and deployment → Source** y elige **GitHub Actions**.
+Configuración (ya hecha): **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `main`, carpeta `/ (root)`.
+Cada merge a `main` se publica en uno o dos minutos. El archivo `.nojekyll` hace que GitHub sirva los archivos tal cual.
 
 ## Contribuir
 
