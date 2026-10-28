@@ -405,6 +405,7 @@
   //                                                   // recibe los valores actuales de las entradas
   //   entradas:      [{ id, etiqueta, valor, min, max, aleatorio }]   // número
   //                  [{ id, etiqueta, opciones: [[valor, texto]] }]   // lista; al cambiarla se reinicia
+  //                  [{ ..., opciones, reinicia: false }]             // lista que no reinicia (solo es un argumento)
   //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, ejecutar(s, args, paso) }]
   //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
   //                  etiqueta puede ser (valores) => texto si depende de una lista
@@ -448,7 +449,7 @@
         input = el("select", { id: `${prefijo}-${e.id}` },
           e.opciones.map(([valor, texto]) => el("option", { value: valor, text: texto })));
         if (e.valor != null) input.value = e.valor;
-        input.addEventListener("change", reiniciar);
+        input.addEventListener("change", e.reinicia === false ? () => actualizarEtiquetas(valoresEntradas()) : reiniciar);
       } else {
         input = el("input", { type: "number", id: `${prefijo}-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
