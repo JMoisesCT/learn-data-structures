@@ -158,8 +158,7 @@
   const posCelda = (i) => MARGEN + i * PASO_CELDA;
 
   // El lienzo solo es tan alto como los niveles que ocupa el árbol.
-  function geometria(n) {
-    const niveles = n > 1 ? nivel(n - 1) + 1 : 1;
+  function geometria(niveles) {
     const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 26;
     const yCeldas = yTitulo + 50; // deja lugar para dos líneas de marcas
     return { yTitulo, yCeldas, alto: yCeldas + 60 };
@@ -313,8 +312,13 @@
     const fija = el("div", { class: "capa-fija" });
     const lienzo = el("div", { class: "lienzo-heap" }, svg, fija);
     escenario.append(el("div", { class: "info-heap" }), el("div", { class: "marco-heap" }, lienzo));
-    window.addEventListener("resize", () => escalar(escenario, lienzo));
     return lienzo;
+  }
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", () => {
+      for (const lienzo of document.querySelectorAll(".lienzo-heap")) escalar(lienzo.closest(".escenario"), lienzo);
+    });
   }
 
   // En pantallas angostas reducimos el dibujo en lugar de recortarlo.
@@ -333,7 +337,10 @@
   function dibujar(escenario, s) {
     const lienzo = escenario.querySelector(".lienzo-heap") || crearLienzo(escenario);
     const ancho = anchoPara(s.items.length);
-    const { yTitulo, yCeldas, alto } = geometria(s.items.length);
+    // Los niveles nunca disminuyen: si el árbol se achica, el dibujo no salta hacia arriba.
+    const niveles = Math.max(Number(lienzo.dataset.niveles) || 1, s.items.length > 1 ? nivel(s.items.length - 1) + 1 : 1);
+    lienzo.dataset.niveles = niveles;
+    const { yTitulo, yCeldas, alto } = geometria(niveles);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
     lienzo.dataset.ancho = ancho;

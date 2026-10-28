@@ -551,8 +551,28 @@ tr:last-child td { border-bottom: 0; }
   color: var(--texto-suave);
 }
 
+.fila-reproduccion { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; width: 100%; min-height: 2.1rem; }
+.contador-pasos { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 .reproduccion .boton { padding: 0.3rem 0.6rem; min-width: 2.2rem; }
 .reproduccion label { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
+.reproduccion label[hidden] { display: none; }
+
+.selector-modo { display: inline-flex; border: 1px solid var(--borde); border-radius: 999px; padding: 2px; background: var(--superficie-2); }
+
+.selector-modo button {
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--texto-suave);
+  padding: 0.2rem 0.7rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.selector-modo button[aria-pressed="true"] { background: var(--superficie); color: var(--texto); font-weight: 600; box-shadow: var(--sombra); }
 .reproduccion input[type="range"] { width: 90px; accent-color: var(--acento); }
 
 /* Panel de código */
