@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vector dinámico · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Qué es un arreglo dinámico (como std::vector), cómo crece al llenarse, animación paso a paso y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="vector-dinamico">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Vector dinámico</div>
+      <h1>Vector dinámico</h1>
+      <p class="resumen">Un <strong>arreglo que crece solo</strong>. Guarda los elementos uno junto a otro en memoria, así que llegar a cualquier posición es inmediato. Es la idea detrás de <code>std::vector</code>.</p>
+    </div>
+
+    <h2>La idea</h2>
+    <p>Un arreglo normal de C++ (<code>int a[10]</code>) tiene un tamaño fijo. Un vector dinámico guarda tres cosas:</p>
+    <ul>
+      <li><code>datos</code>: un puntero a un arreglo reservado con <code>new</code>.</li>
+      <li><code>tamano</code>: cuántos elementos hay realmente.</li>
+      <li><code>capacidad</code>: cuántas casillas tiene el arreglo reservado.</li>
+    </ul>
+    <p>Mientras <code>tamano &lt; capacidad</code>, agregar al final es solo escribir en la siguiente casilla. Cuando se llena, se reserva un arreglo del <strong>doble</strong> de tamaño, se copia todo y se libera el viejo.</p>
+    <p>Como los elementos están contiguos, <code>datos[i]</code> se calcula con una suma: dirección de inicio + <code>i</code> × tamaño de un <code>int</code>. Por eso el acceso por índice es O(1). Lo caro es insertar o eliminar en medio, porque hay que <strong>desplazar</strong> los elementos.</p>
+
+    <h2>Pruébalo paso a paso</h2>
+    <p>Usa <strong>Posición</strong> para <code>insertar</code> y <code>eliminarEn</code>. Prueba también una posición inválida (por ejemplo <code>9</code>) para ver la excepción. Agrega dos valores seguidos para ver <code>redimensionar</code>.</p>
+    <div id="visualizador"></div>
+
+    <div class="nota">Duplicar la capacidad hace que, en promedio, <code>agregarAlFinal</code> sea O(1): las copias caras ocurren cada vez con menos frecuencia. A esto se le llama <strong>costo amortizado</strong>.</div>
+
+    <h2>Complejidad</h2>
+    <div class="tabla-envoltura">
+      <table>
+        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><code>obtener(i)</code> / <code>v[i]</code></td><td class="o-grande bueno">O(1)</td><td>Se calcula la dirección directamente.</td></tr>
+          <tr><td><code>agregarAlFinal</code></td><td class="o-grande bueno">O(1) amortizado</td><td>Casi siempre hay espacio; a veces se copia todo.</td></tr>
+          <tr><td><code>insertar(pos, x)</code></td><td class="o-grande malo">O(n)</td><td>Se desplazan los elementos a la derecha de <code>pos</code>.</td></tr>
+          <tr><td><code>eliminarEn(pos)</code></td><td class="o-grande malo">O(n)</td><td>Se desplazan los elementos para cerrar el hueco.</td></tr>
+          <tr><td><code>buscar(x)</code></td><td class="o-grande malo">O(n)</td><td>Hay que revisar casilla por casilla (si no está ordenado).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>¿Cuándo usarlo?</h2>
+    <ul>
+      <li>Es la estructura <strong>por defecto</strong> en C++: si dudas, usa <code>std::vector</code>.</li>
+      <li>Cuando necesitas acceder por posición y casi siempre agregas al final.</li>
+      <li>Evítalo si haces muchas inserciones o eliminaciones al inicio o en medio: considera una lista enlazada o una <code>std::deque</code>.</li>
+    </ul>
+    <p>En C++ real: <code>std::vector&lt;int&gt; v; v.push_back(10); v.insert(v.begin() + 1, 15); v.erase(v.begin());</code></p>
+
+    <h2>Código completo en C++</h2>
+    <p>Compílalo y ejecútalo con:</p>
+    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra vector_dinamico.cpp -o vector_dinamico &amp;&amp; ./vector_dinamico</span></pre>
+    <div data-codigo-completo="vector_dinamico.cpp"></div>
+
+    <h2>Para practicar</h2>
+    <ol>
+      <li>Agrega <code>void eliminarAlFinal()</code>. ¿Cuál es su complejidad?</li>
+      <li>Haz que el vector se <strong>reduzca</strong> a la mitad cuando <code>tamano</code> sea menor que <code>capacidad / 4</code>. ¿Por qué no a la mitad exacta?</li>
+      <li>Cambia <code>redimensionar(capacidad * 2)</code> por <code>redimensionar(capacidad + 1)</code> y cuenta cuántas copias se hacen al agregar 1000 elementos.</li>
+    </ol>
+
+    <div id="navegacion-temas"></div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="vector-dinamico.js"></script>
+</body>
+</html>

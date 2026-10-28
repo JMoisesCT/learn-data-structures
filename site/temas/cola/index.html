@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cola (queue) · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Qué es una cola (FIFO), cómo funciona un arreglo circular, animación paso a paso y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="cola">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Cola</div>
+      <h1>Cola (queue)</h1>
+      <p class="resumen">Una colección donde <strong>el primero que entra es el primero que sale</strong> (FIFO, <em>First In, First Out</em>). Se agrega por el final y se saca por el frente.</p>
+    </div>
+
+    <h2>La idea</h2>
+    <p>Es la fila del banco: quien llega se pone al final y atienden primero a quien está adelante.</p>
+    <p>Si la guardáramos en un arreglo normal, sacar el primero obligaría a mover a todos un lugar (O(n)). El truco es un <strong>arreglo circular</strong>: dos índices, <code>inicio</code> y <code>fin</code>, que avanzan y, al llegar al final del arreglo, <strong>dan la vuelta</strong> a la posición 0 gracias al operador <code>%</code> (módulo).</p>
+    <ul>
+      <li><code>encolar(x)</code> (<em>push</em>): guarda <code>x</code> en <code>datos[fin]</code> y avanza <code>fin</code>.</li>
+      <li><code>desencolar()</code> (<em>pop</em>): devuelve <code>datos[inicio]</code> y avanza <code>inicio</code>.</li>
+      <li><code>frente()</code> (<em>front</em>): mira el primero sin sacarlo.</li>
+    </ul>
+
+    <h2>Pruébalo paso a paso</h2>
+    <p>Encola varios valores seguidos y mira cómo <code>fin</code> pasa de 7 a 0. Abajo verás la cola “como la ve quien la usa”: en orden de llegada, sin importar dónde quedó cada valor en el arreglo.</p>
+    <div id="visualizador"></div>
+
+    <div class="nota">¿Por qué guardamos <code>cantidad</code>? Porque cuando la cola está vacía y cuando está llena, <code>inicio == fin</code> en ambos casos. Sin <code>cantidad</code> no podríamos distinguirlos.</div>
+
+    <h2>Complejidad</h2>
+    <div class="tabla-envoltura">
+      <table>
+        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><code>encolar</code></td><td class="o-grande bueno">O(1)</td><td>Se escribe en <code>datos[fin]</code> y se avanza un índice.</td></tr>
+          <tr><td><code>desencolar</code></td><td class="o-grande bueno">O(1)</td><td>Se avanza <code>inicio</code>; no se mueve ningún elemento.</td></tr>
+          <tr><td><code>frente</code></td><td class="o-grande bueno">O(1)</td><td>Acceso directo a <code>datos[inicio]</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>¿Dónde se usa?</h2>
+    <ul>
+      <li>Colas de impresión, de tareas o de mensajes: se atienden en orden de llegada.</li>
+      <li>Búfer de teclado, audio o red (los búferes circulares están en todas partes).</li>
+      <li>El recorrido en anchura de grafos y árboles (BFS).</li>
+    </ul>
+    <p>En C++ real usa <code>std::queue&lt;int&gt;</code> (de <code>&lt;queue&gt;</code>), con <code>push</code>, <code>pop</code> y <code>front</code>.</p>
+
+    <h2>Código completo en C++</h2>
+    <p>Compílalo y ejecútalo con:</p>
+    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra cola.cpp -o cola &amp;&amp; ./cola</span></pre>
+    <div data-codigo-completo="cola.cpp"></div>
+
+    <h2>Para practicar</h2>
+    <ol>
+      <li>Elimina la variable <code>cantidad</code> dejando siempre una casilla libre. ¿Cómo detectas ahora que está llena?</li>
+      <li>Haz que la cola crezca al doble cuando se llene. Cuidado: al copiar, los elementos deben quedar en orden desde <code>inicio</code>.</li>
+      <li>Implementa una cola usando <strong>dos pilas</strong>.</li>
+    </ol>
+
+    <div id="navegacion-temas"></div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="cola.js"></script>
+</body>
+</html>
