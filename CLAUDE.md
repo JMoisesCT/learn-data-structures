@@ -8,6 +8,8 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
 - Agregar **animaciones y ejemplos** de temas de estructuras de datos. Las ideas deben servir para cualquier lenguaje, pero los ejemplos son en **C++** por ahora.
 - Los **pull requests deben tener nombres claros** que representen lo que hacen. Formato obligatorio: `[Ámbito] Verbo en infinitivo + qué cambia` (detalles y ejemplos en CONTRIBUTING.md).
 - Mantener el sitio de **GitHub Pages** funcionando.
+- Darle al sitio **un formato visual más interesante**, como las páginas de programación con animaciones. Las referencias y las direcciones propuestas están en `docs/inspiracion-visual.md`; **no rediseñes hasta que el dueño elija una dirección**.
+- Temas pedidos explícitamente: **montículos (min-heap y max-heap) y heapsort** (hecho en `site/temas/monticulo/`).
 
 ## Reglas
 

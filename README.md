@@ -21,6 +21,7 @@ Cada tema tiene:
 | Lista enlazada | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-enlazada/) | [`lista_enlazada.cpp`](ejemplos/cpp/lista_enlazada.cpp) |
 | Pila (stack) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/pila/) | [`pila.cpp`](ejemplos/cpp/pila.cpp) |
 | Cola (queue) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/cola/) | [`cola.cpp`](ejemplos/cpp/cola.cpp) |
+| Montículo (min-heap, max-heap) y heapsort | [ver](https://jmoisesct.github.io/learn-data-structures/temas/monticulo/) | [`monticulo.cpp`](ejemplos/cpp/monticulo.cpp) |
 
 Los próximos temas están en [ROADMAP.md](ROADMAP.md).
 
@@ -34,6 +35,7 @@ site/                      Sitio estático (HTML + CSS + JS, sin dependencias)
   assets/js/visualizador.js  Motor de animaciones, resaltado C++ y lista de temas
   temas/<tema>/index.html  Página del tema
   temas/<tema>/<tema>.js   Animación del tema
+docs/                      Notas del proyecto (p. ej. inspiración para el rediseño visual)
 scripts/
   compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos (con sanitizadores)
   verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp
