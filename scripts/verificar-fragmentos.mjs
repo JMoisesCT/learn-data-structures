@@ -35,17 +35,19 @@ for (const slug of readdirSync(dirTemas)) {
   }
   const lineasCpp = normalizar(readFileSync(join(raiz, "ejemplos", "cpp", cpp[1]), "utf8"));
 
-  // Ejecutamos el .js del tema con un DS falso para capturar su configuración.
-  let cfg = null;
-  const DS = { el: () => null, variables: () => null, tema: (c) => { cfg = c; } };
+  // Ejecutamos el .js del tema con un DS falso para capturar su configuración
+  // (una página puede tener varios visualizadores).
+  const configuraciones = [];
+  const DS = { el: () => null, variables: () => null, tema: (c) => { configuraciones.push(c); } };
   vm.runInNewContext(readFileSync(js, "utf8"), { DS, console });
-  if (!cfg) {
+  if (!configuraciones.length) {
     console.error(`✗ ${slug}: ${slug}.js no llamó a DS.tema()`);
     errores++;
     continue;
   }
 
-  for (const [clave, texto] of Object.entries(cfg.codigo)) {
+  const fragmentos = configuraciones.flatMap((cfg) => Object.entries(cfg.codigo));
+  for (const [clave, texto] of fragmentos) {
     revisados++;
     if (contiene(lineasCpp, normalizar(texto))) {
       console.log(`✓ ${slug}: ${clave}`);

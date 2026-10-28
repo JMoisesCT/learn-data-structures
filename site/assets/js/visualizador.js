@@ -43,8 +43,14 @@
       etiquetas: ["FIFO", "arreglo circular"],
       archivo: "cola.cpp",
     },
+    {
+      slug: "monticulo",
+      titulo: "Montículo (heap)",
+      resumen: "Min-heap y max-heap: un árbol guardado en un arreglo con el mínimo (o el máximo) siempre en la raíz. Incluye heapsort.",
+      etiquetas: ["insertar O(log n)", "heapsort O(n log n)"],
+      archivo: "monticulo.cpp",
+    },
     { slug: "arbol-binario-busqueda", titulo: "Árbol binario de búsqueda", resumen: "Búsqueda, inserción y recorridos.", etiquetas: ["próximamente"], proximamente: true },
-    { slug: "monticulo", titulo: "Montículo (heap)", resumen: "Cola de prioridad con un arreglo.", etiquetas: ["próximamente"], proximamente: true },
     { slug: "tabla-hash", titulo: "Tabla hash", resumen: "Funciones hash y manejo de colisiones.", etiquetas: ["próximamente"], proximamente: true },
     { slug: "grafos", titulo: "Grafos", resumen: "Representación, BFS y DFS.", etiquetas: ["próximamente"], proximamente: true },
   ];
@@ -253,13 +259,17 @@
   //
   // cfg = {
   //   codigo:        { clave: "fragmento C++" }      // fragmentos que se muestran y resaltan
-  //   estadoInicial: () => objeto                     // estado plano (se clona en cada paso)
-  //   entradas:      [{ id, etiqueta, valor, min, max, aleatorio }]
-  //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", ejecutar(s, args, paso) }]
+  //   contenedor:    "visualizador"                   // opcional: id del elemento (varios por página)
+  //   estadoInicial: (valores) => objeto              // estado plano (se clona en cada paso);
+  //                                                   // recibe los valores actuales de las entradas
+  //   entradas:      [{ id, etiqueta, valor, min, max, aleatorio }]   // número
+  //                  [{ id, etiqueta, opciones: [[valor, texto]] }]   // lista; al cambiarla se reinicia
+  //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, ejecutar(s, args, paso) }]
+  //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
   //   dibujar(escenario, estado)                      // pinta un estado en el escenario
   //   incremental:   true                             // opcional: no vaciar el escenario entre pasos
   //                                                   // (para animar movimientos con transiciones CSS)
-  //   mensajeInicial
+  //   mensajeInicial                                  // texto o (valores) => texto
   // }
   //
   // Dentro de ejecutar(), cada llamada paso(clave, linea, mensaje, tipo)
@@ -270,13 +280,14 @@
   const VELOCIDADES = [0.4, 0.7, 1, 1.6, 2.6];
 
   function tema(cfg) {
-    const contenedor = document.getElementById("visualizador");
+    const contenedor = document.getElementById(cfg.contenedor || "visualizador");
     if (!contenedor) return;
+    const prefijo = cfg.contenedor ? cfg.contenedor : "entrada";
 
     const fragmentos = {};
     for (const [clave, texto] of Object.entries(cfg.codigo)) fragmentos[clave] = dedent(texto);
 
-    let estado = cfg.estadoInicial();
+    let estado = null;
     let pasos = [];
     let actual = 0;
     let temporizador = null;
@@ -287,14 +298,24 @@
     const campos = {};
     const controles = el("div", { class: "controles" });
     for (const e of cfg.entradas || []) {
-      const input = el("input", { type: "number", id: `entrada-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
-      input.value = e.aleatorio ? aleatorio(e) : e.valor;
-      input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
+      let input;
+      if (e.opciones) {
+        input = el("select", { id: `${prefijo}-${e.id}` },
+          e.opciones.map(([valor, texto]) => el("option", { value: valor, text: texto })));
+        if (e.valor != null) input.value = e.valor;
+        input.addEventListener("change", reiniciar);
+      } else {
+        input = el("input", { type: "number", id: `${prefijo}-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
+        input.value = e.aleatorio ? aleatorio(e) : e.valor;
+        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
+      }
       campos[e.id] = { cfg: e, input };
       controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta, input));
     }
     for (const op of cfg.operaciones) {
-      controles.append(el("button", { class: "boton principal", type: "button", onclick: () => ejecutar(op), html: `<code>${escapar(op.etiqueta)}</code>` }));
+      controles.append(op.secundaria
+        ? el("button", { class: "boton", type: "button", onclick: () => ejecutar(op), text: op.etiqueta })
+        : el("button", { class: "boton principal", type: "button", onclick: () => ejecutar(op), html: `<code>${escapar(op.etiqueta)}</code>` }));
     }
     controles.append(el("span", { class: "separador" }),
       el("button", { class: "boton", type: "button", text: "Reiniciar", onclick: reiniciar }));
@@ -335,6 +356,10 @@
       const args = {};
       for (const id of op.usa || []) {
         const { cfg: e, input } = campos[id];
+        if (e.opciones) {
+          args[id] = input.value;
+          continue;
+        }
         const n = Number(input.value);
         if (input.value.trim() === "" || !Number.isInteger(n)) {
           return { error: `Escribe un número entero en "${e.etiqueta}".` };
@@ -345,6 +370,14 @@
         args[id] = n;
       }
       return { args };
+    }
+
+    function valoresEntradas() {
+      const valores = {};
+      for (const [id, { cfg: e, input }] of Object.entries(campos)) {
+        valores[id] = e.opciones ? input.value : Number(input.value);
+      }
+      return valores;
     }
 
     function pasoInicial(texto) {
@@ -380,8 +413,10 @@
 
     function reiniciar() {
       detener();
-      estado = cfg.estadoInicial();
-      pasos = [pasoInicial(cfg.mensajeInicial || "Elige una operación para empezar.")];
+      const valores = valoresEntradas();
+      estado = cfg.estadoInicial(valores);
+      const texto = typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial;
+      pasos = [pasoInicial(texto || "Elige una operación para empezar.")];
       ir(0);
     }
 
