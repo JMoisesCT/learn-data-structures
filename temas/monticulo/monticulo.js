@@ -443,7 +443,7 @@
     const s = estadoDesde(EJEMPLO);
     const n = s.items.length;
     const escenario = el("div", { class: "escenario explorable" });
-    const mensaje = el("p", { class: "mensaje", "aria-live": "polite" });
+    const relaciones = el("div", { class: "relaciones", "aria-live": "polite" });
     let actual = 1;
 
     function seleccionar(i) {
@@ -455,15 +455,22 @@
         comparar: [actual],
         relacionado: [padre, izq < n ? izq : null, der < n ? der : null].filter((k) => k != null),
         marcas: marcas([[actual, "i"], [padre, "padre"], [izq < n ? izq : null, "izq"], [der < n ? der : null, "der"]]),
-        vars: { i: actual, "v[i]": s.items[actual].v, n },
+        vars: { n },
       };
       dibujar(escenario, s);
-      const existe = (k) => (k < n ? `${k} (vale ${s.items[k].v})` : `${k} → no existe, ${k} ≥ n`);
-      mensaje.textContent = [
-        actual > 0 ? `padre = (${actual} − 1) / 2 = ${padre}` : "padre: no tiene, es la raíz",
-        `izq = 2·${actual} + 1 = ${existe(izq)}`,
-        `der = 2·${actual} + 2 = ${existe(der)}`,
-      ].join("  ·  ");
+
+      // Una fila por relación: nombre, la cuenta y lo que hay en esa posición.
+      const valor = (k) => el("span", { class: "relacion-valor" },
+        el("span", { class: "indice", text: `v[${k}] =` }), el("span", { class: "relacion-celda", text: s.items[k].v }));
+      const fila = (nombre, cuenta, k, motivo) => el("div", { class: `relacion${nombre === "i" ? " seleccionada" : ""}${k == null || k >= n ? " ausente" : ""}` },
+        el("span", { class: "relacion-nombre", text: nombre }),
+        el("code", { class: "relacion-cuenta", text: cuenta }),
+        k != null && k < n ? valor(k) : el("span", { class: "relacion-motivo", text: motivo }));
+      relaciones.replaceChildren(
+        fila("i", `i = ${actual}`, actual),
+        fila("padre", actual > 0 ? `(${actual} − 1) / 2 = ${padre}` : "—", padre, "no tiene: es la raíz"),
+        fila("izq", `2·${actual} + 1 = ${izq}`, izq, `no existe (${izq} ≥ n)`),
+        fila("der", `2·${actual} + 2 = ${der}`, der, `no existe (${der} ≥ n)`));
     }
 
     escenario.addEventListener("click", (ev) => {
@@ -473,7 +480,7 @@
       if (i >= 0) seleccionar(i);
     });
     caja.classList.add("panel", "explorador");
-    caja.append(escenario, mensaje, el("div", { class: "reproduccion" },
+    caja.append(escenario, relaciones, el("div", { class: "reproduccion" },
       el("button", { class: "boton", type: "button", "aria-label": "Nodo anterior", text: "‹ i − 1", onclick: () => seleccionar(actual - 1) }),
       el("span", { text: "Toca un nodo o una celda" }),
       el("button", { class: "boton", type: "button", "aria-label": "Nodo siguiente", text: "i + 1 ›", onclick: () => seleccionar(actual + 1) })));
