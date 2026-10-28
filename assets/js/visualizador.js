@@ -436,6 +436,7 @@
     let actual = 0;
     let temporizador = null;
     let velocidad = 2;
+    let modo = "auto";
     let claveMostrada = null;
 
     // --- Construcción de la interfaz ---
@@ -473,14 +474,20 @@
     const bPlay = el("button", { class: "boton", type: "button", title: "Reproducir / pausar", "aria-label": "Reproducir o pausar", onclick: alternar });
     const bAdelante = el("button", { class: "boton", type: "button", title: "Paso siguiente", "aria-label": "Paso siguiente", text: "›", onclick: () => ir(actual + 1) });
     const bFin = el("button", { class: "boton", type: "button", title: "Último paso", "aria-label": "Último paso", text: "»", onclick: () => ir(pasos.length - 1) });
-    const contador = el("span");
+    const contador = el("span", { class: "contador-pasos" });
     const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": "Velocidad" });
     rango.value = velocidad;
     rango.addEventListener("input", () => { velocidad = Number(rango.value); if (temporizador) { detener(); reproducir(); } });
+    const etiquetaVelocidad = el("label", { class: "velocidad" }, "Velocidad", rango);
+
+    // Modo al ejecutar una operación: reproducir solo o avanzar con ›.
+    const bAuto = el("button", { type: "button", text: "▶ Automático", onclick: () => cambiarModo("auto", true) });
+    const bManual = el("button", { type: "button", text: "Paso a paso", onclick: () => cambiarModo("manual", true) });
+    const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": "Al ejecutar una operación" }, bAuto, bManual);
 
     const reproduccion = el("div", { class: "reproduccion" },
-      bInicio, bAtras, bPlay, bAdelante, bFin, contador,
-      el("label", {}, "Velocidad", rango));
+      el("div", { class: "fila-reproduccion" }, bInicio, bAtras, bPlay, bAdelante, bFin, contador),
+      el("div", { class: "fila-reproduccion" }, el("span", { text: "Al ejecutar:" }), selectorModo, etiquetaVelocidad));
 
     const tituloCodigo = el("div", { class: "titulo-codigo" });
     const preCodigo = el("pre", { class: "codigo", tabindex: "0" });
@@ -491,6 +498,65 @@
       el("div", { class: "panel panel-codigo" }, tituloCodigo, preCodigo));
 
     // --- Lógica ---
+    function cambiarModo(nuevo, elegidoAqui) {
+      modo = nuevo;
+      bAuto.setAttribute("aria-pressed", String(modo === "auto"));
+      bManual.setAttribute("aria-pressed", String(modo === "manual"));
+      etiquetaVelocidad.hidden = modo === "manual";
+      bAdelante.classList.toggle("principal", modo === "manual");
+      if (!elegidoAqui) return;
+      if (modo === "manual") detener();
+      guardarPreferencia("ds-modo", modo);
+      // Los demás visualizadores de la página usan el mismo modo.
+      window.dispatchEvent(new CustomEvent("ds-modo", { detail: { modo, origen: contenedor } }));
+    }
+    window.addEventListener("ds-modo", (ev) => { if (ev.detail.origen !== contenedor) cambiarModo(ev.detail.modo, false); });
+    cambiarModo(leerPreferencia("ds-modo") === "manual" ? "manual" : "auto", false);
+
+    // Para que los botones no salten entre pasos, el escenario y el mensaje
+    // reservan desde el primer paso el alto del paso más grande, y nunca se
+    // encogen; vuelven a su tamaño natural al reiniciar o cambiar el ancho.
+    const altos = new Map();
+    function reservar(nodo, h) {
+      if (h > (altos.get(nodo) || 0)) {
+        altos.set(nodo, h);
+        nodo.style.minHeight = `${h}px`;
+      }
+    }
+    const noEncoger = (nodo) => reservar(nodo, nodo.offsetHeight);
+
+    // Dibuja cada paso en copias invisibles del escenario y del mensaje para medirlos.
+    function reservarEspacio() {
+      if (!escenario.clientWidth) return; // paso de lección oculto
+      const invisible = "position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;";
+      const copiaEscenario = el("div", { class: "escenario", "aria-hidden": "true", style: `${invisible}width:${escenario.offsetWidth}px` });
+      const copiaMensaje = el("p", { class: "mensaje", "aria-hidden": "true", style: `${invisible}width:${mensaje.offsetWidth}px` });
+      escenario.parentElement.append(copiaEscenario, copiaMensaje);
+      let altoEscenario = 0;
+      let altoMensaje = 0;
+      for (const p of pasos) {
+        copiaEscenario.replaceChildren();
+        cfg.dibujar(copiaEscenario, p.estado);
+        altoEscenario = Math.max(altoEscenario, copiaEscenario.offsetHeight);
+        copiaMensaje.textContent = p.mensaje;
+        altoMensaje = Math.max(altoMensaje, copiaMensaje.offsetHeight);
+      }
+      copiaEscenario.remove();
+      copiaMensaje.remove();
+      reservar(escenario, altoEscenario);
+      reservar(mensaje, altoMensaje);
+    }
+    function liberarAlturas() {
+      for (const nodo of altos.keys()) nodo.style.minHeight = "";
+      altos.clear();
+    }
+    let anchoVentana = window.innerWidth;
+    window.addEventListener("resize", () => {
+      if (window.innerWidth === anchoVentana) return; // en móvil, la barra del navegador cambia solo el alto
+      anchoVentana = window.innerWidth;
+      liberarAlturas();
+    });
+
     function aleatorio(e) {
       const min = e.min ?? 1;
       const max = e.max ?? 99;
@@ -562,12 +628,14 @@
       for (const id of op.usa || []) {
         if (campos[id].cfg.aleatorio) campos[id].input.value = aleatorio(campos[id].cfg);
       }
+      reservarEspacio();
       ir(0);
-      if (pasos.length > 1) reproducir();
+      if (pasos.length > 1 && modo === "auto") reproducir();
     }
 
     function reiniciar() {
       detener();
+      liberarAlturas();
       const valores = valoresEntradas();
       estado = cfg.estadoInicial(valores);
       actualizarEtiquetas(valores);
@@ -600,6 +668,8 @@
       if (actual === pasos.length - 1) detener();
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
+      noEncoger(escenario);
+      noEncoger(mensaje);
     }
 
     function reproducir() {
