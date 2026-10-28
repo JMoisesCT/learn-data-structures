@@ -834,7 +834,44 @@ pre.codigo .linea.actual {
 
 /* Explorador de índices (sin reproducción paso a paso) */
 .explorador .escenario { min-height: 0; }
-.explorador .mensaje { font-family: var(--fuente-codigo); font-size: 0.88rem; }
+.relaciones { display: grid; gap: 0.35rem; padding: 0.75rem 1rem; border-top: 1px solid var(--borde); background: var(--superficie-2); }
+
+.relacion {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--superficie);
+  animation: salir 0.25s ease;
+}
+
+.relacion-nombre { font-family: var(--fuente-codigo); font-size: 0.78rem; font-weight: 700; color: var(--activo); }
+.relacion-cuenta { font-size: 0.88rem; background: none; border: 0; padding: 0; }
+.relacion-valor { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+.relacion-celda {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 4px;
+  border: 2px solid var(--activo);
+  border-radius: 6px;
+  background: var(--superficie);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.relacion.seleccionada { border-color: var(--activo); background: var(--activo-suave); }
+.relacion.seleccionada .relacion-celda { background: var(--activo-suave); }
+.relacion.ausente { border-style: dashed; background: transparent; }
+.relacion.ausente .relacion-nombre, .relacion.ausente .relacion-cuenta { color: var(--texto-suave); }
+.relacion-motivo { font-size: 0.82rem; color: var(--texto-suave); text-align: right; }
 .explorador .reproduccion { justify-content: center; }
 
 /* Pila vertical */
