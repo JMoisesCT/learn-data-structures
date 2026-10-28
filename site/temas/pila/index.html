@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pila (stack) · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Qué es una pila (LIFO), cómo funcionan apilar y desapilar, animación paso a paso y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="pila">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Pila</div>
+      <h1>Pila (stack)</h1>
+      <p class="resumen">Una colección donde <strong>el último elemento que entra es el primero que sale</strong> (LIFO, <em>Last In, First Out</em>). Solo se trabaja por un extremo: la cima.</p>
+    </div>
+
+    <h2>La idea</h2>
+    <p>Piensa en una pila de platos: pones platos arriba y, cuando necesitas uno, tomas el de arriba. Nunca sacas el de abajo sin quitar antes los que tiene encima.</p>
+    <p>Aquí la construimos sobre un arreglo de tamaño fijo y un índice <code>tope</code> que señala el elemento de arriba. Con la pila vacía, <code>tope</code> vale <code>-1</code>.</p>
+    <ul>
+      <li><code>apilar(x)</code> (<em>push</em>): sube <code>tope</code> y guarda <code>x</code> ahí.</li>
+      <li><code>desapilar()</code> (<em>pop</em>): devuelve el elemento de la cima y baja <code>tope</code>.</li>
+      <li><code>cima()</code> (<em>top</em>): mira el elemento de arriba sin sacarlo.</li>
+    </ul>
+
+    <h2>Pruébalo paso a paso</h2>
+    <p>Elige una operación. La animación avanza sola y, a la derecha, se resalta la línea de C++ que se está ejecutando. Puedes pausar y moverte paso a paso.</p>
+    <div id="visualizador"></div>
+
+    <div class="nota">Fíjate en <code>desapilar()</code>: el valor no se borra de la memoria, solo baja <code>tope</code>. Lo que está por encima de <code>tope</code> se considera basura y se sobrescribirá con el próximo <code>apilar()</code>.</div>
+
+    <h2>Complejidad</h2>
+    <div class="tabla-envoltura">
+      <table>
+        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><code>apilar</code></td><td class="o-grande bueno">O(1)</td><td>Solo se modifica la cima.</td></tr>
+          <tr><td><code>desapilar</code></td><td class="o-grande bueno">O(1)</td><td>Solo se modifica la cima.</td></tr>
+          <tr><td><code>cima</code></td><td class="o-grande bueno">O(1)</td><td>Acceso directo a <code>datos[tope]</code>.</td></tr>
+          <tr><td>Buscar un valor</td><td class="o-grande malo">O(n)</td><td>Una pila no está pensada para esto: habría que sacar elementos.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>¿Dónde se usa?</h2>
+    <ul>
+      <li>El botón <strong>deshacer</strong> de un editor: la última acción es la primera que se deshace.</li>
+      <li>La <strong>pila de llamadas</strong>: cada función que llamas se apila y, al terminar, se desapila.</li>
+      <li>Verificar <strong>paréntesis balanceados</strong> como <code>{[()]}</code>.</li>
+      <li>Recorrer grafos en profundidad (DFS) sin recursión.</li>
+    </ul>
+    <p>En C++ real usa <code>std::stack&lt;int&gt;</code> (de <code>&lt;stack&gt;</code>), con <code>push</code>, <code>pop</code> y <code>top</code>.</p>
+
+    <h2>Código completo en C++</h2>
+    <p>Compílalo y ejecútalo con:</p>
+    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra pila.cpp -o pila &amp;&amp; ./pila</span></pre>
+    <div data-codigo-completo="pila.cpp"></div>
+
+    <h2>Para practicar</h2>
+    <ol>
+      <li>Agrega un método <code>int tamano() const</code>. ¿Necesitas una variable nueva o te basta con <code>tope</code>?</li>
+      <li>Cambia el arreglo fijo por un <code>std::vector&lt;int&gt;</code> para que la pila nunca se llene.</li>
+      <li>Usa tu pila para escribir <code>bool balanceado(const std::string&amp; s)</code> que verifique paréntesis, corchetes y llaves.</li>
+    </ol>
+
+    <div id="navegacion-temas"></div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="pila.js"></script>
+</body>
+</html>

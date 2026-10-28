@@ -1,0 +1,32 @@
+# Revisa cada pull request: los ejemplos de C++ compilan sin advertencias,
+# se ejecutan sin errores de memoria y las animaciones muestran el mismo
+# código que los archivos .cpp.
+name: Verificar ejemplos
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  cpp:
+    name: Compilar y ejecutar ejemplos C++
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/compilar-ejemplos.sh
+
+  fragmentos:
+    name: Fragmentos de las animaciones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/verificar-fragmentos.mjs
+      - name: Sintaxis de los .js del sitio
+        run: for f in $(find site -name '*.js'); do node --check "$f"; done

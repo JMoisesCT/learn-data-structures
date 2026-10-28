@@ -1,0 +1,4 @@
+_site/
+*.o
+*.out
+.DS_Store

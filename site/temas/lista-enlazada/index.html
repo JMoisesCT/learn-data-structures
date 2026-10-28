@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista enlazada · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Qué es una lista enlazada simple, cómo se insertan y eliminan nodos con punteros, animación paso a paso y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="lista-enlazada">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Lista enlazada</div>
+      <h1>Lista enlazada</h1>
+      <p class="resumen">Una secuencia de <strong>nodos</strong> repartidos por la memoria. Cada nodo guarda un valor y un <strong>puntero</strong> al siguiente. Para recorrerla hay que seguir los punteros desde la <code>cabeza</code>.</p>
+    </div>
+
+    <h2>La idea</h2>
+    <p>Imagina una búsqueda del tesoro: cada pista te dice dónde está la siguiente. No puedes saltar a la quinta pista; tienes que pasar por las cuatro anteriores. Pero agregar una pista al principio es fácil: escribes una nueva que apunte a la que antes era la primera.</p>
+    <pre class="codigo"><span class="linea"><span class="tk-clave">struct</span> <span class="tk-tipo">Nodo</span> {</span><span class="linea">    <span class="tk-tipo">int</span> valor;</span><span class="linea">    <span class="tk-tipo">Nodo</span>* siguiente;  <span class="tk-comentario">// nullptr si es el último</span></span><span class="linea">};</span></pre>
+    <p>A diferencia del vector, los nodos <strong>no están contiguos</strong>: cada uno se crea con <code>new</code> donde haya espacio. Por eso insertar o quitar un nodo solo requiere cambiar punteros, sin desplazar nada.</p>
+
+    <h2>Pruébalo paso a paso</h2>
+    <p>Observa los punteros <code>cabeza</code>, <code>nuevo</code>, <code>actual</code> y <code>temp</code>. Los nodos con borde punteado están en memoria pero todavía (o ya) no son parte de la lista.</p>
+    <div id="visualizador"></div>
+
+    <div class="nota">El orden de las instrucciones importa. En <code>insertarAlInicio</code>, si hicieras <code>cabeza = nuevo</code> <em>antes</em> de <code>nuevo-&gt;siguiente = cabeza</code>, perderías la referencia al resto de la lista (y tendrías una fuga de memoria).</div>
+
+    <h2>Complejidad</h2>
+    <div class="tabla-envoltura">
+      <table>
+        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><code>insertarAlInicio</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian dos punteros.</td></tr>
+          <tr><td><code>insertarAlFinal</code></td><td class="o-grande malo">O(n)</td><td>Hay que recorrer hasta el último (O(1) si guardas también un puntero <code>cola</code>).</td></tr>
+          <tr><td><code>buscar</code></td><td class="o-grande malo">O(n)</td><td>Se recorre nodo por nodo.</td></tr>
+          <tr><td><code>eliminar(valor)</code></td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el nodo anterior; el borrado en sí es O(1).</td></tr>
+          <tr><td>Acceso a la posición <code>i</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que avanzar <code>i</code> veces.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>¿Cuándo usarla?</h2>
+    <ul>
+      <li>Cuando insertas y eliminas mucho al inicio, o en un punto que ya tienes localizado.</li>
+      <li>Como base de otras estructuras: pilas, colas, listas de adyacencia de grafos, tablas hash con encadenamiento.</li>
+      <li>En la práctica, <code>std::vector</code> suele ser más rápido para recorrer porque aprovecha la memoria caché. Mide antes de elegir.</li>
+    </ul>
+    <p>En C++ real: <code>std::forward_list&lt;int&gt;</code> (simple) o <code>std::list&lt;int&gt;</code> (doblemente enlazada).</p>
+
+    <h2>Código completo en C++</h2>
+    <p>Compílalo y ejecútalo con:</p>
+    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lista_enlazada.cpp -o lista_enlazada &amp;&amp; ./lista_enlazada</span></pre>
+    <div data-codigo-completo="lista_enlazada.cpp"></div>
+
+    <h2>Para practicar</h2>
+    <ol>
+      <li>Agrega un puntero <code>cola</code> al último nodo para que <code>insertarAlFinal</code> sea O(1). ¿Qué otros métodos tienes que actualizar?</li>
+      <li>Escribe <code>void invertir()</code> que dé vuelta la lista cambiando solo punteros, sin crear nodos.</li>
+      <li>Escribe <code>int tamano() const</code> de forma recursiva.</li>
+    </ol>
+
+    <div id="navegacion-temas"></div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="lista-enlazada.js"></script>
+</body>
+</html>
