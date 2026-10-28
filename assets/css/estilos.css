@@ -894,6 +894,116 @@ pre.codigo .linea.actual {
 .relacion-motivo { font-size: 0.82rem; color: var(--texto-suave); text-align: right; }
 .explorador .reproduccion { justify-content: center; }
 
+/* Tabla hash: cubetas con fichas (una fila por cubeta, como imprimir()) */
+
+.cubetas-hash { display: grid; gap: 4px; }
+
+.fila-cubeta { display: flex; align-items: center; gap: 8px; }
+.fila-cubeta .indice { width: 2.2rem; flex: none; text-align: right; }
+
+.fila-cubeta .caja {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 34px;
+  padding: 3px;
+  border: 1px dashed var(--borde);
+  border-radius: 7px;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.fila-cubeta.colision .caja { border-style: solid; }
+.fila-cubeta.activa .caja { border: 1px solid var(--activo); background: var(--activo-suave); }
+
+.ficha {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 6px;
+  border: 2px solid var(--acento);
+  border-radius: 6px;
+  background: var(--acento-suave);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.ficha.nueva { border-color: var(--activo); background: var(--superficie); animation: pop 0.35s ease; }
+
+.resumen-cubetas { margin: 0.6rem 0 0; font-size: 0.82rem; color: var(--texto-suave); }
+
+.letras { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 1rem; }
+.letra { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+.letra-caracter {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--borde);
+  border-radius: 7px;
+  background: var(--superficie);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.letra.hecha .letra-caracter { border-color: var(--acento); background: var(--acento-suave); }
+.letra.actual .letra-caracter { border-color: var(--activo); background: var(--activo-suave); }
+
+/* Tabla hash con encadenamiento: cubetas y nodos con posición absoluta */
+
+.info-hash { min-height: 2.6rem; }
+.info-hash .variables { margin-bottom: 0.6rem; }
+
+.lienzo-hash { transition: height 0.45s ease; }
+.lienzo-hash .capa-fija > * { position: absolute; margin: 0; white-space: nowrap; }
+.lienzo-hash .indice-cubeta { width: 30px; text-align: right; }
+
+.lienzo-hash .nodo { height: 32px; border-radius: 7px; font-size: 0.85rem; }
+.lienzo-hash .nodo .valor { width: 34px; }
+.lienzo-hash .nodo .sig { width: 22px; }
+.lienzo-hash .nodo.anterior { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+
+.cubeta {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 32px;
+  border: 2px solid var(--texto-suave);
+  border-radius: 6px;
+  background: var(--superficie-2);
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  transition: left 0.45s ease, top 0.45s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.cubeta::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--texto-suave); }
+.cubeta.nula::before { content: "∅"; width: auto; height: auto; background: none; }
+.cubeta.activa { border-color: var(--activo); background: var(--activo-suave); }
+
+/* Tabla hash con direccionamiento abierto: una fila de celdas */
+
+.celdas-abiertas {
+  display: grid;
+  grid-template-columns: repeat(var(--m), minmax(0, 52px));
+  gap: 6px;
+  margin-top: 0.5rem;
+}
+
+.celdas-abiertas .celda-col { min-width: 0; }
+.celdas-abiertas .celda { width: 100%; max-width: 48px; }
+.celdas-abiertas .marcador { font-size: 0.68rem; }
+
+.celda.lapida { color: var(--texto-suave); text-decoration: line-through; border-style: dashed; border-color: var(--peligro); background: var(--peligro-suave); }
+.celda.lapida.leida { border-color: var(--activo); background: var(--activo-suave); }
+.celda.visitada { box-shadow: 0 0 0 3px var(--activo-suave); }
+
+.secuencia { margin: 1rem 0 0; font-family: var(--fuente-codigo); font-size: 0.82rem; color: var(--texto-suave); }
+
 /* Pila vertical */
 
 .pila-vista { display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; }
