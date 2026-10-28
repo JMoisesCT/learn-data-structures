@@ -10,7 +10,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | Lista enlazada simple | `insertarAlInicio`, `insertarAlFinal`, `buscar`, `eliminar` |
 | Pila (sobre arreglo) | `apilar`, `desapilar`, `cima` |
 | Cola (arreglo circular) | `encolar`, `desencolar`, `frente` |
-| Montículo (min-heap / max-heap) y heapsort | `insertar` (subir), `extraerRaiz` (bajar), `raiz`, `heapsort` en dos fases |
+| Montículo (min-heap / max-heap) y heapsort | Lección en 9 pasos: `maxHeapify`/`minHeapify` (con su recursión), `buildMaxHeap`/`buildMinHeap`, `insertMax`/`insertMin`, `extractMax`/`extractMin`, `maximum`/`minimum`, `heapSort` en dos fases |
 
 ## Pendientes
 

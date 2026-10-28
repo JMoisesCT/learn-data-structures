@@ -70,6 +70,7 @@ Usa un tema existente como plantilla (`pila` es el más simple; `lista-enlazada`
    - No toques el DOM fuera de `dibujar()` (el verificador ejecuta el archivo sin navegador).
 3. **Página** — `temas/<slug>/index.html`
    - Copia la estructura de otro tema: idea + analogía, animación, nota, complejidad, cuándo usarlo, código completo (`data-codigo-completo="<nombre>.cpp"`), ejercicios.
+   - Si el tema es largo, divídelo en una **lección por pasos** para no obligar a hacer scroll: envuelve las secciones en `<div class="leccion">`, cada una como `<section class="paso-leccion" id="<paso>" data-titulo="<título corto>">`. El motor agrega la barra de progreso y los botones Atrás / Continuar. Puedes intercalar preguntas con respuesta inmediata (`.pregunta`). Ejemplo: `temas/monticulo/`; el marcado está documentado en `visualizador.js`.
 4. **Registro** — agrega el tema en `DS.TEMAS` (`assets/js/visualizador.js`); si estaba como `proximamente`, quita esa marca. Eso actualiza menú, portada y enlaces anterior/siguiente.
 5. **Docs** — agrega la fila en la tabla de `README.md` y marca el tema como hecho en `ROADMAP.md`.
 
