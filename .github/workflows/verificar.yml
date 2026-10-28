@@ -29,4 +29,4 @@ jobs:
           node-version: 22
       - run: node scripts/verificar-fragmentos.mjs
       - name: Sintaxis de los .js del sitio
-        run: for f in $(find site -name '*.js'); do node --check "$f"; done
+        run: for f in $(find assets temas -name '*.js'); do node --check "$f"; done
