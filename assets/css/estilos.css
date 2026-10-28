@@ -132,6 +132,11 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
   border-bottom: 1px solid var(--borde);
 }
 
+/* En móvil el menú ocupa varias filas: mejor que se desplace con la página. */
+@media (max-width: 640px) {
+  .encabezado { position: static; }
+}
+
 .encabezado .contenedor {
   display: flex;
   align-items: center;
@@ -321,6 +326,133 @@ tr:last-child td { border-bottom: 0; }
   border-radius: var(--radio);
   background: var(--superficie);
   text-decoration: none;
+}
+
+/* ---------- Lección por pasos ---------- */
+
+.leccion-cabecera {
+  position: sticky;
+  top: var(--alto-encabezado, 56px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 0;
+  background: var(--fondo);
+}
+
+.leccion-indice {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leccion-indice li { flex: 1; }
+
+.leccion-indice a { display: block; padding: 7px 0; }
+
+.leccion-indice a::before {
+  content: "";
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borde);
+  transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+}
+
+.leccion-indice a:hover::before { transform: scaleY(1.4); }
+.leccion-indice .hecho a::before { background: var(--acento-suave); border-color: var(--acento); }
+.leccion-indice .actual a::before { background: var(--acento); border-color: var(--acento); }
+
+.leccion-contador { font-family: var(--fuente-codigo); font-size: 0.8rem; color: var(--texto-suave); white-space: nowrap; }
+
+.paso-leccion { padding: 0.25rem 0 1.5rem; }
+.paso-leccion > h2:first-child { margin-top: 0.75rem; }
+.paso-leccion h2:focus { outline: none; }
+.paso-leccion > p, .paso-leccion > ul, .paso-leccion > ol { max-width: 780px; }
+
+.leccion.lista .paso-leccion.entrando { animation: paso-entra 0.3s ease both; }
+.leccion.lista .paso-leccion.entrando-atras { animation: paso-entra-atras 0.3s ease both; }
+
+@keyframes paso-entra { from { transform: translateX(24px); opacity: 0; } }
+@keyframes paso-entra-atras { from { transform: translateX(-24px); opacity: 0; } }
+
+.leccion-pie {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -16px;
+  padding: 0.7rem 16px calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--fondo) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--borde);
+}
+
+.leccion-pie-interior { display: flex; justify-content: space-between; gap: 0.75rem; }
+.leccion-pie .boton { padding: 0.6rem 1rem; font-size: 0.95rem; }
+.leccion-pie .boton.principal { margin-left: auto; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
+
+/* En pantallas bajas o angostas solo el pie queda fijo, para dejar lugar a la animación. */
+@media (max-width: 640px), (max-height: 600px) {
+  .leccion-cabecera { position: static; }
+  .leccion-destino { display: none; }
+}
+
+/* Dos columnas dentro de un paso: texto a un lado, actividad al otro */
+.dos-columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.dos-columnas > :first-child > :first-child { margin-top: 0; }
+
+@media (max-width: 860px) {
+  .dos-columnas { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Preguntas con respuesta inmediata ---------- */
+
+.pregunta {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 1rem 1.1rem;
+  margin: 1.25rem 0;
+}
+
+.pregunta-enunciado { margin: 0 0 0.75rem; font-weight: 600; }
+
+.opciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.6rem; }
+
+.opcion {
+  border: 2px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--fondo);
+  color: var(--texto);
+  box-shadow: 0 3px 0 var(--borde);
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.opcion:hover { border-color: var(--acento); }
+.opcion:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--borde); }
+.opcion code { font-size: 0.88em; }
+.opcion.correcta { border-color: var(--exito); background: var(--exito-suave); box-shadow: 0 3px 0 var(--exito); }
+.opcion.incorrecta { border-color: var(--peligro); background: var(--peligro-suave); box-shadow: 0 3px 0 var(--peligro); animation: sacudir 0.36s ease; }
+
+.respuesta { margin: 0.75rem 0 0; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.93rem; }
+.respuesta:empty { display: none; }
+.respuesta.bien { background: var(--exito-suave); animation: salir 0.3s ease; }
+.respuesta.pista { background: var(--peligro-suave); animation: salir 0.3s ease; }
+
+@keyframes sacudir {
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
 }
 
 /* ---------- Visualizador ---------- */
@@ -650,6 +782,7 @@ pre.codigo .linea.actual {
 .lienzo-heap svg line { stroke: var(--borde); stroke-width: 2; }
 .lienzo-heap svg line.activa { stroke: var(--activo); stroke-width: 3; }
 .lienzo-heap .capa-fija > * { position: absolute; margin: 0; }
+.lienzo-heap .marcador.apilado { white-space: pre; line-height: 12px; min-height: 0; }
 
 .hnodo, .hcelda {
   position: absolute;
@@ -673,9 +806,36 @@ pre.codigo .linea.actual {
 .hnodo.fantasma, .hcelda.fantasma { border-style: dashed; opacity: 0.45; }
 .hnodo.nuevo, .hcelda.nuevo { animation: pop 0.35s ease; }
 
+.hnodo.relacionado, .hcelda.relacionado { border-color: var(--activo); }
+.explorable .hnodo, .explorable .hcelda { cursor: pointer; }
+.explorable .hnodo:hover, .explorable .hcelda:hover { border-color: var(--activo); }
+
+.lienzo-heap .indice-nodo { font-family: var(--fuente-codigo); font-size: 0.66rem; color: var(--texto-suave); text-align: center; width: 38px; line-height: 1; }
+.lienzo-heap .marca-nodo {
+  font-family: var(--fuente-codigo);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--activo);
+  background: var(--superficie);
+  border-radius: 4px;
+  padding: 0 3px;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
 .info-heap { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
 .info-heap .variables, .info-heap .salida-valor, .info-heap .fila-titulo { margin: 0 0 0.5rem; }
 .info-heap .salida-valor .celda { width: 38px; height: 38px; }
+
+.pila-llamadas { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; width: 100%; margin: 0 0 0.5rem; font-family: var(--fuente-codigo); font-size: 0.75rem; color: var(--texto-suave); }
+.pila-llamadas .llamada { padding: 0.05rem 0.45rem; border: 1px solid var(--borde); border-radius: 999px; background: var(--superficie-2); color: var(--texto); }
+.pila-llamadas .llamada:last-child { border-color: var(--activo); background: var(--activo-suave); }
+
+/* Explorador de índices (sin reproducción paso a paso) */
+.explorador .escenario { min-height: 0; }
+.explorador .mensaje { font-family: var(--fuente-codigo); font-size: 0.88rem; }
+.explorador .reproduccion { justify-content: center; }
 
 /* Pila vertical */
 

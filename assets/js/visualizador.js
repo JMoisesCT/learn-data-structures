@@ -169,6 +169,147 @@
       i < listos.length - 1 ? el("a", { href: `${raiz}temas/${listos[i + 1].slug}/`, text: `${listos[i + 1].titulo} →` }) : el("a", { href: raiz, text: "Volver al inicio" }));
   }
 
+  function siguienteTema() {
+    const listos = DS.TEMAS.filter((t) => !t.proximamente);
+    const i = listos.findIndex((t) => t.slug === temaActual);
+    return i >= 0 && i < listos.length - 1 ? listos[i + 1] : null;
+  }
+
+  // ------------------------------------------------------------------
+  // Lección por pasos (para temas largos: un paso a la vez, sin scroll eterno)
+  // ------------------------------------------------------------------
+  //
+  // <div class="leccion">
+  //   <section class="paso-leccion" id="idea" data-titulo="La idea">…</section>
+  //   <section class="paso-leccion" id="…" data-titulo="…">…</section>
+  // </div>
+  //
+  // Agrega barra de progreso (cada segmento lleva a su paso) y botones
+  // Atrás / Continuar. El paso actual queda en la URL (#idea) para poder
+  // enlazarlo. Sin JavaScript se ven todos los pasos seguidos.
+
+  function montarLeccion() {
+    const leccion = document.querySelector(".leccion");
+    if (!leccion) return;
+    const pasos = [...leccion.querySelectorAll(":scope > .paso-leccion")];
+    if (!pasos.length) return;
+    const total = pasos.length;
+    let actual = -1;
+
+    const segmentos = pasos.map((p, k) =>
+      el("li", {}, el("a", { href: `#${p.id}`, title: `${k + 1}. ${p.dataset.titulo}`, "aria-label": `Paso ${k + 1}: ${p.dataset.titulo}` })));
+    const contador = el("span", { class: "leccion-contador" });
+    const cabecera = el("nav", { class: "leccion-cabecera", "aria-label": "Pasos de la lección" },
+      el("ol", { class: "leccion-indice" }, segmentos), contador);
+
+    const bAtras = el("button", { class: "boton", type: "button", text: "← Atrás", onclick: () => ir(actual - 1) });
+    const destino = el("span", { class: "leccion-destino" });
+    const bContinuar = el("button", { class: "boton principal", type: "button", onclick: () => ir(actual + 1) }, "Continuar", destino, " →");
+    const proximo = siguienteTema();
+    const enlaceFinal = el("a", {
+      class: "boton principal",
+      href: proximo ? `${raiz}temas/${proximo.slug}/` : raiz,
+      text: proximo ? `Siguiente tema: ${proximo.titulo} →` : "Volver al inicio",
+    });
+    const pie = el("div", { class: "leccion-pie" }, el("div", { class: "leccion-pie-interior" }, bAtras, bContinuar, enlaceFinal));
+
+    for (const p of pasos) {
+      const titulo = p.querySelector("h2");
+      if (titulo) titulo.setAttribute("tabindex", "-1");
+    }
+    leccion.prepend(cabecera);
+    leccion.append(pie);
+    leccion.classList.add("lista");
+
+    // La barra de progreso se pega justo debajo del encabezado del sitio (si está fijo).
+    const encabezado = document.querySelector("header.encabezado");
+    const altoFijo = () => (encabezado && getComputedStyle(encabezado).position === "sticky" ? encabezado.offsetHeight : 0);
+    const medirEncabezado = () => leccion.style.setProperty("--alto-encabezado", `${altoFijo()}px`);
+    window.addEventListener("resize", medirEncabezado);
+    medirEncabezado();
+
+    function indiceDesdeHash() {
+      const id = decodeURIComponent(location.hash.slice(1));
+      if (!id) return -1;
+      const objetivo = document.getElementById(id);
+      return objetivo ? pasos.findIndex((p) => p.contains(objetivo)) : -1;
+    }
+
+    function ir(k, opciones) {
+      k = Math.max(0, Math.min(total - 1, k));
+      if (k === actual) return;
+      const haciaAtras = k < actual;
+      const primeraVez = actual < 0;
+      actual = k;
+      pasos.forEach((p, j) => {
+        p.hidden = j !== k;
+        p.classList.remove("entrando", "entrando-atras");
+      });
+      if (!primeraVez) {
+        void pasos[k].offsetWidth; // reinicia la animación de entrada
+        pasos[k].classList.add(haciaAtras ? "entrando-atras" : "entrando");
+      }
+      segmentos.forEach((li, j) => {
+        li.className = j < k ? "hecho" : j === k ? "actual" : "";
+        li.firstChild.toggleAttribute("aria-current", j === k);
+      });
+      contador.textContent = `${k + 1} / ${total}`;
+      bAtras.disabled = k === 0;
+      bContinuar.hidden = k === total - 1;
+      enlaceFinal.hidden = k !== total - 1;
+      if (k < total - 1) destino.textContent = `: ${pasos[k + 1].dataset.titulo}`;
+
+      if (!(opciones && opciones.sinUrl) && history.replaceState) history.replaceState(null, "", `#${pasos[k].id}`);
+      // Los dibujos que se escalan miden de nuevo su ancho ahora que son visibles.
+      window.dispatchEvent(new Event("resize"));
+      if (!primeraVez) {
+        const arriba = leccion.getBoundingClientRect().top - altoFijo();
+        if (arriba < 0) window.scrollBy(0, arriba);
+        const titulo = pasos[k].querySelector("h2");
+        if (titulo) titulo.focus({ preventScroll: true });
+      }
+    }
+
+    window.addEventListener("hashchange", () => {
+      const k = indiceDesdeHash();
+      if (k >= 0) ir(k, { sinUrl: true });
+    });
+    const inicial = indiceDesdeHash();
+    ir(inicial >= 0 ? inicial : 0, { sinUrl: inicial < 0 });
+  }
+
+  // ------------------------------------------------------------------
+  // Preguntas de opción múltiple con respuesta inmediata
+  // ------------------------------------------------------------------
+  //
+  // <div class="pregunta">
+  //   <p class="pregunta-enunciado">¿…?</p>
+  //   <div class="opciones">
+  //     <button type="button" class="opcion" data-correcta data-explicacion="Por qué sí">…</button>
+  //     <button type="button" class="opcion" data-explicacion="Por qué no">…</button>
+  //   </div>
+  // </div>
+
+  function montarPreguntas() {
+    for (const pregunta of document.querySelectorAll(".pregunta")) {
+      const respuesta = el("p", { class: "respuesta", "aria-live": "polite" });
+      pregunta.append(respuesta);
+      const opciones = pregunta.querySelectorAll(".opcion");
+      for (const opcion of opciones) {
+        opcion.addEventListener("click", () => {
+          const correcta = opcion.hasAttribute("data-correcta");
+          for (const o of opciones) {
+            o.classList.remove("correcta", "incorrecta");
+            o.setAttribute("aria-pressed", o === opcion ? "true" : "false");
+          }
+          opcion.classList.add(correcta ? "correcta" : "incorrecta");
+          respuesta.className = `respuesta ${correcta ? "bien" : "pista"}`;
+          respuesta.textContent = `${correcta ? "¡Exacto! " : "Todavía no. "}${opcion.dataset.explicacion || ""}`;
+        });
+      }
+    }
+  }
+
   // ------------------------------------------------------------------
   // Resaltado de sintaxis C++ (pequeño y sin dependencias)
   // ------------------------------------------------------------------
@@ -266,10 +407,13 @@
   //                  [{ id, etiqueta, opciones: [[valor, texto]] }]   // lista; al cambiarla se reinicia
   //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, ejecutar(s, args, paso) }]
   //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
+  //                  etiqueta puede ser (valores) => texto si depende de una lista
   //   dibujar(escenario, estado)                      // pinta un estado en el escenario
   //   incremental:   true                             // opcional: no vaciar el escenario entre pasos
   //                                                   // (para animar movimientos con transiciones CSS)
   //   mensajeInicial                                  // texto o (valores) => texto
+  //   codigoInicial                                   // opcional: clave del fragmento que se ve al
+  //                                                   // empezar (texto o (valores) => clave)
   // }
   //
   // Dentro de ejecutar(), cada llamada paso(clave, linea, mensaje, tipo)
@@ -312,10 +456,11 @@
       campos[e.id] = { cfg: e, input };
       controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta, input));
     }
+    const botones = [];
     for (const op of cfg.operaciones) {
-      controles.append(op.secundaria
-        ? el("button", { class: "boton", type: "button", onclick: () => ejecutar(op), text: op.etiqueta })
-        : el("button", { class: "boton principal", type: "button", onclick: () => ejecutar(op), html: `<code>${escapar(op.etiqueta)}</code>` }));
+      const boton = el("button", { class: op.secundaria ? "boton" : "boton principal", type: "button", onclick: () => ejecutar(op) });
+      botones.push([op, boton]);
+      controles.append(boton);
     }
     controles.append(el("span", { class: "separador" }),
       el("button", { class: "boton", type: "button", text: "Reiniciar", onclick: reiniciar }));
@@ -380,8 +525,18 @@
       return valores;
     }
 
+    // Las etiquetas pueden depender de las listas (p. ej. insertMax / insertMin).
+    function actualizarEtiquetas(valores) {
+      for (const [op, boton] of botones) {
+        const texto = typeof op.etiqueta === "function" ? op.etiqueta(valores) : op.etiqueta;
+        if (op.secundaria) boton.textContent = texto;
+        else boton.innerHTML = `<code>${escapar(texto)}</code>`;
+      }
+    }
+
     function pasoInicial(texto) {
-      const clave = cfg.operaciones[0].codigo || cfg.operaciones[0].id;
+      const inicial = typeof cfg.codigoInicial === "function" ? cfg.codigoInicial(valoresEntradas()) : cfg.codigoInicial;
+      const clave = inicial || cfg.operaciones[0].codigo || cfg.operaciones[0].id;
       return { estado: clonar(estado), clave, linea: 0, mensaje: texto, tipo: "" };
     }
 
@@ -415,6 +570,7 @@
       detener();
       const valores = valoresEntradas();
       estado = cfg.estadoInicial(valores);
+      actualizarEtiquetas(valores);
       const texto = typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial;
       pasos = [pasoInicial(texto || "Elige una operación para empezar.")];
       ir(0);
@@ -481,5 +637,7 @@
   montarEncabezado();
   montarPortada();
   montarNavegacionTemas();
+  montarLeccion();
+  montarPreguntas();
   montarCodigoCompleto();
 })();

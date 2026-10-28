@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Montículo (heap) y heapsort · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Qué es un min-heap y un max-heap, cómo se insertan y extraen elementos, cómo funciona heapsort, con animaciones paso a paso y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: cómo se construye un max-heap y un min-heap con heapify, cómo se insertan y extraen elementos, y cómo heapsort ordena con un max-heap. Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="monticulo">
@@ -14,75 +14,169 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Montículo (heap)</div>
       <h1>Montículo (heap) y heapsort</h1>
-      <p class="resumen">Un <strong>árbol binario guardado en un arreglo</strong> que mantiene siempre el elemento más pequeño (<strong>min-heap</strong>) o el más grande (<strong>max-heap</strong>) en la raíz. Es la base de las colas de prioridad y del algoritmo <strong>heapsort</strong>.</p>
+      <p class="resumen">Un <strong>árbol binario guardado en un arreglo</strong> que mantiene el mayor (<strong>max-heap</strong>) o el menor (<strong>min-heap</strong>) siempre en la raíz. Lo vas a construir paso a paso y al final lo usarás para ordenar con <strong>heapsort</strong>.</p>
     </div>
 
-    <h2>La idea</h2>
-    <p>Piensa en la sala de urgencias de un hospital: no atienden por orden de llegada, sino al paciente más grave primero. Un montículo responde siempre, al instante, “¿quién es el más importante?”, y se reorganiza rápido cuando llega o sale alguien.</p>
-    <p>Cumple dos reglas:</p>
-    <ul>
-      <li><strong>Forma:</strong> es un árbol binario <em>completo</em>: todos los niveles están llenos menos, quizá, el último, que se llena de izquierda a derecha.</li>
-      <li><strong>Orden:</strong> en un <strong>min-heap</strong> cada padre es <code>≤</code> que sus hijos; en un <strong>max-heap</strong>, <code>≥</code>. Entre hermanos no hay ningún orden.</li>
-    </ul>
-    <p>Gracias a la regla de forma, el árbol cabe en un arreglo sin huecos ni punteros. Para el elemento en la posición <code>i</code>:</p>
-    <pre class="codigo"><span class="linea"><span class="tk-tipo">int</span> padre = (i - <span class="tk-numero">1</span>) / <span class="tk-numero">2</span>;</span><span class="linea"><span class="tk-tipo">int</span> izq   = <span class="tk-numero">2</span> * i + <span class="tk-numero">1</span>;</span><span class="linea"><span class="tk-tipo">int</span> der   = <span class="tk-numero">2</span> * i + <span class="tk-numero">2</span>;</span></pre>
+    <div class="leccion">
 
-    <h2>Pruébalo: min-heap y max-heap</h2>
-    <p>Cambia el <strong>Tipo</strong> para ver la misma secuencia de valores como min-heap o como max-heap. Arriba está el árbol; abajo, el arreglo real. Son los mismos elementos: fíjate cómo se mueven juntos.</p>
-    <ul>
-      <li><code>insertar</code>: el valor entra como última hoja y <strong>sube</strong> mientras le gane a su padre.</li>
-      <li><code>extraerRaiz</code>: se saca la raíz, la última hoja ocupa su lugar y <strong>baja</strong> hasta donde corresponde.</li>
-    </ul>
-    <div id="visualizador"></div>
+      <section class="paso-leccion" id="arreglo" data-titulo="Un árbol dentro de un arreglo">
+        <h2>Un árbol dentro de un arreglo</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Un montículo es un árbol binario <strong>completo</strong>: todos los niveles están llenos menos, quizá, el último, que se llena de izquierda a derecha.</p>
+            <p>Gracias a eso no necesita punteros: se guarda por niveles en un <code>vector</code>, y las posiciones de padre e hijos salen con una cuenta.</p>
+            <pre class="codigo"><span class="linea"><span class="tk-tipo">int</span> padre = (i - <span class="tk-numero">1</span>) / <span class="tk-numero">2</span>;</span><span class="linea"><span class="tk-tipo">int</span> izq   = <span class="tk-numero">2</span> * i + <span class="tk-numero">1</span>;</span><span class="linea"><span class="tk-tipo">int</span> der   = <span class="tk-numero">2</span> * i + <span class="tk-numero">2</span>;</span></pre>
+            <p><strong>Pruébalo:</strong> toca cualquier nodo (o celda) y mira dónde están su padre y sus hijos. Este es el arreglo <code>{ 3, 10, 1, 8, 6, 4 }</code> de <code>main()</code>.</p>
+          </div>
+          <div id="explorador"></div>
+        </div>
+      </section>
 
-    <div class="nota">Un montículo <strong>no está ordenado</strong>: solo garantiza que la raíz es el mínimo (o el máximo). Por eso buscar un valor cualquiera es O(n), pero ver o sacar el más importante es rapidísimo.</div>
+      <section class="paso-leccion" id="regla" data-titulo="La regla del montículo">
+        <h2>La regla del montículo</h2>
+        <p>Además de la forma, hay una regla de <strong>orden</strong> entre cada padre y sus hijos:</p>
+        <ul>
+          <li><strong>Max-heap:</strong> cada padre es <code>≥</code> que sus hijos, así que el <strong>máximo</strong> queda en <code>v[0]</code>.</li>
+          <li><strong>Min-heap:</strong> cada padre es <code>≤</code> que sus hijos, así que el <strong>mínimo</strong> queda en <code>v[0]</code>.</li>
+        </ul>
+        <p>Entre hermanos no hay ningún orden. Piensa en urgencias de un hospital: no importa quién llegó primero, sino quién es el más grave, y eso hay que saberlo al instante.</p>
 
-    <h2>Heapsort: ordenar con un max-heap</h2>
-    <p>Si sacas la raíz de un max-heap una y otra vez, obtienes los valores de mayor a menor. Heapsort aprovecha esto <strong>dentro del mismo arreglo</strong>, sin memoria extra:</p>
-    <ol>
-      <li><strong>Construir el max-heap:</strong> se hunden los nodos que tienen hijos, desde el último (<code>n / 2 - 1</code>) hasta la raíz.</li>
-      <li><strong>Extraer:</strong> se intercambia la raíz (el mayor) con el último elemento del montículo. Ese valor ya queda en su lugar final (verde), el montículo se achica en uno y se hunde la nueva raíz. Se repite hasta terminar.</li>
-    </ol>
-    <div id="visualizador-heapsort"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuál de estos arreglos es un max-heap? (Dibuja el árbol con las fórmulas del paso anterior.)</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="v[0] = 3 tiene como hijo a v[1] = 10, que es mayor. Es el arreglo de main() antes de ordenarlo."><code>{ 3, 10, 1, 8, 6, 4 }</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="10 ≥ 8 y 4; 8 ≥ 3 y 6; 4 ≥ 1. Todos los padres ganan a sus hijos."><code>{ 10, 8, 4, 3, 6, 1 }</code></button>
+            <button type="button" class="opcion" data-explicacion="La raíz está bien, pero v[1] = 4 tiene como hijo a v[3] = 6, que es mayor."><code>{ 10, 4, 8, 6, 3, 1 }</code></button>
+          </div>
+        </div>
 
-    <h2>Complejidad</h2>
-    <div class="tabla-envoltura">
-      <table>
-        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
-        <tbody>
-          <tr><td><code>raiz</code></td><td class="o-grande bueno">O(1)</td><td>Siempre está en <code>datos[0]</code>.</td></tr>
-          <tr><td><code>insertar</code></td><td class="o-grande bueno">O(log n)</td><td>Sube como máximo la altura del árbol, que es log₂ n.</td></tr>
-          <tr><td><code>extraerRaiz</code></td><td class="o-grande bueno">O(log n)</td><td>Baja como máximo la altura del árbol.</td></tr>
-          <tr><td>Construir desde un arreglo</td><td class="o-grande bueno">O(n)</td><td>La mayoría de los nodos están abajo y casi no se mueven.</td></tr>
-          <tr><td>Buscar un valor cualquiera</td><td class="o-grande malo">O(n)</td><td>No hay orden entre hermanos ni entre ramas.</td></tr>
-          <tr><td><code>heapsort</code></td><td class="o-grande bueno">O(n log n)</td><td>n extracciones de O(log n). Memoria extra O(1). No es estable.</td></tr>
-        </tbody>
-      </table>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En un min-heap, ¿dónde puede estar el valor más grande?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="En la raíz está el más chico de todos.">En la raíz</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada padre es menor que sus hijos, así que el mayor no puede tener hijos: es una hoja. Pero cualquiera de ellas.">En alguna hoja</button>
+            <button type="button" class="opcion" data-explicacion="No necesariamente: puede ser cualquier hoja, no solo la última.">Siempre al final del arreglo</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="heapify" data-titulo="maxHeapify: hundir un nodo">
+        <h2><code>maxHeapify</code>: hundir un nodo</h2>
+        <p>La pieza clave. Si los subárboles de <code>i</code> ya son max-heaps pero <code>v[i]</code> es muy chico, <code>maxHeapify</code> lo cambia por su hijo <strong>mayor</strong> y se llama a sí misma un nivel más abajo (arriba del dibujo verás las <strong>llamadas en curso</strong>). Baja como mucho la altura del árbol: <strong>O(log&nbsp;n)</strong>.</p>
+        <div id="vis-heapify"></div>
+      </section>
+
+      <section class="paso-leccion" id="construir-max" data-titulo="Construir un max-heap">
+        <h2>Construir un max-heap: <code>buildMaxHeap</code></h2>
+        <p>Se llama a <code>maxHeapify</code> en cada nodo con hijos, <strong>de abajo hacia arriba</strong>: desde <code>n / 2 - 1</code> hasta la raíz. Así, cuando le toca a un nodo, sus subárboles ya están arreglados.</p>
+        <div id="vis-build-max"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué el <code>for</code> empieza en <code>n / 2 - 1</code> y no en <code>n - 1</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Los nodos desde n / 2 hasta n - 1 no tienen hijos. Una hoja sola ya cumple la regla, así que no hay nada que hundir.">Porque de ahí en adelante son hojas</button>
+            <button type="button" class="opcion" data-explicacion="El resultado es exactamente el mismo; solo se evitan llamadas que no harían nada.">Para ir más rápido, aunque puede salir mal</button>
+            <button type="button" class="opcion" data-explicacion="Es al revés: la raíz se procesa al final, cuando sus subárboles ya son heaps.">Para procesar primero la raíz</button>
+          </div>
+        </div>
+        <p>Curiosidad: aunque son unas n / 2 llamadas de O(log&nbsp;n), construir el heap cuesta solo <strong>O(n)</strong>, porque la mayoría de los nodos están abajo y casi no bajan.</p>
+      </section>
+
+      <section class="paso-leccion" id="construir-min" data-titulo="Construir un min-heap">
+        <h2>Construir un min-heap: <code>buildMinHeap</code></h2>
+        <p><strong>El mismo algoritmo</strong> con la comparación al revés: <code>minHeapify</code> sube al <strong>menor</strong>. Con el mismo arreglo, compara el resultado con el max-heap del paso anterior, <code>{ 10, 8, 4, 3, 6, 1 }</code>.</p>
+        <div id="vis-build-min"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué cambia entre <code>maxHeapify</code> y <code>minHeapify</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Compara con < en lugar de > (y la variable se llama menor). Todo lo demás es idéntico.">Solo la comparación: <code>&lt;</code> en vez de <code>&gt;</code></button>
+            <button type="button" class="opcion" data-explicacion="Los dos bajan desde i hacia las hojas.">minHeapify sube en lugar de bajar</button>
+            <button type="button" class="opcion" data-explicacion="Las fórmulas de izq y der son las mismas: el árbol tiene la misma forma.">Usan otras fórmulas para los hijos</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="operaciones" data-titulo="Insertar y extraer">
+        <h2>Usarlo: insertar, consultar y extraer</h2>
+        <p>Un heap es una <strong>cola de prioridad</strong>. Cambia el <strong>Tipo</strong> para ver la versión max o min:</p>
+        <ul>
+          <li><strong>insert:</strong> el valor entra como última hoja y <strong>sube</strong> mientras le gane a su padre. O(log&nbsp;n).</li>
+          <li><strong>extract:</strong> saca la raíz, pone la última hoja en su lugar y la <strong>hunde</strong> con heapify. O(log&nbsp;n).</li>
+          <li><code>maximum</code> / <code>minimum</code> solo leen <code>v[0]</code>: O(1). Con el heap vacío devuelven <code>INT_MIN</code> / <code>INT_MAX</code>, igual que extract.</li>
+        </ul>
+        <div id="vis-operaciones"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Insertas un valor y el heap queda con 15 elementos (4 niveles). ¿Cuántos intercambios hace <code>insertMax</code> como máximo?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Solo sube por su camino hasta la raíz, no recorre todo el arreglo.">15</button>
+            <button type="button" class="opcion" data-explicacion="Ese sería el número de nodos con hijos, pero el valor solo sube por un camino.">7</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Sube como mucho un nivel por intercambio: de la hoja (nivel 3) a la raíz (nivel 0). Por eso es O(log&nbsp;n).">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="heapsort" data-titulo="Heapsort">
+        <h2>Heapsort: ordenar con un max-heap</h2>
+        <p>Sacar la raíz de un max-heap una y otra vez da los valores de mayor a menor. <code>heapSort</code> lo hace <strong>en el mismo arreglo</strong>, sin memoria extra:</p>
+        <ol>
+          <li><strong>Fase 1:</strong> <code>buildMaxHeap(v)</code>, lo que ya viste.</li>
+          <li><strong>Fase 2:</strong> cambia la raíz (el mayor) por el último del heap, que así queda en su lugar final (verde). El heap se achica en uno y <code>maxHeapify(v, i, 0)</code> lo repara.</li>
+        </ol>
+        <div id="vis-heapsort"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué se usa un <strong>max</strong>-heap para ordenar de <strong>menor a mayor</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada vuelta saca el mayor que queda y lo deja justo después del heap, que se va achicando. El final del arreglo se llena de derecha a izquierda.">Porque el mayor sale primero y va al final</button>
+            <button type="button" class="opcion" data-explicacion="Con un min-heap en el mismo arreglo, el menor quedaría al final: saldría de mayor a menor.">Daría lo mismo usar un min-heap</button>
+            <button type="button" class="opcion" data-explicacion="Un max-heap no está ordenado: solo garantiza que el mayor está en la raíz.">Porque un max-heap ya está ordenado</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y dónde se usa</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Función</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>maximum</code> / <code>minimum</code></td><td class="o-grande bueno">O(1)</td><td>Siempre está en <code>v[0]</code>.</td></tr>
+              <tr><td><code>maxHeapify</code> / <code>minHeapify</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>Baja como mucho la altura del árbol, que es log₂ n.</td></tr>
+              <tr><td><code>insertMax</code> / <code>insertMin</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>Sube como mucho la altura del árbol.</td></tr>
+              <tr><td><code>extractMax</code> / <code>extractMin</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>Una llamada a heapify desde la raíz.</td></tr>
+              <tr><td><code>buildMaxHeap</code> / <code>buildMinHeap</code></td><td class="o-grande bueno">O(n)</td><td>La mayoría de los nodos están abajo y casi no se mueven.</td></tr>
+              <tr><td>Buscar un valor cualquiera</td><td class="o-grande malo">O(n)</td><td>No hay orden entre hermanos ni entre ramas.</td></tr>
+              <tr><td><code>heapSort</code></td><td class="o-grande bueno">O(n&nbsp;log&nbsp;n)</td><td>n extracciones de O(log&nbsp;n). Memoria extra O(1). No es estable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">Un heap <strong>no está ordenado</strong>: solo garantiza que la raíz es el máximo (o el mínimo). Justo eso lo hace rápido.</div>
+        <ul>
+          <li><strong>Colas de prioridad:</strong> planificadores de tareas, eventos de una simulación, urgencias.</li>
+          <li><strong>Grafos:</strong> Dijkstra (caminos más cortos) y Prim (árbol de expansión mínima) usan un min-heap.</li>
+          <li><strong>Los k mayores o menores</strong> de muchos datos sin ordenarlos todos, y la <strong>mediana en tiempo real</strong> con dos heaps.</li>
+        </ul>
+        <p>En C++ real: <code>std::priority_queue&lt;int&gt;</code> es un max-heap; para un min-heap, <code>std::priority_queue&lt;int, std::vector&lt;int&gt;, std::greater&lt;int&gt;&gt;</code>. También existen <code>std::make_heap</code>, <code>std::push_heap</code>, <code>std::pop_heap</code> y <code>std::sort_heap</code> en <code>&lt;algorithm&gt;</code>.</p>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra monticulo.cpp -o monticulo &amp;&amp; ./monticulo</span></pre>
+        <div data-codigo-completo="monticulo.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>bool esMaxHeap(const vector&lt;int&gt;&amp; v)</code> que verifique si un arreglo cumple la regla del max-heap.</li>
+          <li>Reescribe <code>maxHeapify</code> con un <code>while</code> en lugar de recursión.</li>
+          <li>Cambia <code>heapSort</code> para que ordene de mayor a menor usando <code>buildMinHeap</code> y <code>minHeapify</code>.</li>
+          <li>Usa un min-heap de tamaño <code>k</code> para encontrar los <code>k</code> números más grandes de un arreglo en O(n&nbsp;log&nbsp;k), y compáralo con <code>std::priority_queue</code>.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
     </div>
-
-    <h2>¿Dónde se usa?</h2>
-    <ul>
-      <li><strong>Colas de prioridad:</strong> planificadores de tareas del sistema operativo, eventos de una simulación, urgencias.</li>
-      <li><strong>Algoritmos de grafos:</strong> Dijkstra (caminos más cortos) y Prim (árbol de expansión mínima) usan un min-heap.</li>
-      <li><strong>Los k mayores o menores:</strong> el top 10 de un millón de datos sin ordenarlos todos.</li>
-      <li><strong>Mediana en tiempo real</strong> con dos montículos (uno min y uno max).</li>
-    </ul>
-    <p>En C++ real: <code>std::priority_queue&lt;int&gt;</code> es un max-heap; para un min-heap usa <code>std::priority_queue&lt;int, std::vector&lt;int&gt;, std::greater&lt;int&gt;&gt;</code>. También existen <code>std::make_heap</code>, <code>std::push_heap</code>, <code>std::pop_heap</code> y <code>std::sort_heap</code> en <code>&lt;algorithm&gt;</code>.</p>
-
-    <h2>Código completo en C++</h2>
-    <p>Compílalo y ejecútalo con:</p>
-    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra monticulo.cpp -o monticulo &amp;&amp; ./monticulo</span></pre>
-    <div data-codigo-completo="monticulo.cpp"></div>
-
-    <h2>Para practicar</h2>
-    <ol>
-      <li>Escribe <code>bool esMinHeap(const std::vector&lt;int&gt;&amp; v)</code> que verifique si un arreglo cumple la regla del min-heap.</li>
-      <li>Cambia <code>heapsort</code> para que ordene de mayor a menor usando un min-heap.</li>
-      <li>Usa un min-heap de tamaño <code>k</code> para encontrar los <code>k</code> números más grandes de un arreglo en O(n log k).</li>
-      <li>Resuelve el ejercicio anterior con <code>std::priority_queue</code> y compara.</li>
-    </ol>
-
-    <div id="navegacion-temas"></div>
   </main>
 
   <footer class="pie">

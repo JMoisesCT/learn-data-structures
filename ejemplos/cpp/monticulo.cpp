@@ -1,174 +1,212 @@
-// Montículo binario (heap): un árbol binario completo guardado en un arreglo.
-//   - Min-heap: cada padre es MENOR o igual que sus hijos -> la raíz es el mínimo.
-//   - Max-heap: cada padre es MAYOR o igual que sus hijos -> la raíz es el máximo.
-// En el arreglo, el nodo i tiene:
+// Montículo binario (heap): un árbol binario completo guardado en un vector.
+//   - Max-heap: cada padre es MAYOR o igual que sus hijos -> v[0] es el máximo.
+//   - Min-heap: cada padre es MENOR o igual que sus hijos -> v[0] es el mínimo.
+// En el vector, el nodo i tiene:
 //   padre = (i - 1) / 2,   hijo izquierdo = 2 * i + 1,   hijo derecho = 2 * i + 2
-// En C++ moderno usarías std::priority_queue (max-heap por defecto).
 //
-// Al final está heapsort: ordena un arreglo usando un max-heap.
+// Equivalentes en la STL: std::make_heap, std::push_heap, std::pop_heap y
+// std::sort_heap (en <algorithm>), y std::priority_queue (max-heap por defecto).
 //
 // Compilar y ejecutar:
 //   g++ -std=c++17 -Wall -Wextra monticulo.cpp -o monticulo
 //   ./monticulo
 
 #include <iostream>
-#include <stdexcept>
-#include <utility>
+#include <string>
 #include <vector>
+#include <climits>
+using namespace std;
 
-class Monticulo {
-public:
-    explicit Monticulo(bool minimo) : esMinimo(minimo) {}
+// ─────────────────────────────────────────
+//  MAX HEAP
+// ─────────────────────────────────────────
 
-    bool estaVacio() const { return datos.empty(); }
-    int tamano() const { return static_cast<int>(datos.size()); }
+// O(log n): hunde v[i] (sus dos subárboles ya deben ser max-heaps).
+void maxHeapify(vector<int>& v, int n, int i) {
+    int mayor = i;
+    int izq = 2 * i + 1;
+    int der = 2 * i + 2;
 
-    // O(1): equivale a std::priority_queue::top.
-    int raiz() const {
-        if (estaVacio()) {
-            throw std::underflow_error("monticulo vacio");
-        }
-        return datos[0];
-    }
+    if (izq < n && v[izq] > v[mayor]) mayor = izq;
+    if (der < n && v[der] > v[mayor]) mayor = der;
 
-    // O(log n): el valor entra como hoja y "sube" mientras le gane a su padre.
-    void insertar(int valor) {
-        datos.push_back(valor);
-        int i = tamano() - 1;
-        while (i > 0) {
-            int padre = (i - 1) / 2;
-            if (!vaAntes(datos[i], datos[padre])) {
-                break;
-            }
-            std::swap(datos[i], datos[padre]);
-            i = padre;
-        }
-    }
-
-    // O(log n): sacamos la raíz, ponemos la última hoja arriba y la "bajamos".
-    int extraerRaiz() {
-        if (estaVacio()) {
-            throw std::underflow_error("monticulo vacio");
-        }
-        int valor = datos[0];
-        datos[0] = datos.back();
-        datos.pop_back();
-        bajar(0);
-        return valor;
-    }
-
-    void imprimir() const {
-        std::cout << (esMinimo ? "min-heap [" : "max-heap [");
-        for (int i = 0; i < tamano(); i++) {
-            std::cout << datos[i] << (i + 1 < tamano() ? ", " : "");
-        }
-        std::cout << "]\n";
-    }
-
-private:
-    // En un min-heap va antes el menor; en un max-heap, el mayor.
-    bool vaAntes(int a, int b) const {
-        return esMinimo ? a < b : a > b;
-    }
-
-    // Intercambia datos[i] con su mejor hijo hasta que quede bien ubicado.
-    void bajar(int i) {
-        int n = tamano();
-        while (true) {
-            int izq = 2 * i + 1;
-            int der = 2 * i + 2;
-            int elegido = i;
-            if (izq < n && vaAntes(datos[izq], datos[elegido])) {
-                elegido = izq;
-            }
-            if (der < n && vaAntes(datos[der], datos[elegido])) {
-                elegido = der;
-            }
-            if (elegido == i) {
-                break;
-            }
-            std::swap(datos[i], datos[elegido]);
-            i = elegido;
-        }
-    }
-
-    std::vector<int> datos;
-    bool esMinimo;
-};
-
-// Hunde v[i] dentro de los primeros n elementos para que sea un max-heap.
-void hundir(std::vector<int>& v, int n, int i) {
-    while (true) {
-        int izq = 2 * i + 1;
-        int der = 2 * i + 2;
-        int mayor = i;
-        if (izq < n && v[izq] > v[mayor]) {
-            mayor = izq;
-        }
-        if (der < n && v[der] > v[mayor]) {
-            mayor = der;
-        }
-        if (mayor == i) {
-            return;
-        }
-        std::swap(v[i], v[mayor]);
-        i = mayor;
+    if (mayor != i) {
+        swap(v[i], v[mayor]);
+        maxHeapify(v, n, mayor);
     }
 }
 
-// O(n log n) y sin memoria extra:
-//   1) convierte el arreglo en un max-heap (el mayor queda en v[0]);
-//   2) repite: manda la raíz al final y vuelve a hundir la nueva raíz.
-void heapsort(std::vector<int>& v) {
-    int n = static_cast<int>(v.size());
-    for (int i = n / 2 - 1; i >= 0; i--) {
-        hundir(v, n, i);
-    }
-    for (int fin = n - 1; fin > 0; fin--) {
-        std::swap(v[0], v[fin]);
-        hundir(v, fin, 0);
+// O(n): arregla los nodos con hijos, desde el último hasta la raíz.
+void buildMaxHeap(vector<int>& v) {
+    int n = v.size();
+    for (int i = n / 2 - 1; i >= 0; i--)
+        maxHeapify(v, n, i);
+}
+
+// ─────────────────────────────────────────
+//  MIN HEAP
+// ─────────────────────────────────────────
+
+// O(log n): igual que maxHeapify, pero sube el MENOR.
+void minHeapify(vector<int>& v, int n, int i) {
+    int menor = i;
+    int izq = 2 * i + 1;
+    int der = 2 * i + 2;
+
+    if (izq < n && v[izq] < v[menor]) menor = izq;
+    if (der < n && v[der] < v[menor]) menor = der;
+
+    if (menor != i) {
+        swap(v[i], v[menor]);
+        minHeapify(v, n, menor);   // baja recursivamente
     }
 }
 
-void imprimir(const std::vector<int>& v) {
-    std::cout << "[";
-    for (size_t i = 0; i < v.size(); i++) {
-        std::cout << v[i] << (i + 1 < v.size() ? ", " : "");
-    }
-    std::cout << "]\n";
+// O(n)
+void buildMinHeap(vector<int>& v) {
+    int n = v.size();
+    for (int i = n / 2 - 1; i >= 0; i--)
+        minHeapify(v, n, i);
 }
+
+// ─────────────────────────────────────────
+//  INSERT (funciona para ambos heaps) — O(log n)
+//  Se inserta al final y se "sube" el elemento
+// ─────────────────────────────────────────
+
+void insertMax(vector<int>& v, int valor) {
+    v.push_back(valor);
+    int i = v.size() - 1;
+
+    // Sube mientras el padre sea menor
+    while (i > 0 && v[(i - 1) / 2] < v[i]) {
+        swap(v[i], v[(i - 1) / 2]);
+        i = (i - 1) / 2;
+    }
+}
+
+void insertMin(vector<int>& v, int valor) {
+    v.push_back(valor);
+    int i = v.size() - 1;
+
+    // Sube mientras el padre sea mayor
+    while (i > 0 && v[(i - 1) / 2] > v[i]) {
+        swap(v[i], v[(i - 1) / 2]);
+        i = (i - 1) / 2;
+    }
+}
+
+// ─────────────────────────────────────────
+//  MAXIMUM y MINIMUM — O(1)
+//  El tope siempre tiene el valor buscado
+// ─────────────────────────────────────────
+
+int maximum(vector<int>& v) {
+    if (v.empty()) return INT_MIN;
+    return v[0];   // raíz del max-heap
+}
+
+int minimum(vector<int>& v) {
+    if (v.empty()) return INT_MAX;
+    return v[0];   // raíz del min-heap
+}
+
+// ─────────────────────────────────────────
+//  EXTRACT MAX — O(log n)
+//  Saca la raíz, pone el último en su lugar
+//  y restaura con maxHeapify
+// ─────────────────────────────────────────
+
+int extractMax(vector<int>& v) {
+    if (v.empty()) return INT_MIN;
+
+    int raiz = v[0];
+    v[0] = v.back();
+    v.pop_back();
+    maxHeapify(v, v.size(), 0);
+
+    return raiz;
+}
+
+// ─────────────────────────────────────────
+//  EXTRACT MIN — O(log n)
+// ─────────────────────────────────────────
+
+int extractMin(vector<int>& v) {
+    if (v.empty()) return INT_MAX;
+
+    int raiz = v[0];
+    v[0] = v.back();
+    v.pop_back();
+    minHeapify(v, v.size(), 0);
+
+    return raiz;
+}
+
+// ─────────────────────────────────────────
+//  HEAP SORT (usa max-heap → orden ascendente)
+//  O(n log n) y sin memoria extra
+// ─────────────────────────────────────────
+
+void heapSort(vector<int>& v) {
+    buildMaxHeap(v);
+    for (int i = v.size() - 1; i > 0; i--) {
+        swap(v[0], v[i]);
+        maxHeapify(v, i, 0);
+    }
+}
+
+// ─────────────────────────────────────────
+//  UTILIDADES
+// ─────────────────────────────────────────
+
+void print(const vector<int>& v, const string& label = "") {
+    if (!label.empty()) cout << label << ": ";
+    for (int x : v) cout << x << " ";
+    cout << "\n";
+}
+
+// ─────────────────────────────────────────
+//  MAIN — prueba de todas las funciones
+// ─────────────────────────────────────────
 
 int main() {
-    Monticulo minimo(true);
-    Monticulo maximo(false);
-    for (int x : {12, 7, 20, 3, 15, 9}) {
-        minimo.insertar(x);
-        maximo.insertar(x);
-    }
-    minimo.imprimir();
-    maximo.imprimir();
+    // ── Max Heap ──
+    cout << "=== MAX HEAP ===\n";
+    vector<int> maxH = { 3, 10, 1, 8, 6, 4 };
+    buildMaxHeap(maxH);
+    print(maxH, "buildMaxHeap");
 
-    std::cout << "raiz del min-heap = " << minimo.raiz() << "\n";
-    std::cout << "raiz del max-heap = " << maximo.raiz() << "\n";
+    cout << "maximum()   = " << maximum(maxH) << "\n";
+    cout << "extractMax  = " << extractMax(maxH) << "\n";
+    print(maxH, "tras extractMax");
 
-    std::cout << "extrayendo del min-heap: ";
-    while (!minimo.estaVacio()) {
-        std::cout << minimo.extraerRaiz() << " ";
-    }
-    std::cout << "(salen en orden creciente)\n";
+    insertMax(maxH, 15);
+    print(maxH, "tras insert(15)");
 
-    try {
-        minimo.extraerRaiz();
-    } catch (const std::underflow_error& e) {
-        std::cout << "extraerRaiz() en monticulo vacio lanza: " << e.what() << "\n";
-    }
+    // ── Min Heap ──
+    cout << "\n=== MIN HEAP ===\n";
+    vector<int> minH = { 3, 10, 1, 8, 6, 4 };
+    buildMinHeap(minH);
+    print(minH, "buildMinHeap");
 
-    std::vector<int> v = {38, 27, 43, 3, 9, 82, 10, 5};
-    std::cout << "antes de heapsort:   ";
-    imprimir(v);
-    heapsort(v);
-    std::cout << "despues de heapsort: ";
-    imprimir(v);
+    cout << "minimum()   = " << minimum(minH) << "\n";
+    cout << "extractMin  = " << extractMin(minH) << "\n";
+    print(minH, "tras extractMin");
+
+    insertMin(minH, 0);
+    print(minH, "tras insert(0)");
+
+    // ── Heap vacío: se devuelve un valor centinela ──
+    vector<int> vacio;
+    cout << "\nextractMax en heap vacio = " << extractMax(vacio) << " (INT_MIN)\n";
+
+    // ── Heap Sort ──
+    cout << "\n=== HEAP SORT ===\n";
+    vector<int> hs = { 3, 10, 1, 8, 6, 4 };
+    print(hs, "antes ");
+    heapSort(hs);
+    print(hs, "despues");
 
     return 0;
 }
