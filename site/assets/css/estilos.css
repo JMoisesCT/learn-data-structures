@@ -355,7 +355,8 @@ tr:last-child td { border-bottom: 0; }
 
 .campo { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem; color: var(--texto-suave); }
 
-.campo input {
+.campo input,
+.campo select {
   width: 5.2rem;
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--borde);
@@ -365,6 +366,8 @@ tr:last-child td { border-bottom: 0; }
   font: inherit;
   font-size: 0.95rem;
 }
+
+.campo select { width: auto; }
 
 .boton {
   border: 1px solid var(--borde);
@@ -638,6 +641,41 @@ pre.codigo .linea.actual {
 .puntero.cabeza { color: var(--acento); }
 
 .nulos { position: absolute; left: 1rem; bottom: 0.25rem; font-family: var(--fuente-codigo); font-size: 0.78rem; color: var(--texto-suave); }
+
+/* Montículo: árbol y arreglo con posición absoluta (se deslizan al intercambiar) */
+
+.marco-heap { overflow: hidden; transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-heap { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.lienzo-heap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.lienzo-heap svg line { stroke: var(--borde); stroke-width: 2; }
+.lienzo-heap svg line.activa { stroke: var(--activo); stroke-width: 3; }
+.lienzo-heap .capa-fija > * { position: absolute; margin: 0; }
+
+.hnodo, .hcelda {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--acento);
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  transition: left 0.45s ease, top 0.45s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.hnodo { width: 38px; height: 38px; border-radius: 50%; font-size: 0.92rem; }
+.hcelda { width: 32px; height: 32px; border-radius: 6px; font-size: 0.85rem; }
+
+.hnodo.comparando, .hcelda.comparando { border-color: var(--activo); background: var(--activo-suave); }
+.hnodo.intercambio, .hcelda.intercambio { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 3px var(--activo-suave); }
+.hnodo.ok, .hcelda.ok { border-color: var(--exito); background: var(--exito-suave); }
+.hcelda.ordenado { border-color: var(--exito); background: var(--exito-suave); }
+.hnodo.fantasma, .hcelda.fantasma { border-style: dashed; opacity: 0.45; }
+.hnodo.nuevo, .hcelda.nuevo { animation: pop 0.35s ease; }
+
+.info-heap { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-heap .variables, .info-heap .salida-valor, .info-heap .fila-titulo { margin: 0 0 0.5rem; }
+.info-heap .salida-valor .celda { width: 38px; height: 38px; }
 
 /* Pila vertical */
 
