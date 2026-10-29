@@ -397,7 +397,9 @@
         lienzo.append(celda);
       }
       celda.textContent = item.v;
+      // También el top: si el árbol gana un nivel, la fila del arreglo baja.
       celda.style.left = `${posCelda(i)}px`;
+      celda.style.top = `${yCeldas}px`;
       celda.className = `hcelda ${estado(i)}${i >= ordenadoDesde ? " ordenado" : ""}${item.fantasma ? " fantasma" : ""}${vis.nuevo === i ? " nuevo" : ""}`;
 
       if (i >= enHeap) return;
