@@ -6,7 +6,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 | Tema | Operaciones animadas |
 | --- | --- |
-| Notación algorítmica (Big-O) | Lección en 10 pasos: carrera interactiva de las curvas de crecimiento; `obtener` O(1), `sumar` O(n), `hayRepetidos` O(n²) con tabla de pares y mejor/peor caso, `busquedaBinaria` O(log n), `contarPresentes` O(n log n); cada `pasos++` deja un punto y cada ejecución un punto en la gráfica de pasos según n; reglas (quitar constantes y términos chicos), todas juntas y tabla de tiempos |
+| Notación algorítmica (Big-O) | Lección en 10 pasos: carrera interactiva de las curvas de crecimiento; `obtener` O(1), `sumar` O(n), `hayRepetidos` O(n²) con tabla de pares y mejor/peor caso, `busquedaBinaria` O(log n), `contarPresentes` O(n log n); cada `pasos++` deja un punto y cada ejecución un punto en la gráfica de pasos según n; reglas (quitar constantes y términos chicos), todas juntas con n hasta 64 y tabla de tiempos |
 | Vector dinámico | Lección en 9 pasos: `obtener` (con el cálculo de la dirección), `agregarAlFinal` con `redimensionar` (copias entre bloques y `delete[]`), experimento de costo amortizado (duplicar contra sumar 1), `insertar`, `eliminarEn`, `buscar` y todas juntas |
 | Lista enlazada simple | Lección en 9 pasos: `obtener` (con las direcciones de cada nodo), `insertarAlInicio`, `insertarAlFinal` (con lista vacía), `buscar`, `eliminar` (cabeza, en medio y valor ausente), comparador de costos contra el vector y todas juntas |
 | Pila (sobre arreglo) | `apilar`, `desapilar`, `cima` |
