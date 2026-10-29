@@ -151,17 +151,11 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
   border-bottom: 1px solid var(--borde);
 }
 
-/* En móvil el menú ocupa varias filas: mejor que se desplace con la página. */
-@media (max-width: 640px) {
-  .encabezado { position: static; }
-}
-
 .encabezado .contenedor {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  min-height: 56px;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: 50px;
 }
 
 .marca {
@@ -171,8 +165,72 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-right: auto;
+  min-width: 0;
+  line-height: 1.2;
 }
+
+.marca-icono { flex: none; }
+
+/* Tema actual junto a la marca: "Aprende Estructuras de Datos / Vector dinámico" */
+.marca-tema {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.marca-tema::before { content: "/"; margin-right: 0.75rem; color: var(--borde); }
+
+@media (max-width: 640px) {
+  .marca-texto.con-tema { display: none; }
+  .marca-tema { color: var(--texto); }
+  .marca-tema::before { content: none; }
+}
+
+/* Menú de temas desplegable */
+.menu-temas { position: relative; margin-left: auto; flex: none; }
+
+.menu-temas summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 0.92rem;
+  color: var(--texto);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.menu-temas summary::-webkit-details-marker { display: none; }
+.menu-temas summary::after { content: "▾"; font-size: 0.75em; color: var(--texto-suave); transition: transform 0.2s ease; }
+.menu-temas[open] summary::after { transform: rotate(180deg); }
+.menu-temas summary:hover { border-color: var(--acento); }
+
+.menu-temas .nav {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 2px;
+  min-width: 250px;
+  padding: 0.4rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  animation: menu-abre 0.15s ease;
+}
+
+.menu-temas .nav a { padding: 0.45rem 0.7rem; }
+
+@keyframes menu-abre { from { opacity: 0; transform: translateY(-4px); } }
 
 .marca-icono {
   display: inline-grid;
@@ -204,6 +262,7 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
 .nav a[aria-current="page"] { color: var(--acento); background: var(--acento-suave); }
 
 .boton-tema {
+  flex: none;
   background: none;
   border: 1px solid var(--borde);
   color: var(--texto);
@@ -351,12 +410,12 @@ tr:last-child td { border-bottom: 0; }
 
 .leccion-cabecera {
   position: sticky;
-  top: var(--alto-encabezado, 56px);
+  top: var(--alto-encabezado, 50px);
   z-index: 5;
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 0.7rem 0;
+  padding: 0.45rem 0;
   background: var(--fondo);
 }
 
@@ -405,20 +464,75 @@ tr:last-child td { border-bottom: 0; }
   bottom: 0;
   z-index: 5;
   margin: 0 -16px;
-  padding: 0.7rem 16px calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.55rem 16px calc(0.55rem + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--fondo) 92%, transparent);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--borde);
 }
 
 .leccion-pie-interior { display: flex; justify-content: space-between; gap: 0.75rem; }
-.leccion-pie .boton { padding: 0.6rem 1rem; font-size: 0.95rem; }
+.leccion-pie .boton { padding: 0.5rem 1rem; font-size: 0.95rem; }
 .leccion-pie .boton.principal { margin-left: auto; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
 
 /* En pantallas bajas o angostas solo el pie queda fijo, para dejar lugar a la animación. */
 @media (max-width: 640px), (max-height: 600px) {
   .leccion-cabecera { position: static; }
   .leccion-destino { display: none; }
+}
+
+/* La lección ocupa la pantalla: la página mide al menos el alto de la ventana,
+   el pie de la lección queda abajo y el paso llena lo que sobra. La
+   presentación del tema solo se ve en el primer paso y el pie del sitio solo
+   en el último (las clases las pone montarLeccion en visualizador.js). */
+body.con-leccion { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+body.con-leccion > main { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; }
+.con-leccion .leccion.lista { flex: 1 0 auto; display: flex; flex-direction: column; }
+.con-leccion .leccion.lista > .paso-leccion { flex: 1 0 auto; }
+.con-leccion .leccion.lista > .paso-leccion[hidden] { display: none; }
+.con-leccion .tema-cabecera { padding-top: 1.25rem; }
+body.con-leccion .contenedor { max-width: 1280px; }
+.con-leccion .miga { display: none; }
+body.con-leccion > .pie { display: none; margin-top: 0; }
+body.con-leccion.leccion-final > .pie { display: block; }
+
+/* Sigue disponible para lectores de pantalla (el h1 de la página). */
+.tema-cabecera.plegada {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Pantallas anchas y con alto suficiente: cada paso cabe en la ventana. El
+   visualizador se estira hasta el pie de la lección y las preguntas van junto
+   al código, que se desplaza por dentro si no cabe. */
+@media (min-width: 861px) and (min-height: 560px) {
+  .con-leccion .paso-leccion:not([hidden]) { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.6rem 0 0.9rem; }
+  .con-leccion .paso-leccion > * { flex: none; margin-top: 0; margin-bottom: 0; }
+  .con-leccion .paso-leccion > p, .con-leccion .paso-leccion > ul, .con-leccion .paso-leccion > ol { max-width: 920px; }
+  .con-leccion .paso-leccion > .visualizador { flex: 1 1 auto; grid-template-rows: minmax(0, 1fr); }
+  .con-leccion .visualizador > .panel { display: flex; flex-direction: column; }
+  .con-leccion .visualizador .escenario { flex: 1 1 auto; min-height: var(--alto-reservado, 0px); }
+  .con-leccion .columna-codigo { contain: size; overflow-y: auto; }
+  /* Aviso de que hay más preguntas abajo (la clase la pone visualizador.js). */
+  .con-leccion .columna-codigo.hay-mas::after {
+    content: "más abajo ↓";
+    position: sticky;
+    bottom: 0;
+    flex: none;
+    margin-top: -2.4rem;
+    padding: 1.2rem 0 0.3rem;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--acento);
+    background: linear-gradient(transparent, var(--fondo) 55%);
+    pointer-events: none;
+  }
+  .con-leccion .columna-codigo .panel-codigo { min-height: 9rem; }
+  .con-leccion .columna-codigo pre.codigo { flex: 1 1 auto; min-height: 0; overflow: auto; }
 }
 
 /* Dos columnas dentro de un paso: texto a un lado, actividad al otro */
@@ -432,6 +546,7 @@ tr:last-child td { border-bottom: 0; }
 /* ---------- Preguntas con respuesta inmediata ---------- */
 
 .pregunta {
+  scroll-margin: 1rem;
   background: var(--superficie);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
@@ -499,12 +614,12 @@ tr:last-child td { border-bottom: 0; }
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-items: flex-end;
-  padding: 0.9rem 1rem;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
   border-bottom: 1px solid var(--borde);
 }
 
-.campo { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem; color: var(--texto-suave); }
+.campo { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--texto-suave); }
 
 .campo input,
 .campo select {
@@ -541,8 +656,10 @@ tr:last-child td { border-bottom: 0; }
 
 .escenario {
   position: relative;
-  min-height: 300px;
+  min-height: max(300px, var(--alto-reservado, 0px));
   padding: 1rem;
+  /* --hueco: espacio para centrar el dibujo cuando la lección estira el escenario */
+  padding-top: calc(1rem + var(--hueco, 0px));
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -550,7 +667,7 @@ tr:last-child td { border-bottom: 0; }
 .mensaje {
   margin: 0;
   padding: 0.75rem 1rem;
-  min-height: 3.4rem;
+  min-height: max(3.4rem, var(--alto-reservado, 0px));
   border-top: 1px solid var(--borde);
   background: var(--superficie-2);
   font-size: 0.95rem;
@@ -563,19 +680,27 @@ tr:last-child td { border-bottom: 0; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1rem;
+  gap: 0.4rem 0.75rem;
+  padding: 0.45rem 0.8rem;
   border-top: 1px solid var(--borde);
   font-size: 0.85rem;
   color: var(--texto-suave);
 }
 
-.fila-reproduccion { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; width: 100%; min-height: 2.1rem; }
+/* Las dos filas comparten una sola línea cuando caben. */
+.fila-reproduccion { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; flex: 1 1 auto; min-height: 2.1rem; }
 .contador-pasos { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.reproduccion .boton { padding: 0.3rem 0.6rem; min-width: 2.2rem; }
+.reproduccion .boton { padding: 0.3rem 0.5rem; min-width: 2.1rem; }
 .reproduccion label { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .reproduccion label[hidden] { display: none; }
+
+/* En una sola columna: el escenario mide lo que necesita su paso más grande
+   (sin piso fijo) y la velocidad se queda solo con el control. */
+@media (max-width: 860px) {
+  .escenario { min-height: var(--alto-reservado, 12rem); }
+  .texto-velocidad { display: none; }
+}
 
 .selector-modo { display: inline-flex; border: 1px solid var(--borde); border-radius: 999px; padding: 2px; background: var(--superficie-2); }
 
@@ -584,7 +709,7 @@ tr:last-child td { border-bottom: 0; }
   border-radius: 999px;
   background: none;
   color: var(--texto-suave);
-  padding: 0.2rem 0.7rem;
+  padding: 0.2rem 0.6rem;
   font: inherit;
   font-size: 0.82rem;
   cursor: pointer;
@@ -592,19 +717,52 @@ tr:last-child td { border-bottom: 0; }
 }
 
 .selector-modo button[aria-pressed="true"] { background: var(--superficie); color: var(--texto); font-weight: 600; box-shadow: var(--sombra); }
-.reproduccion input[type="range"] { width: 90px; accent-color: var(--acento); }
+.reproduccion input[type="range"] { width: 80px; accent-color: var(--acento); }
 
-/* Panel de código */
+/* Panel de código (con las preguntas del paso debajo) */
 
-.panel-codigo { display: flex; flex-direction: column; background: var(--codigo-fondo); border-color: var(--codigo-fondo); overflow: hidden; }
+.columna-codigo { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.columna-codigo > .pregunta { margin: 0; padding: 0.85rem 0.95rem; }
+.columna-codigo .pregunta-enunciado { margin-bottom: 0.6rem; }
+.columna-codigo .opciones { grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
+.columna-codigo .opcion { padding: 0.55rem 0.7rem; }
+
+.panel-codigo { flex: 1 1 auto; display: flex; flex-direction: column; background: var(--codigo-fondo); border-color: var(--codigo-fondo); overflow: hidden; }
 
 .panel-codigo .titulo-codigo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   color: var(--codigo-texto);
   font-family: var(--fuente-codigo);
   font-size: 0.8rem;
   padding: 0.6rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   opacity: 0.85;
+}
+
+.boton-plegar {
+  display: none;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--codigo-texto);
+  padding: 0.15rem 0.55rem;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* En una sola columna el código va debajo de la animación: plegado, muestra
+   solo la línea que se ejecuta (o la primera, antes de empezar). */
+@media (max-width: 860px) {
+  .boton-plegar { display: inline-block; }
+  .panel-codigo.plegado pre.codigo { padding: 0.45rem 0; }
+  .panel-codigo.plegado pre.codigo .linea { height: 0; overflow: hidden; visibility: hidden; }
+  .panel-codigo.plegado pre.codigo .linea.actual,
+  .panel-codigo.plegado pre.codigo:not(:has(.actual)) .linea:first-child { height: auto; visibility: visible; }
 }
 
 pre.codigo {

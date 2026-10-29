@@ -141,17 +141,30 @@
   // Encabezado, portada y navegación entre temas
   // ------------------------------------------------------------------
 
+  // Una sola fila en cualquier ancho: marca, tema actual, menú de temas y
+  // botón de tema claro/oscuro. Así la lección tiene más alto disponible.
   function montarEncabezado() {
     const encabezado = document.querySelector("header.encabezado");
     if (!encabezado) return;
+    const actual = DS.TEMAS.find((t) => t.slug === temaActual);
     const nav = el("nav", { class: "nav", "aria-label": "Temas" },
       DS.TEMAS.filter((t) => !t.proximamente).map((t) =>
         el("a", { href: `${raiz}temas/${t.slug}/`, "aria-current": t.slug === temaActual ? "page" : null, text: t.titulo })));
+    const menu = el("details", { class: "menu-temas" }, el("summary", { text: "Temas" }), nav);
+    // Se cierra al elegir, al tocar fuera o con Escape.
+    document.addEventListener("click", (ev) => { if (menu.open && !menu.contains(ev.target)) menu.open = false; });
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape" && menu.open) {
+        menu.open = false;
+        menu.querySelector("summary").focus();
+      }
+    });
     encabezado.append(el("div", { class: "contenedor" },
-      el("a", { class: "marca", href: raiz },
+      el("a", { class: "marca", href: raiz, title: "Inicio" },
         el("span", { class: "marca-icono", "aria-hidden": "true", text: "{ }" }),
-        "Aprende Estructuras de Datos"),
-      nav,
+        el("span", { class: actual ? "marca-texto con-tema" : "marca-texto", text: "Aprende Estructuras de Datos" })),
+      actual ? el("span", { class: "marca-tema", text: actual.titulo }) : null,
+      menu,
       botonTema()));
   }
 
@@ -233,6 +246,10 @@
     leccion.prepend(cabecera);
     leccion.append(pie);
     leccion.classList.add("lista");
+    // La lección ocupa la pantalla: la presentación del tema solo se ve en el
+    // primer paso y el pie del sitio solo en el último (ver estilos.css).
+    document.body.classList.add("con-leccion");
+    const presentacion = document.querySelector(".tema-cabecera");
 
     // La barra de progreso se pega justo debajo del encabezado del sitio (si está fijo).
     const encabezado = document.querySelector("header.encabezado");
@@ -271,13 +288,14 @@
       bContinuar.hidden = k === total - 1;
       enlaceFinal.hidden = k !== total - 1;
       if (k < total - 1) destino.textContent = `: ${pasos[k + 1].dataset.titulo}`;
+      if (presentacion) presentacion.classList.toggle("plegada", k > 0);
+      document.body.classList.toggle("leccion-final", k === total - 1);
 
       if (!(opciones && opciones.sinUrl) && history.replaceState) history.replaceState(null, "", `#${pasos[k].id}`);
       // Los dibujos que se escalan miden de nuevo su ancho ahora que son visibles.
       window.dispatchEvent(new Event("resize"));
       if (!primeraVez) {
-        const arriba = leccion.getBoundingClientRect().top - altoFijo();
-        if (arriba < 0) window.scrollBy(0, arriba);
+        window.scrollTo(0, 0);
         const titulo = pasos[k].querySelector("h2");
         if (titulo) titulo.focus({ preventScroll: true });
       }
@@ -489,27 +507,51 @@
     const bAdelante = el("button", { class: "boton", type: "button", title: "Paso siguiente", "aria-label": "Paso siguiente", text: "›", onclick: () => ir(actual + 1) });
     const bFin = el("button", { class: "boton", type: "button", title: "Último paso", "aria-label": "Último paso", text: "»", onclick: () => ir(pasos.length - 1) });
     const contador = el("span", { class: "contador-pasos" });
-    const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": "Velocidad" });
+    const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": "Velocidad", title: "Velocidad" });
     rango.value = velocidad;
     rango.addEventListener("input", () => { velocidad = Number(rango.value); if (temporizador) { detener(); reproducir(); } });
-    const etiquetaVelocidad = el("label", { class: "velocidad" }, "Velocidad", rango);
+    const etiquetaVelocidad = el("label", { class: "velocidad" }, el("span", { class: "texto-velocidad", text: "Velocidad" }), rango);
 
     // Modo al ejecutar una operación: reproducir solo o avanzar con ›.
     const bAuto = el("button", { type: "button", text: "▶ Automático", onclick: () => cambiarModo("auto", true) });
     const bManual = el("button", { type: "button", text: "Paso a paso", onclick: () => cambiarModo("manual", true) });
-    const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": "Al ejecutar una operación" }, bAuto, bManual);
+    const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": "Al ejecutar una operación", title: "Al ejecutar una operación" }, bAuto, bManual);
 
     const reproduccion = el("div", { class: "reproduccion" },
       el("div", { class: "fila-reproduccion" }, bInicio, bAtras, bPlay, bAdelante, bFin, contador),
-      el("div", { class: "fila-reproduccion" }, el("span", { text: "Al ejecutar:" }), selectorModo, etiquetaVelocidad));
+      el("div", { class: "fila-reproduccion" }, selectorModo, etiquetaVelocidad));
 
-    const tituloCodigo = el("div", { class: "titulo-codigo" });
+    const nombreCodigo = el("span");
     const preCodigo = el("pre", { class: "codigo", tabindex: "0" });
+    // En pantallas angostas el código se pliega a la línea que se ejecuta.
+    const bPlegar = el("button", { class: "boton-plegar", type: "button", "aria-expanded": "false", onclick: () => plegar(!panelCodigo.classList.contains("plegado")) });
+    const panelCodigo = el("div", { class: "panel panel-codigo" }, el("div", { class: "titulo-codigo" }, nombreCodigo, bPlegar), preCodigo);
+    function plegar(si) {
+      panelCodigo.classList.toggle("plegado", si);
+      bPlegar.setAttribute("aria-expanded", String(!si));
+      bPlegar.textContent = si ? "Ver todo ▾" : "Ver menos ▴";
+    }
+    plegar(true);
+
+    // Las preguntas que siguen al visualizador van junto al código.
+    const columnaCodigo = el("div", { class: "columna-codigo" }, panelCodigo);
+    for (let sig = contenedor.nextElementSibling; sig && sig.classList.contains("pregunta"); sig = contenedor.nextElementSibling) {
+      columnaCodigo.append(sig);
+    }
 
     contenedor.classList.add("visualizador");
-    contenedor.append(
-      el("div", { class: "panel" }, controles, escenario, mensaje, reproduccion),
-      el("div", { class: "panel panel-codigo" }, tituloCodigo, preCodigo));
+    contenedor.append(el("div", { class: "panel" }, controles, escenario, mensaje, reproduccion), columnaCodigo);
+
+    // Si las preguntas no caben junto al código, la columna se desplaza por dentro y lo avisa.
+    function avisarDesborde() {
+      const falta = columnaCodigo.scrollHeight - columnaCodigo.clientHeight - columnaCodigo.scrollTop;
+      columnaCodigo.classList.toggle("hay-mas", falta > 8);
+    }
+    columnaCodigo.addEventListener("scroll", avisarDesborde, { passive: true });
+    if (window.ResizeObserver) {
+      const observador = new ResizeObserver(avisarDesborde);
+      for (const nodo of [columnaCodigo, ...columnaCodigo.children]) observador.observe(nodo);
+    }
 
     // --- Lógica ---
     function cambiarModo(nuevo, elegidoAqui) {
@@ -530,19 +572,29 @@
     // Para que los botones no salten entre pasos, el escenario y el mensaje
     // reservan desde el primer paso el alto del paso más grande, y nunca se
     // encogen; vuelven a su tamaño natural al reiniciar o cambiar el ancho.
+    // La reserva va en --alto-reservado (el CSS decide el mínimo final).
     const altos = new Map();
     function reservar(nodo, h) {
       if (h > (altos.get(nodo) || 0)) {
         altos.set(nodo, h);
-        nodo.style.minHeight = `${h}px`;
+        nodo.style.setProperty("--alto-reservado", `${h}px`);
       }
     }
     const noEncoger = (nodo) => reservar(nodo, nodo.offsetHeight);
 
+    // Cuando la lección estira el escenario para llenar la pantalla, el dibujo
+    // se centra en vertical según el alto reservado (no según el paso actual,
+    // para que no salte entre pasos).
+    function centrar() {
+      escenario.style.removeProperty("--hueco");
+      const sobra = escenario.offsetHeight - (altos.get(escenario) || 0);
+      if (sobra > 1) escenario.style.setProperty("--hueco", `${Math.floor(sobra / 2)}px`);
+    }
+
     // Dibuja cada paso en copias invisibles del escenario y del mensaje para medirlos.
     function reservarEspacio() {
       if (!escenario.clientWidth) return; // paso de lección oculto
-      const invisible = "position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;";
+      const invisible = "position:absolute;left:0;top:0;min-height:0;visibility:hidden;pointer-events:none;";
       const copiaEscenario = el("div", { class: "escenario", "aria-hidden": "true", style: `${invisible}width:${escenario.offsetWidth}px` });
       const copiaMensaje = el("p", { class: "mensaje", "aria-hidden": "true", style: `${invisible}width:${mensaje.offsetWidth}px` });
       escenario.parentElement.append(copiaEscenario, copiaMensaje);
@@ -561,14 +613,18 @@
       reservar(mensaje, altoMensaje);
     }
     function liberarAlturas() {
-      for (const nodo of altos.keys()) nodo.style.minHeight = "";
+      for (const nodo of altos.keys()) nodo.style.removeProperty("--alto-reservado");
       altos.clear();
     }
     let anchoVentana = window.innerWidth;
     window.addEventListener("resize", () => {
-      if (window.innerWidth === anchoVentana) return; // en móvil, la barra del navegador cambia solo el alto
-      anchoVentana = window.innerWidth;
-      liberarAlturas();
+      if (window.innerWidth !== anchoVentana) { // en móvil, la barra del navegador cambia solo el alto
+        anchoVentana = window.innerWidth;
+        liberarAlturas();
+      }
+      if (!escenario.clientWidth) return; // paso de lección oculto
+      if (!altos.has(escenario)) reservarEspacio();
+      centrar();
     });
 
     function aleatorio(e) {
@@ -655,6 +711,7 @@
       actualizarEtiquetas(valores);
       const texto = typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial;
       pasos = [pasoInicial(texto || "Elige una operación para empezar.")];
+      reservarEspacio();
       ir(0);
     }
 
@@ -662,10 +719,21 @@
       if (clave !== claveMostrada) {
         claveMostrada = clave;
         preCodigo.innerHTML = resaltarCpp(fragmentos[clave]);
-        tituloCodigo.textContent = cfg.tituloCodigo ? cfg.tituloCodigo(clave) : clave;
+        nombreCodigo.textContent = cfg.tituloCodigo ? cfg.tituloCodigo(clave) : clave;
+        preCodigo.scrollTop = 0;
       }
       const lineas = preCodigo.children;
       for (let k = 0; k < lineas.length; k++) lineas[k].classList.toggle("actual", k === linea - 1);
+      // Si el código no cabe en su panel, la línea actual se mantiene a la vista.
+      const marcada = lineas[linea - 1];
+      if (marcada && preCodigo.scrollHeight > preCodigo.clientHeight) {
+        const arriba = marcada.offsetTop - preCodigo.offsetTop;
+        const margen = marcada.offsetHeight * 2;
+        if (arriba - margen < preCodigo.scrollTop) preCodigo.scrollTop = arriba - margen;
+        else if (arriba + marcada.offsetHeight + margen > preCodigo.scrollTop + preCodigo.clientHeight) {
+          preCodigo.scrollTop = arriba + marcada.offsetHeight + margen - preCodigo.clientHeight;
+        }
+      }
     }
 
     function ir(indice) {
@@ -682,8 +750,8 @@
       if (actual === pasos.length - 1) detener();
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
-      noEncoger(escenario);
       noEncoger(mensaje);
+      centrar();
     }
 
     function reproducir() {

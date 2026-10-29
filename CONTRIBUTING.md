@@ -90,6 +90,14 @@ Pasos cortos, uno a la vez, al estilo de Brilliant. Un tema típico tiene entre 
 5. **Complejidad y usos**: tabla de Big-O con el porqué, el equivalente en la STL y cuándo usar (y cuándo no) la estructura.
 6. **Código completo y práctica**: el `.cpp` completo, cómo compilarlo y ejercicios.
 
+### Cada paso cabe en una pantalla
+
+En pantallas desde 861 px de ancho y 560 px de alto, la lección ocupa la ventana sin scroll: el encabezado es una sola fila, la presentación del tema solo se ve en el primer paso y el pie del sitio solo en el último, el visualizador se estira hasta el pie de la lección y **las preguntas que van justo después de un visualizador se muestran junto al código** (el motor las mueve). Para que eso funcione:
+
+- Pon las preguntas de un paso **inmediatamente después** de su `<div id="vis-…">`.
+- Mantén la explicación en 2 o 3 frases: el texto largo le quita alto a la animación.
+- En una sola columna (móvil y tablet vertical) el código se pliega a la línea que se ejecuta; panel, mensaje y controles deben caber juntos en ~390 × 700 px.
+
 ### Animaciones con "juice"
 
 La animación tiene que mostrar **qué hace cada método en memoria**, no solo cambiar colores:
