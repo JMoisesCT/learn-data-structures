@@ -613,12 +613,16 @@
       const relleno = 32; // padding de arriba y abajo del escenario, sin el hueco
       let k = 1;
       if (enLeccion && PANTALLA_AJUSTADA.matches && natural > relleno) {
+        // Al encoger el escenario para medirlo, la página puede quedar más baja
+        // que la ventana y el navegador sube el scroll: se recupera al final.
+        const scroll = window.scrollY;
         escenario.style.removeProperty("--hueco");
         escenario.style.minHeight = "0px";
         escenario.style.flexBasis = "0px";
         const disponible = escenario.clientHeight;
         escenario.style.minHeight = "";
         escenario.style.flexBasis = "";
+        if (window.scrollY !== scroll) window.scrollTo(window.scrollX, scroll);
         if (disponible < natural) k = Math.max(ESCALA_MINIMA, (disponible - relleno) / (natural - relleno));
       }
       altoMinimo = k < 1 ? Math.ceil(relleno + (natural - relleno) * k) : natural;
