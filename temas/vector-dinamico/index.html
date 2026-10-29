@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vector dinámico · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Qué es un arreglo dinámico (como std::vector), cómo crece al llenarse, animación paso a paso y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: qué es un arreglo dinámico (como std::vector), por qué el acceso por índice es O(1), cómo crece al doble al llenarse, el costo amortizado, y cómo insertar, eliminar y buscar desplazan elementos. Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="vector-dinamico">
@@ -14,60 +14,157 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Vector dinámico</div>
       <h1>Vector dinámico</h1>
-      <p class="resumen">Un <strong>arreglo que crece solo</strong>. Guarda los elementos uno junto a otro en memoria, así que llegar a cualquier posición es inmediato. Es la idea detrás de <code>std::vector</code>.</p>
+      <p class="resumen">Un <strong>arreglo que crece solo</strong>. Guarda los elementos uno junto a otro en memoria, así que llegar a cualquier posición es inmediato. Es la idea detrás de <code>std::vector</code>, y vas a ver qué hace por dentro cada una de sus operaciones.</p>
     </div>
 
-    <h2>La idea</h2>
-    <p>Un arreglo normal de C++ (<code>int a[10]</code>) tiene un tamaño fijo. Un vector dinámico guarda tres cosas:</p>
-    <ul>
-      <li><code>datos</code>: un puntero a un arreglo reservado con <code>new</code>.</li>
-      <li><code>tamano</code>: cuántos elementos hay realmente.</li>
-      <li><code>capacidad</code>: cuántas casillas tiene el arreglo reservado.</li>
-    </ul>
-    <p>Mientras <code>tamano &lt; capacidad</code>, agregar al final es solo escribir en la siguiente casilla. Cuando se llena, se reserva un arreglo del <strong>doble</strong> de tamaño, se copia todo y se libera el viejo.</p>
-    <p>Como los elementos están contiguos, <code>datos[i]</code> se calcula con una suma: dirección de inicio + <code>i</code> × tamaño de un <code>int</code>. Por eso el acceso por índice es O(1). Lo caro es insertar o eliminar en medio, porque hay que <strong>desplazar</strong> los elementos.</p>
+    <div class="leccion">
 
-    <h2>Pruébalo paso a paso</h2>
-    <p>Usa <strong>Posición</strong> para <code>insertar</code> y <code>eliminarEn</code>. Prueba también una posición inválida (por ejemplo <code>9</code>) para ver la excepción. Agrega dos valores seguidos para ver <code>redimensionar</code>.</p>
-    <div id="visualizador"></div>
+      <section class="paso-leccion" id="idea" data-titulo="Casillas contiguas">
+        <h2>Casillas una junto a otra</h2>
+        <p>Un arreglo normal de C++ (<code>int a[10]</code>) tiene un tamaño fijo. Un vector dinámico guarda tres cosas:</p>
+        <ul>
+          <li><code>datos</code>: un puntero al primer elemento de un bloque reservado con <code>new</code>.</li>
+          <li><code>tamano</code>: cuántos elementos hay realmente (la flecha <strong>▲ tamano</strong> marca la primera casilla libre).</li>
+          <li><code>capacidad</code>: cuántas casillas tiene el bloque. Las de borde punteado están reservadas pero sin usar.</li>
+        </ul>
+        <p>Como las casillas están <strong>contiguas</strong>, la dirección de <code>datos[i]</code> sale con una cuenta: inicio + <code>i</code> × 4 bytes. No hay que recorrer nada: por eso <code>obtener(i)</code> es <strong>O(1)</strong>.</p>
+        <div id="vis-obtener"></div>
 
-    <div class="nota">Duplicar la capacidad hace que, en promedio, <code>agregarAlFinal</code> sea O(1): las copias caras ocurren cada vez con menos frecuencia. A esto se le llama <strong>costo amortizado</strong>.</div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si <code>datos</code> empieza en <code>0x1000</code> y un <code>int</code> ocupa 4 bytes, ¿dónde está <code>datos[5]</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería si cada int ocupara 1 byte. Hay que multiplicar el índice por 4."><code>0x1005</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="0x1000 + 5 · 4 = 0x1000 + 20, y 20 en hexadecimal es 0x14."><code>0x1014</code></button>
+            <button type="button" class="opcion" data-explicacion="0x20 es 32 en decimal: serían 8 casillas de 4 bytes, no 5."><code>0x1020</code></button>
+          </div>
+        </div>
+      </section>
 
-    <h2>Complejidad</h2>
-    <div class="tabla-envoltura">
-      <table>
-        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
-        <tbody>
-          <tr><td><code>obtener(i)</code> / <code>v[i]</code></td><td class="o-grande bueno">O(1)</td><td>Se calcula la dirección directamente.</td></tr>
-          <tr><td><code>agregarAlFinal</code></td><td class="o-grande bueno">O(1) amortizado</td><td>Casi siempre hay espacio; a veces se copia todo.</td></tr>
-          <tr><td><code>insertar(pos, x)</code></td><td class="o-grande malo">O(n)</td><td>Se desplazan los elementos a la derecha de <code>pos</code>.</td></tr>
-          <tr><td><code>eliminarEn(pos)</code></td><td class="o-grande malo">O(n)</td><td>Se desplazan los elementos para cerrar el hueco.</td></tr>
-          <tr><td><code>buscar(x)</code></td><td class="o-grande malo">O(n)</td><td>Hay que revisar casilla por casilla (si no está ordenado).</td></tr>
-        </tbody>
-      </table>
+      <section class="paso-leccion" id="agregar" data-titulo="agregarAlFinal y redimensionar">
+        <h2><code>agregarAlFinal</code>: escribir en la siguiente casilla</h2>
+        <p>Mientras <code>tamano &lt; capacidad</code>, agregar al final es solo escribir en <code>datos[tamano]</code> y sumar 1: <strong>O(1)</strong>.</p>
+        <p>Cuando se llena, un bloque de memoria <strong>no se puede estirar</strong> (lo que sigue puede ser de otra variable). Entonces <code>redimensionar</code> reserva un bloque del <strong>doble</strong> en otro lugar, copia todo, libera el viejo con <code>delete[]</code> y mueve el puntero.</p>
+        <div id="vis-agregar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">El vector tiene <code>tamano = 4</code> y <code>capacidad = 4</code>. ¿Cuántos valores copia el próximo <code>agregarAlFinal</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso pasa solo cuando hay lugar. Aquí está lleno: primero hay que redimensionar.">Ninguno</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="redimensionar copia los 4 que ya estaban al bloque nuevo de 8. Después escribe el valor nuevo, que no es una copia.">4</button>
+            <button type="button" class="opcion" data-explicacion="Se copian solo los elementos que existen (tamano), no las 8 casillas del bloque nuevo.">8</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="amortizado" data-titulo="¿Por qué el doble?">
+        <h2>¿Por qué crecer al doble y no de uno en uno?</h2>
+        <p>Cada <code>redimensionar</code> copia <strong>todo</strong>. Si el bloque creciera de a una casilla, ¡cada <code>agregarAlFinal</code> copiaría el vector entero! Compara las dos estrategias agregando valores: cada barra es lo que costó una llamada (escrituras en memoria).</p>
+        <div id="experimento"></div>
+        <div class="nota">Duplicando, las copias caras son cada vez <strong>más raras</strong>: después de copiar <code>n</code> elementos hay <code>n</code> casillas libres. En total se hacen menos de <code>2n</code> escrituras para <code>n</code> elementos, así que en promedio cada <code>agregarAlFinal</code> es O(1). A eso se le llama <strong>costo amortizado</strong>.</div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Empezando con capacidad 2 y duplicando, ¿cuántas veces se redimensiona al agregar 1000 elementos?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="2 → 4 → 8 → … → 1024: son 9 duplicaciones. Crece de forma exponencial, así que se redimensiona unas log₂ n veces.">9 veces</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría si creciera de 2 en 2. Duplicando, los saltos son cada vez más grandes.">Unas 500 veces</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría con capacidad + 1: justo lo que muestra la segunda gráfica.">Casi 1000 veces</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar" data-titulo="Insertar en medio">
+        <h2><code>insertar(pos, valor)</code>: abrir un hueco</h2>
+        <p>Las casillas no se pueden "separar" para meter una nueva en medio. Hay que <strong>correr una posición a la derecha</strong> todo lo que está desde <code>pos</code> hasta el final, y recién ahí escribir el valor. Cuantos más elementos tenga a su derecha, más caro: <strong>O(n)</strong>.</p>
+        <div id="vis-insertar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué el <code>for</code> de <code>insertar</code> va de derecha a izquierda (<code>i--</code>)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El número de copias es el mismo en las dos direcciones: tamano − pos.">Porque así hace menos copias</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Si empezara por pos, datos[pos + 1] = datos[pos] pisaría un valor que todavía no se movió, y el mismo número se copiaría en todas las casillas.">Para no pisar valores que todavía no se movieron</button>
+            <button type="button" class="opcion" data-explicacion="El orden importa: de izquierda a derecha se perderían datos.">Da lo mismo, es por costumbre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Eliminar">
+        <h2><code>eliminarEn(pos)</code>: cerrar el hueco</h2>
+        <p>Al revés que insertar: cada elemento a la derecha de <code>pos</code> se <strong>corre a la izquierda</strong>, y el primero pisa al que se elimina. Al final, <code>tamano</code> baja en 1. La memoria <strong>no se libera</strong>: la última casilla queda como basura y la capacidad no cambia.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En un vector con <code>n</code> elementos, ¿cuántos corre <code>eliminarEn(0)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El primero no se corre: se pierde, porque lo pisa el segundo.">n</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Todos menos el eliminado. Borrar al inicio es el peor caso: por eso eliminar es O(n). (Borrar el último no corre ninguno.)">n − 1</button>
+            <button type="button" class="opcion" data-explicacion="Eso es borrar el último: ahí solo baja tamano.">0</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Buscar">
+        <h2><code>buscar(valor)</code>: mirar casilla por casilla</h2>
+        <p>Saber la <strong>posición</strong> da acceso inmediato, pero saber el <strong>valor</strong> no dice dónde está. Si el vector no está ordenado, hay que revisar desde el principio hasta encontrarlo: <strong>O(n)</strong>. Si no está, devuelve <code>-1</code>.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si el vector estuviera <strong>ordenado</strong>, ¿cómo podrías buscar más rápido?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Miras el del medio y descartas la mitad que no puede tenerlo, una y otra vez: O(log n). Funciona porque obtener(i) es O(1).">Con búsqueda binaria, en O(log n)</button>
+            <button type="button" class="opcion" data-explicacion="Con la dirección se llega a una posición, pero no sabes en qué posición está el valor.">Calculando su dirección, en O(1)</button>
+            <button type="button" class="opcion" data-explicacion="Sí se puede: el orden permite descartar mitades enteras sin mirarlas.">No se puede, sigue siendo O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>El mismo vector, con todas las operaciones. Agrega hasta llenarlo, inserta al inicio, elimina, busca. Fíjate qué operaciones mueven elementos y cuáles no.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarlo</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>En <code>std::vector</code></th><th>Tiempo</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>obtener(i)</code></td><td><code>v[i]</code>, <code>v.at(i)</code></td><td class="o-grande bueno">O(1)</td><td>La dirección se calcula con una cuenta.</td></tr>
+              <tr><td><code>agregarAlFinal</code></td><td><code>v.push_back(x)</code></td><td class="o-grande bueno">O(1) amortizado</td><td>Casi siempre hay lugar; a veces se copia todo.</td></tr>
+              <tr><td><code>insertar(pos, x)</code></td><td><code>v.insert(v.begin() + pos, x)</code></td><td class="o-grande malo">O(n)</td><td>Se corren a la derecha los de <code>pos</code> en adelante.</td></tr>
+              <tr><td><code>eliminarEn(pos)</code></td><td><code>v.erase(v.begin() + pos)</code></td><td class="o-grande malo">O(n)</td><td>Se corren a la izquierda para cerrar el hueco.</td></tr>
+              <tr><td><code>buscar(x)</code></td><td><code>std::find(v.begin(), v.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Casilla por casilla (si no está ordenado).</td></tr>
+              <tr><td><code>size()</code> / <code>capacity()</code></td><td><code>v.size()</code> / <code>v.capacity()</code></td><td class="o-grande bueno">O(1)</td><td>Solo leen una variable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">Si sabes de antemano cuántos elementos vas a guardar, <code>v.reserve(n)</code> reserva la capacidad de una vez y evita todas las copias de <code>redimensionar</code>.</div>
+        <ul>
+          <li>Es la estructura <strong>por defecto</strong> en C++: si dudas, usa <code>std::vector</code>.</li>
+          <li>Ideal cuando accedes por posición y casi siempre agregas o quitas al final. Además, como los datos están juntos, el procesador los lee muy rápido (caché).</li>
+          <li>Evítalo si haces muchas inserciones o eliminaciones al inicio o en medio: considera una lista enlazada o <code>std::deque</code>.</li>
+          <li>Cuidado: al redimensionar, los punteros o referencias a elementos viejos quedan apuntando al bloque liberado.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra vector_dinamico.cpp -o vector_dinamico &amp;&amp; ./vector_dinamico</span></pre>
+        <div data-codigo-completo="vector_dinamico.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Agrega <code>void eliminarAlFinal()</code>. ¿Cuál es su complejidad?</li>
+          <li>Haz que el vector se <strong>reduzca</strong> a la mitad cuando <code>tamano</code> sea menor que <code>capacidad / 4</code>. ¿Por qué no a la mitad exacta? (Piensa en agregar y eliminar alternando justo en el límite.)</li>
+          <li>Agrega un contador de copias a <code>redimensionar</code>, cambia <code>capacidad * 2</code> por <code>capacidad + 1</code> y compara cuántas copias se hacen al agregar 1000 elementos.</li>
+          <li>Escribe <code>void reservar(int n)</code>, como <code>std::vector::reserve</code>: si <code>n &gt; capacidad</code>, redimensiona una sola vez.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
     </div>
-
-    <h2>¿Cuándo usarlo?</h2>
-    <ul>
-      <li>Es la estructura <strong>por defecto</strong> en C++: si dudas, usa <code>std::vector</code>.</li>
-      <li>Cuando necesitas acceder por posición y casi siempre agregas al final.</li>
-      <li>Evítalo si haces muchas inserciones o eliminaciones al inicio o en medio: considera una lista enlazada o una <code>std::deque</code>.</li>
-    </ul>
-    <p>En C++ real: <code>std::vector&lt;int&gt; v; v.push_back(10); v.insert(v.begin() + 1, 15); v.erase(v.begin());</code></p>
-
-    <h2>Código completo en C++</h2>
-    <p>Compílalo y ejecútalo con:</p>
-    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra vector_dinamico.cpp -o vector_dinamico &amp;&amp; ./vector_dinamico</span></pre>
-    <div data-codigo-completo="vector_dinamico.cpp"></div>
-
-    <h2>Para practicar</h2>
-    <ol>
-      <li>Agrega <code>void eliminarAlFinal()</code>. ¿Cuál es su complejidad?</li>
-      <li>Haz que el vector se <strong>reduzca</strong> a la mitad cuando <code>tamano</code> sea menor que <code>capacidad / 4</code>. ¿Por qué no a la mitad exacta?</li>
-      <li>Cambia <code>redimensionar(capacidad * 2)</code> por <code>redimensionar(capacidad + 1)</code> y cuenta cuántas copias se hacen al agregar 1000 elementos.</li>
-    </ol>
-
-    <div id="navegacion-temas"></div>
   </main>
 
   <footer class="pie">
