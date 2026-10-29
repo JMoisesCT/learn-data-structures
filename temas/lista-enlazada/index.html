@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lista enlazada · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Qué es una lista enlazada simple, cómo se insertan y eliminan nodos con punteros, animación paso a paso y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: qué es una lista enlazada simple (como std::forward_list), por qué llegar a una posición cuesta O(n), cómo se insertan, buscan y eliminan nodos cambiando punteros, y cuándo conviene más que un vector. Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="lista-enlazada">
@@ -14,55 +14,168 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Lista enlazada</div>
       <h1>Lista enlazada</h1>
-      <p class="resumen">Una secuencia de <strong>nodos</strong> repartidos por la memoria. Cada nodo guarda un valor y un <strong>puntero</strong> al siguiente. Para recorrerla hay que seguir los punteros desde la <code>cabeza</code>.</p>
+      <p class="resumen">Una secuencia de <strong>nodos</strong> repartidos por la memoria. Cada nodo guarda un valor y un <strong>puntero</strong> al siguiente. Es la idea detrás de <code>std::forward_list</code>, y vas a ver qué hace cada operación con esos punteros.</p>
     </div>
 
-    <h2>La idea</h2>
-    <p>Imagina una búsqueda del tesoro: cada pista te dice dónde está la siguiente. No puedes saltar a la quinta pista; tienes que pasar por las cuatro anteriores. Pero agregar una pista al principio es fácil: escribes una nueva que apunte a la que antes era la primera.</p>
-    <pre class="codigo"><span class="linea"><span class="tk-clave">struct</span> <span class="tk-tipo">Nodo</span> {</span><span class="linea">    <span class="tk-tipo">int</span> valor;</span><span class="linea">    <span class="tk-tipo">Nodo</span>* siguiente;  <span class="tk-comentario">// nullptr si es el último</span></span><span class="linea">};</span></pre>
-    <p>A diferencia del vector, los nodos <strong>no están contiguos</strong>: cada uno se crea con <code>new</code> donde haya espacio. Por eso insertar o quitar un nodo solo requiere cambiar punteros, sin desplazar nada.</p>
+    <div class="leccion">
 
-    <h2>Pruébalo paso a paso</h2>
-    <p>Observa los punteros <code>cabeza</code>, <code>nuevo</code>, <code>actual</code> y <code>temp</code>. Los nodos con borde punteado están en memoria pero todavía (o ya) no son parte de la lista.</p>
-    <div id="visualizador"></div>
+      <section class="paso-leccion" id="idea" data-titulo="Nodos y punteros">
+        <h2>Nodos que se apuntan entre sí</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Piensa en una búsqueda del tesoro: cada pista dice dónde está la siguiente. No puedes saltar a la quinta pista; tienes que pasar por las cuatro anteriores.</p>
+            <pre class="codigo"><span class="linea"><span class="tk-clave">struct</span> <span class="tk-tipo">Nodo</span> {</span><span class="linea">    <span class="tk-tipo">int</span> valor;</span><span class="linea">    <span class="tk-tipo">Nodo</span>* siguiente;  <span class="tk-comentario">// nullptr si es el último</span></span><span class="linea">};</span></pre>
+          </div>
+          <div>
+            <p>Cada nodo se crea con <code>new</code> <strong>donde haya lugar</strong>, así que no quedan uno junto a otro como las casillas de un vector. La lista solo guarda <code>cabeza</code>, la dirección del primero; el resto se encuentra siguiendo los <code>siguiente</code>.</p>
+            <p>Por eso, para leer la posición <code>pos</code> no hay una cuenta como en el vector: hay que <strong>dar <code>pos</code> saltos</strong> desde la cabeza. <code>obtener(pos)</code> es <strong>O(n)</strong>.</p>
+          </div>
+        </div>
+        <div id="vis-obtener"></div>
 
-    <div class="nota">El orden de las instrucciones importa. En <code>insertarAlInicio</code>, si hicieras <code>cabeza = nuevo</code> <em>antes</em> de <code>nuevo-&gt;siguiente = cabeza</code>, perderías la referencia al resto de la lista (y tendrías una fuga de memoria).</div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántas veces se ejecuta <code>actual = actual-&gt;siguiente</code> en <code>obtener(3)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería si se pudiera calcular la dirección, como en el vector. Aquí las direcciones no siguen ningún orden.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Un salto por cada nodo anterior: de la posición 0 a la 1, de la 1 a la 2 y de la 2 a la 3.">3</button>
+            <button type="button" class="opcion" data-explicacion="actual ya empieza en la cabeza (posición 0): no hace falta saltar para llegar a ella.">4</button>
+          </div>
+        </div>
+      </section>
 
-    <h2>Complejidad</h2>
-    <div class="tabla-envoltura">
-      <table>
-        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
-        <tbody>
-          <tr><td><code>insertarAlInicio</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian dos punteros.</td></tr>
-          <tr><td><code>insertarAlFinal</code></td><td class="o-grande malo">O(n)</td><td>Hay que recorrer hasta el último (O(1) si guardas también un puntero <code>cola</code>).</td></tr>
-          <tr><td><code>buscar</code></td><td class="o-grande malo">O(n)</td><td>Se recorre nodo por nodo.</td></tr>
-          <tr><td><code>eliminar(valor)</code></td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el nodo anterior; el borrado en sí es O(1).</td></tr>
-          <tr><td>Acceso a la posición <code>i</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que avanzar <code>i</code> veces.</td></tr>
-        </tbody>
-      </table>
+      <section class="paso-leccion" id="inicio" data-titulo="insertarAlInicio">
+        <h2><code>insertarAlInicio</code>: dos punteros y listo</h2>
+        <p>Se crea el nodo, se lo hace apuntar al que hoy es el primero y se mueve <code>cabeza</code> hacia él. No importa si la lista tiene 3 nodos o un millón: son siempre los mismos pasos, <strong>O(1)</strong>. (En el vector, insertar al inicio corre todos los elementos.)</p>
+        <div id="vis-inicio"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué pasa si se cambia el orden y se hace <code>cabeza = nuevo</code> <em>antes</em> de <code>nuevo-&gt;siguiente = cabeza</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El orden sí importa: cada línea usa lo que la anterior dejó en cabeza.">Nada, da lo mismo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="nuevo->siguiente = cabeza copiaría la dirección del propio nuevo: el nodo se apuntaría a sí mismo, y nadie recordaría dónde estaba el resto de la lista. Esos nodos quedarían perdidos en memoria (una fuga).">Se pierde el resto de la lista</button>
+            <button type="button" class="opcion" data-explicacion="Compila y se ejecuta sin errores: C++ no avisa. Por eso hay que pensar el orden de las asignaciones.">No compila</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="final" data-titulo="insertarAlFinal">
+        <h2><code>insertarAlFinal</code>: primero hay que llegar</h2>
+        <p>Enlazar el nodo nuevo también es un solo puntero, pero la lista no sabe cuál es el último: <code>actual</code> tiene que recorrerla desde la cabeza hasta el nodo cuyo <code>siguiente</code> es <code>nullptr</code>. Ese recorrido hace que sea <strong>O(n)</strong>. Si la lista está vacía, el nodo nuevo pasa a ser la cabeza.</p>
+        <div id="vis-final"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cómo podrías hacer que <code>insertarAlFinal</code> sea O(1)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Los nodos no están contiguos: no hay ninguna cuenta que lleve al último.">Calculando la dirección del último nodo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Con un puntero cola al último nodo, basta cola->siguiente = nuevo y cola = nuevo. A cambio, hay que actualizarlo también al eliminar el último o al insertar en una lista vacía.">Guardando también un puntero <code>cola</code></button>
+            <button type="button" class="opcion" data-explicacion="Insertar al inicio sigue siendo O(1), pero el nodo quedaría en la otra punta: la lista no sería la misma.">Insertando al inicio en su lugar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Buscar">
+        <h2><code>buscar(valor)</code>: nodo por nodo</h2>
+        <p><code>actual</code> avanza desde la cabeza comparando cada valor. Si llega a <code>nullptr</code>, se terminó la lista y el valor no está. En el peor caso revisa todos los nodos: <strong>O(n)</strong>.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si la lista estuviera <strong>ordenada</strong>, ¿sirve la búsqueda binaria como en el vector?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="La búsqueda binaria empieza mirando el elemento del medio, y en una lista llegar al medio ya cuesta n/2 saltos.">Sí, sería O(log n)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Para mirar el del medio hay que recorrer hasta él: cada paso de la búsqueda binaria cuesta O(n) saltos. Lo único que ayuda el orden es poder cortar antes cuando pasas el valor buscado.">No: llegar al medio ya es O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Sí, se puede ganar algo: si los valores están ordenados, al pasar el buscado ya sabes que no está y puedes parar.">Sí, y además sería O(1)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Eliminar">
+        <h2><code>eliminar(valor)</code>: desenganchar y liberar</h2>
+        <p>Para sacar un nodo, el nodo <strong>anterior</strong> tiene que apuntar al que sigue del borrado. Como los punteros van en una sola dirección, <code>actual</code> se detiene un nodo antes y mira <code>actual-&gt;siguiente</code>. Después, <code>delete</code> libera la memoria. Borrar la cabeza es un caso aparte: no tiene anterior, se mueve <code>cabeza</code>.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué el ciclo mira <code>actual-&gt;siguiente-&gt;valor</code> en lugar de detenerse en el nodo que tiene el valor?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Revisa los mismos nodos; la diferencia es dónde queda parado actual.">Para revisar menos nodos</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Si actual se parara en el nodo a borrar, no habría forma de volver al anterior para cambiar su siguiente: los punteros solo van hacia adelante.">Porque hay que cambiar el siguiente del anterior, y no se puede volver atrás</button>
+            <button type="button" class="opcion" data-explicacion="delete funciona con cualquier puntero válido. El problema es reconectar la lista.">Porque delete necesita el nodo anterior</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué pasa si te olvidas del <code>delete temp</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="La lista se ve bien, porque ya nadie llega a ese nodo. Justamente por eso el error pasa desapercibido.">La lista queda rota</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El nodo sigue ocupando memoria, pero ya no hay ningún puntero para liberarlo: es una fuga de memoria. El CI de este proyecto compila con AddressSanitizer para detectarlas.">Una fuga de memoria</button>
+            <button type="button" class="opcion" data-explicacion="C++ no tiene recolector de basura: lo que se crea con new hay que liberarlo con delete.">Nada, se libera solo</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="comparar" data-titulo="¿Lista o vector?">
+        <h2>¿Lista o vector?</h2>
+        <p>Ninguna es mejor en todo. Elige una operación y cambia la cantidad de elementos: cada barra es el trabajo que hace cada estructura (verde: la que hace menos).</p>
+        <div id="comparador"></div>
+        <div class="nota">La lista brilla cuando insertas o borras <strong>al inicio</strong> o junto a un nodo que ya tienes a mano. Para todo lo que necesite llegar a una posición, el vector gana, y casi siempre también al recorrer, por la caché.</div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Un programa recibe tareas y siempre atiende la más reciente primero (agrega y saca por el mismo lado). ¿Qué conviene?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Un vector también sirve, si agrega y saca por el final. Pero si fuera por el inicio, correría todo en cada operación.">Solo un vector</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Es una pila: con la lista se inserta y se saca por la cabeza en O(1); con un vector, por el final, también en O(1). Lo que no conviene es un vector trabajando por el inicio.">Cualquiera de las dos, si la usas por el extremo correcto</button>
+            <button type="button" class="opcion" data-explicacion="No hace falta recorrer nada: todo pasa en un extremo.">Ninguna: las dos son O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>La lista de <code>main()</code> con todas las operaciones. Fíjate qué operaciones recorren nodos y cuáles solo cambian punteros.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarla</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>En <code>std::forward_list</code></th><th>Tiempo</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>insertarAlInicio</code></td><td><code>l.push_front(x)</code></td><td class="o-grande bueno">O(1)</td><td>Se crea un nodo y se cambian dos punteros.</td></tr>
+              <tr><td><code>insertarAlFinal</code></td><td>No existe (<code>std::list::push_back</code> sí, en O(1))</td><td class="o-grande malo">O(n)</td><td>Hay que recorrer hasta el último; O(1) con un puntero <code>cola</code>.</td></tr>
+              <tr><td><code>obtener(pos)</code></td><td><code>*std::next(l.begin(), pos)</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que dar <code>pos</code> saltos.</td></tr>
+              <tr><td><code>buscar(x)</code></td><td><code>std::find(l.begin(), l.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Nodo por nodo desde la cabeza.</td></tr>
+              <tr><td><code>eliminar(x)</code></td><td><code>l.remove(x)</code> (borra todos los iguales)</td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el anterior; el borrado en sí es O(1).</td></tr>
+              <tr><td>Insertar o borrar después de un nodo conocido</td><td><code>l.insert_after(it, x)</code> / <code>l.erase_after(it)</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian punteros, sin recorrer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>Úsala cuando insertas y eliminas mucho <strong>al inicio</strong>, o junto a nodos que ya tienes localizados (por ejemplo, con un iterador guardado).</li>
+          <li>Es la base de otras estructuras: pilas, colas, listas de adyacencia de grafos y las cubetas de una <a href="../tabla-hash/">tabla hash con encadenamiento</a>.</li>
+          <li>Una ventaja poco obvia: insertar o borrar nodos <strong>no mueve a los demás</strong>, así que los punteros a otros nodos siguen siendo válidos (en un vector, al redimensionar, no).</li>
+          <li>Evítala si accedes por posición o recorres mucho: <code>std::vector</code> suele ser más rápido por la caché, y gasta menos memoria por elemento. Mide antes de elegir.</li>
+          <li><code>std::list</code> es la versión <strong>doblemente enlazada</strong>: cada nodo también apunta al anterior, así que se puede recorrer en los dos sentidos y borrar un nodo sin buscar su anterior.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lista_enlazada.cpp -o lista_enlazada &amp;&amp; ./lista_enlazada</span></pre>
+        <div data-codigo-completo="lista_enlazada.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Agrega un puntero <code>cola</code> al último nodo para que <code>insertarAlFinal</code> sea O(1). ¿Qué otros métodos tienes que actualizar?</li>
+          <li>Escribe <code>void invertir()</code> que dé vuelta la lista cambiando solo punteros, sin crear nodos. (Pista: necesitas tres punteros: anterior, actual y siguiente.)</li>
+          <li>Escribe <code>int tamano() const</code>, primero con un ciclo y después de forma recursiva.</li>
+          <li>Cambia <code>eliminar</code> para que borre <strong>todas</strong> las apariciones del valor, como <code>std::forward_list::remove</code>.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
     </div>
-
-    <h2>¿Cuándo usarla?</h2>
-    <ul>
-      <li>Cuando insertas y eliminas mucho al inicio, o en un punto que ya tienes localizado.</li>
-      <li>Como base de otras estructuras: pilas, colas, listas de adyacencia de grafos, tablas hash con encadenamiento.</li>
-      <li>En la práctica, <code>std::vector</code> suele ser más rápido para recorrer porque aprovecha la memoria caché. Mide antes de elegir.</li>
-    </ul>
-    <p>En C++ real: <code>std::forward_list&lt;int&gt;</code> (simple) o <code>std::list&lt;int&gt;</code> (doblemente enlazada).</p>
-
-    <h2>Código completo en C++</h2>
-    <p>Compílalo y ejecútalo con:</p>
-    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lista_enlazada.cpp -o lista_enlazada &amp;&amp; ./lista_enlazada</span></pre>
-    <div data-codigo-completo="lista_enlazada.cpp"></div>
-
-    <h2>Para practicar</h2>
-    <ol>
-      <li>Agrega un puntero <code>cola</code> al último nodo para que <code>insertarAlFinal</code> sea O(1). ¿Qué otros métodos tienes que actualizar?</li>
-      <li>Escribe <code>void invertir()</code> que dé vuelta la lista cambiando solo punteros, sin crear nodos.</li>
-      <li>Escribe <code>int tamano() const</code> de forma recursiva.</li>
-    </ol>
-
-    <div id="navegacion-temas"></div>
   </main>
 
   <footer class="pie">

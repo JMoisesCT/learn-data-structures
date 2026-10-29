@@ -769,30 +769,103 @@ pre.codigo .linea.actual {
 .nodo.borrado { border-color: var(--peligro); background: var(--peligro-suave); opacity: 0.5; }
 .nodo.nuevo { animation: pop 0.35s ease; }
 
-.punteros {
+/* Lista enlazada (lección): nodos y marcas que se deslizan, flechas que se trazan */
+
+.info-lista { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-lista .variables, .info-lista .salida-valor { margin: 0 0 0.5rem; }
+.info-lista .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+
+.desliza-lista { overflow-x: auto; overflow-y: hidden; }
+.marco-lista { transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-enlazada { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.lienzo-enlazada.sacudir { animation: sacudir 0.36s ease; }
+.lienzo-enlazada svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
+.lienzo-enlazada svg path { fill: none; stroke: var(--texto-suave); stroke-width: 2; stroke-dasharray: 1; }
+.lienzo-enlazada svg path.traza { animation: trazar 0.45s ease both; }
+.lienzo-enlazada svg path.activa { stroke: var(--activo); stroke-width: 3; }
+.lienzo-enlazada svg marker path { fill: var(--texto-suave); stroke: none; stroke-dasharray: none; }
+.lienzo-enlazada svg marker.activa path { fill: var(--activo); }
+
+.lienzo-enlazada .nodo { z-index: 1; height: 46px; color: var(--texto); transition: left 0.45s ease, top 0.45s ease, opacity 0.35s ease, transform 0.35s ease, background-color 0.25s ease, border-color 0.25s ease; }
+.lienzo-enlazada .nodo .sig { font-family: var(--fuente-codigo); font-size: 0.62rem; transition: background-color 0.25s ease; }
+.lienzo-enlazada .nodo .sig.resaltado, .lcabeza .sig.resaltado { background: var(--activo-suave); color: var(--texto); }
+.lienzo-enlazada .nodo.mirado { border-color: var(--activo); box-shadow: 0 0 0 3px var(--activo-suave); }
+.lienzo-enlazada .nodo.revisado { opacity: 0.5; }
+.lienzo-enlazada .nodo.encontrado { animation: pop 0.35s ease; }
+.lienzo-enlazada .nodo.condenado { border-color: var(--peligro); background: var(--peligro-suave); animation: latido 0.6s ease; }
+.lienzo-enlazada .nodo.saliendo { opacity: 0; transform: translateY(18px) scale(0.75); }
+
+.con-direcciones .nodo .sig { width: 44px; }
+.con-direcciones .nodo .sig:not(:empty)::before { display: none; }
+.ldireccion { position: absolute; left: 0; right: 0; top: calc(100% + 3px); text-align: center; font-size: 0.66rem; color: var(--texto-suave); }
+
+.lcabeza { position: absolute; display: flex; height: 46px; font-family: var(--fuente-codigo); transition: border-color 0.25s ease; }
+.lcabeza .sig {
+  min-width: 34px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--texto-suave);
+  border-radius: 8px;
+  background: var(--superficie-2);
+  font-size: 0.62rem;
+  color: var(--texto-suave);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.lcabeza .sig:empty::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--texto-suave); }
+.lcabeza .sig.nulo::before { content: "∅"; width: auto; height: auto; background: none; font-size: 0.9rem; }
+.lcabeza.activa .sig { border-color: var(--activo); background: var(--activo-suave); }
+.lcabeza-nombre { position: absolute; bottom: calc(100% + 4px); left: 0; font-size: 0.72rem; font-weight: 700; color: var(--acento); }
+
+.lnulo {
   position: absolute;
-  bottom: calc(100% + 4px);
-  left: 0;
-  width: 46px;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  gap: 1px;
+  padding: 0.35rem 0.5rem;
+  border: 2px dashed var(--borde);
+  border-radius: 8px;
+  font-family: var(--fuente-codigo);
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+  opacity: 0;
+  transition: left 0.45s ease, opacity 0.3s ease;
 }
+.lnulo.visible { opacity: 1; }
 
-.punteros.abajo { bottom: auto; top: calc(100% + 4px); flex-direction: column; }
-
-.puntero {
-  font-size: 0.7rem;
+.lpuntero {
+  position: absolute;
+  z-index: 3;
+  transform: translateX(-50%);
+  font-family: var(--fuente-codigo);
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--activo);
-  white-space: nowrap;
   line-height: 1.15;
+  white-space: nowrap;
+  color: var(--activo);
+  background: var(--superficie);
+  border-radius: 4px;
+  padding: 0 3px;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease;
 }
+.lpuntero.mala { color: var(--peligro); }
+.lpuntero.saliendo { opacity: 0; }
 
-.puntero.cabeza { color: var(--acento); }
+/* Comparador lista contra vector */
 
-.nulos { position: absolute; left: 1rem; bottom: 0.25rem; font-family: var(--fuente-codigo); font-size: 0.78rem; color: var(--texto-suave); }
+.comparador { margin-top: 1rem; }
+.selector-comparador { flex-wrap: wrap; border-radius: 12px; }
+.selector-comparador button { border-radius: 10px; }
+.cuerpo-comparador { display: grid; gap: 0.9rem; padding: 1rem; }
+.tamano-comparador { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; font-family: var(--fuente-codigo); font-size: 0.85rem; color: var(--texto-suave); }
+.tamano-comparador b { color: var(--texto); min-width: 4.5rem; }
+.tamano-comparador input { width: 160px; accent-color: var(--acento); }
+
+.fila-comparador { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; gap: 0.2rem 0.75rem; }
+.fila-comparador-nombre { font-family: var(--fuente-codigo); font-size: 0.85rem; font-weight: 700; }
+.barra-comparador { height: 22px; border-radius: 6px; background: var(--superficie-2); overflow: hidden; }
+.barra-comparador-relleno { height: 100%; border-radius: 6px; background: var(--acento); transition: width 0.45s ease, background-color 0.25s ease; }
+.barra-comparador-relleno.gana { background: var(--exito); }
+.barra-comparador-relleno.pierde { background: var(--peligro); }
+.barra-comparador-cifra { font-family: var(--fuente-codigo); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.barra-comparador-detalle { grid-column: 2 / 4; font-size: 0.82rem; color: var(--texto-suave); }
 
 /* Montículo: árbol y arreglo con posición absoluta (se deslizan al intercambiar) */
 

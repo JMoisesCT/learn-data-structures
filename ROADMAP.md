@@ -7,7 +7,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | Tema | Operaciones animadas |
 | --- | --- |
 | Vector dinámico | Lección en 9 pasos: `obtener` (con el cálculo de la dirección), `agregarAlFinal` con `redimensionar` (copias entre bloques y `delete[]`), experimento de costo amortizado (duplicar contra sumar 1), `insertar`, `eliminarEn`, `buscar` y todas juntas |
-| Lista enlazada simple | `insertarAlInicio`, `insertarAlFinal`, `buscar`, `eliminar` |
+| Lista enlazada simple | Lección en 9 pasos: `obtener` (con las direcciones de cada nodo), `insertarAlInicio`, `insertarAlFinal` (con lista vacía), `buscar`, `eliminar` (cabeza, en medio y valor ausente), comparador de costos contra el vector y todas juntas |
 | Pila (sobre arreglo) | `apilar`, `desapilar`, `cima` |
 | Cola (arreglo circular) | `encolar`, `desencolar`, `frente` |
 | Montículo (min-heap / max-heap) y heapsort | Lección en 9 pasos: `maxHeapify`/`minHeapify` (con su recursión), `buildMaxHeap`/`buildMinHeap`, `insertMax`/`insertMin`, `extractMax`/`extractMin`, `maximum`/`minimum`, `heapSort` en dos fases |
@@ -24,13 +24,12 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 ## Pasar al formato de lección
 
-Temas ya publicados que todavía son una sola página. Hay que llevarlos al formato de "Formato de un tema" en CONTRIBUTING.md (lección por pasos, un visualizador por operación con preguntas, animaciones con "juice"), como ya se hizo con Vector dinámico. Un PR por tema.
+Temas ya publicados que todavía son una sola página. Hay que llevarlos al formato de "Formato de un tema" en CONTRIBUTING.md (lección por pasos, un visualizador por operación con preguntas, animaciones con "juice"), como ya se hizo con Vector dinámico y Lista enlazada. Un PR por tema.
 
 | # | Tema | Qué agregar | Título del PR |
 | --- | --- | --- | --- |
-| 1 | Lista enlazada simple | Pasos para `insertarAlInicio`, `insertarAlFinal`, `buscar` y `eliminar`; nodos que se deslizan y punteros `sig` que se reconectan paso a paso; nodo eliminado que se desvanece | `[Lista enlazada] Explicar sus operaciones en una lección por pasos animada` |
-| 2 | Pila (sobre arreglo) | Pasos para `apilar`, `desapilar` y `cima`; valores que caen y salen por arriba; marca `tope` que sube y baja; pila llena y vacía como errores visibles; un ejemplo de uso (paréntesis balanceados o deshacer) | `[Pila] Explicar sus operaciones en una lección por pasos animada` |
-| 3 | Cola (arreglo circular) | Pasos para `encolar`, `desencolar` y `frente`; marcas `frente` y `fin` que dan la vuelta al arreglo; la vista circular junto a la lineal; cola llena y vacía como errores visibles | `[Cola] Explicar sus operaciones en una lección por pasos animada` |
+| 1 | Pila (sobre arreglo) | Pasos para `apilar`, `desapilar` y `cima`; valores que caen y salen por arriba; marca `tope` que sube y baja; pila llena y vacía como errores visibles; un ejemplo de uso (paréntesis balanceados o deshacer) | `[Pila] Explicar sus operaciones en una lección por pasos animada` |
+| 2 | Cola (arreglo circular) | Pasos para `encolar`, `desencolar` y `frente`; marcas `frente` y `fin` que dan la vuelta al arreglo; la vista circular junto a la lineal; cola llena y vacía como errores visibles | `[Cola] Explicar sus operaciones en una lección por pasos animada` |
 
 ## Ideas para el sitio
 

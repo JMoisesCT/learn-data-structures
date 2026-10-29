@@ -1,11 +1,13 @@
 // Lista enlazada simple: cada nodo guarda un valor y un puntero al siguiente.
-// Es la idea detrás de std::forward_list.
+// Es la idea detrás de std::forward_list (y std::list, si además
+// guardara un puntero al anterior).
 //
 // Compilar y ejecutar:
 //   g++ -std=c++17 -Wall -Wextra lista_enlazada.cpp -o lista_enlazada
 //   ./lista_enlazada
 
 #include <iostream>
+#include <stdexcept>
 
 struct Nodo {
     int valor;
@@ -49,6 +51,18 @@ public:
             actual = actual->siguiente;
         }
         actual->siguiente = nuevo;
+    }
+
+    // O(n): no hay índices; hay que avanzar pos veces desde la cabeza.
+    int obtener(int pos) const {
+        Nodo* actual = cabeza;
+        for (int i = 0; i < pos && actual != nullptr; i++) {
+            actual = actual->siguiente;
+        }
+        if (pos < 0 || actual == nullptr) {
+            throw std::out_of_range("posicion invalida");
+        }
+        return actual->valor;
     }
 
     // O(n): recorremos nodo por nodo.
@@ -106,6 +120,13 @@ int main() {
     lista.insertarAlFinal(12);
     lista.insertarAlInicio(3);
     lista.imprimir();
+
+    std::cout << "obtener(2) = " << lista.obtener(2) << "\n";
+    try {
+        lista.obtener(5);
+    } catch (const std::out_of_range& e) {
+        std::cout << "obtener(5) lanza out_of_range: " << e.what() << "\n";
+    }
 
     std::cout << "buscar(12) = " << std::boolalpha << lista.buscar(12) << "\n";
     std::cout << "buscar(99) = " << lista.buscar(99) << "\n";
