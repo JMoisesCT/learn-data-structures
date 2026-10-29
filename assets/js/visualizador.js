@@ -307,6 +307,9 @@
     });
     const inicial = indiceDesdeHash();
     ir(inicial >= 0 ? inicial : 0, { sinUrl: inicial < 0 });
+    // Con #paso en la URL el navegador baja hasta la sección y tapa su título:
+    // la lección siempre empieza arriba.
+    if (inicial >= 0) window.addEventListener("load", () => { if (window.scrollY > 0) window.scrollTo(0, 0); }, { once: true });
   }
 
   // ------------------------------------------------------------------
@@ -455,6 +458,13 @@
 
   const VELOCIDADES = [0.4, 0.7, 1, 1.6, 2.6];
 
+  // Pantallas donde la lección cabe en la ventana (la misma consulta que en estilos.css).
+  const PANTALLA_AJUSTADA = typeof window !== "undefined" && window.matchMedia
+    ? window.matchMedia("(min-width: 861px) and (min-height: 560px)")
+    : { matches: false };
+  // Lo más que se reduce un dibujo para que quepa a lo alto; si aun así no cabe, la página hace scroll.
+  const ESCALA_MINIMA = 0.8;
+
   function tema(cfg) {
     const contenedor = document.getElementById(cfg.contenedor || "visualizador");
     if (!contenedor) return;
@@ -587,8 +597,38 @@
     // para que no salte entre pasos).
     function centrar() {
       escenario.style.removeProperty("--hueco");
-      const sobra = escenario.offsetHeight - (altos.get(escenario) || 0);
+      const sobra = escenario.offsetHeight - altoMinimo;
       if (sobra > 1) escenario.style.setProperty("--hueco", `${Math.floor(sobra / 2)}px`);
+    }
+
+    // En una lección que cabe en la ventana, si el dibujo más alto de la
+    // operación no entra en el alto que le toca al escenario, el contenido se
+    // reduce con zoom (en --escala, ver estilos.css). El alto disponible se
+    // mide con el escenario vacío de reservas, así no depende del dibujo.
+    const enLeccion = !!contenedor.closest(".leccion");
+    let altoMinimo = 0;
+    function ajustarEscala() {
+      if (!escenario.clientWidth) return; // paso de lección oculto: se ajusta al mostrarlo
+      const natural = altos.get(escenario) || 0;
+      const relleno = 32; // padding de arriba y abajo del escenario, sin el hueco
+      let k = 1;
+      if (enLeccion && PANTALLA_AJUSTADA.matches && natural > relleno) {
+        escenario.style.removeProperty("--hueco");
+        escenario.style.minHeight = "0px";
+        escenario.style.flexBasis = "0px";
+        const disponible = escenario.clientHeight;
+        escenario.style.minHeight = "";
+        escenario.style.flexBasis = "";
+        if (disponible < natural) k = Math.max(ESCALA_MINIMA, (disponible - relleno) / (natural - relleno));
+      }
+      altoMinimo = k < 1 ? Math.ceil(relleno + (natural - relleno) * k) : natural;
+      if (k < 1) {
+        escenario.style.setProperty("--escala", k.toFixed(3));
+        escenario.style.setProperty("--alto-minimo", `${altoMinimo}px`);
+      } else {
+        escenario.style.removeProperty("--escala");
+        escenario.style.removeProperty("--alto-minimo");
+      }
     }
 
     // Dibuja cada paso en copias invisibles del escenario y del mensaje para medirlos.
@@ -624,6 +664,7 @@
       }
       if (!escenario.clientWidth) return; // paso de lección oculto
       if (!altos.has(escenario)) reservarEspacio();
+      ajustarEscala();
       centrar();
     });
 
@@ -751,6 +792,7 @@
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
       noEncoger(mensaje);
+      ajustarEscala();
       centrar();
     }
 

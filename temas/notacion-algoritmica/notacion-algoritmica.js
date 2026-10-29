@@ -399,8 +399,18 @@
   // valores se sigan leyendo.
   function medidas(n, escenario) {
     if (n <= 12) return { paso: 44, celda: 38, columnas: n };
-    const disponible = Math.max(260, ((escenario && escenario.clientWidth) || 600) - 32);
+    const disponible = Math.max(260, anchoArreglo(escenario) || 568);
     return { paso: 34, celda: 30, columnas: Math.max(8, Math.min(16, Math.floor((disponible - 16) / 34))) };
+  }
+
+  // Ancho para el arreglo: todo el escenario, o la columna izquierda cuando la
+  // gráfica va al lado (escenarios anchos, ver .cuerpo-na en estilos.css).
+  function anchoArreglo(escenario) {
+    if (!escenario || !escenario.clientWidth) return 0;
+    const cuerpo = escenario.querySelector(".cuerpo-na");
+    if (!cuerpo || !cuerpo.clientWidth) return escenario.clientWidth - 32;
+    if (getComputedStyle(cuerpo).display !== "grid") return cuerpo.clientWidth;
+    return cuerpo.clientWidth - cuerpo.querySelector(".grafica-na").offsetWidth - parseFloat(getComputedStyle(cuerpo).columnGap || 0);
   }
 
   if (typeof window !== "undefined") {
@@ -413,7 +423,7 @@
     if (!escenario || !escenario.clientWidth) return;
     const ancho = Number(lienzo.dataset.ancho);
     const alto = Number(lienzo.dataset.alto);
-    const k = Math.max(0.55, Math.min(1, (escenario.clientWidth - 32) / ancho));
+    const k = Math.max(0.55, Math.min(1, anchoArreglo(escenario) / ancho));
     lienzo.style.transform = k < 1 ? `scale(${k})` : "";
     lienzo.parentElement.style.width = `${ancho * k}px`;
     lienzo.parentElement.style.height = `${alto * k}px`;
@@ -422,11 +432,12 @@
   function crearEscenario(escenario, cfg) {
     const lienzo = el("div", { class: "lienzo-na" });
     const abajo = el("div", { class: "abajo-na" });
-    escenario.append(
+    escenario.classList.add("escenario-na");
+    escenario.append(el("div", { class: "cuerpo-na" },
       el("div", { class: "info-na" }),
       el("div", { class: "marco-na" }, lienzo),
       el("p", { class: "leyenda-na" }, el("i", { class: "na-punto muestra-punto" }), " = 1 paso (cada pasos++ deja caer un punto)"),
-      abajo);
+      abajo));
     abajo.append(el("div", { class: "pares-na" }), crearGrafica(cfg));
     return lienzo;
   }
@@ -466,6 +477,9 @@
 
   function dibujarArreglo(escenario, lienzo, s, vis) {
     const n = s.n;
+    // La gráfica va al lado del arreglo, salvo con la tabla de pares de
+    // hayRepetidos y n grande: ahí arreglo y tabla necesitan todo el ancho.
+    escenario.querySelector(".cuerpo-na").classList.toggle("al-lado", !(s.op === "hayRepetidos" && n > 12));
     const { paso, celda, columnas } = medidas(n, escenario);
     // Alto de las columnas de puntos: cuántos pasos puede tocar una misma casilla.
     // En hayRepetidos con n grande serían demasiados: ahí los cuenta la tabla de pares.
