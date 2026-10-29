@@ -9,6 +9,8 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
 - Los **pull requests deben tener nombres claros** que representen lo que hacen. Formato obligatorio: `[Ámbito] Verbo en infinitivo + qué cambia` (detalles y ejemplos en CONTRIBUTING.md).
 - Mantener el sitio de **GitHub Pages** funcionando.
 - Darle al sitio **un formato visual más elegante**. Referencia principal: su otro proyecto, [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation) (estilo inspirado en Brilliant: lecciones en pasos cortos, mucho espacio en blanco, tarjetas, feedback inmediato). Otras referencias en `docs/inspiracion-visual.md`.
+- **Formato de cada tema: lección por pasos, como `temas/monticulo/` y `temas/vector-dinamico/`**, nunca una página larga con scroll. Cada operación en su propio paso con su animación y una pregunta, y al final "Todo junto", complejidad y código completo. Detalles en CONTRIBUTING.md ("Formato de un tema").
+- **Mucho "juice" en las animaciones**: que se vea qué hace cada método en memoria (valores que se deslizan al moverse, lo nuevo que aparece, lo que se borra que se desvanece, índices y punteros que se desplazan, errores que se notan), no solo celdas que cambian de color.
 - Temas pedidos explícitamente: **montículos (min-heap y max-heap) y heapsort** (hecho en `temas/monticulo/`).
 
 ## Reglas
