@@ -458,8 +458,13 @@
       for (const lienzo of document.querySelectorAll(".lienzo-enlazada")) {
         // Si cambia cuántos nodos caben por fila, se acomodan de nuevo.
         const s = lienzo._estado;
-        if (s && columnas(lienzo, s) !== Number(lienzo.dataset.columnas)) dibujar(lienzo.closest(".escenario"), s);
-        else escalar(lienzo);
+        if (!s || !lienzo.closest(".desliza-lista").clientWidth) continue; // paso oculto
+        if (columnas(lienzo, s) !== Number(lienzo.dataset.columnas)) dibujar(lienzo.closest(".escenario"), s);
+        else {
+          escalar(lienzo);
+          // Si se dibujó con el paso oculto, los nodos no tenían posición: las flechas se trazan ahora.
+          trazarFlechas(lienzo, pasoX(s));
+        }
       }
     });
   }
@@ -557,16 +562,14 @@
       path.classList.toggle("activa", activa);
       path.setAttribute("marker-end", `url(#punta-lista${activa ? "-activa" : ""}-${n})`);
     }
-    return deseadas;
   }
 
-  function trazarFlechas(lienzo, deseadas, paso) {
-    const svg = lienzo.querySelector("svg");
-    for (const [de, a] of deseadas) {
-      const path = svg.querySelector(`path.flecha[data-de="${de}"]`);
+  function trazarFlechas(lienzo, paso) {
+    for (const path of lienzo.querySelectorAll("svg path.flecha")) {
+      const { de, a } = path.dataset;
       const origen = de === "cabeza" ? lienzo.querySelector(".lcabeza") : lienzo.querySelector(`.nodo[data-id="${de}"]`);
       const destino = lienzo.querySelector(`.nodo[data-id="${a}"]`);
-      if (path && origen && destino) path.setAttribute("d", camino(origen, destino, paso));
+      if (origen && destino) path.setAttribute("d", camino(origen, destino, paso));
     }
   }
 
@@ -679,11 +682,11 @@
     enfocar(lienzo);
 
     // Las flechas siguen a los nodos mientras se deslizan.
-    const deseadas = actualizarFlechas(lienzo, s, vis);
+    actualizarFlechas(lienzo, s, vis);
     const hasta = performance.now() + 520;
     cancelAnimationFrame(lienzo._cuadro);
     const cuadro = () => {
-      trazarFlechas(lienzo, deseadas, dx);
+      trazarFlechas(lienzo, dx);
       if (performance.now() < hasta && lienzo.isConnected) lienzo._cuadro = requestAnimationFrame(cuadro);
     };
     cuadro();
