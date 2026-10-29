@@ -3,11 +3,11 @@
 // (scripts/verificar-fragmentos.mjs lo revisa).
 (function () {
   const { el } = DS;
-  const MAXIMO = 7; // límite solo para que la animación quepa en pantalla
+  const MAXIMO = 15; // límite solo para que la animación quepa en pantalla
   const MARGEN = 14;
   const X_LISTA = 100; // x del primer nodo: a la izquierda va la variable cabeza
   const ALTO_NODO = 46;
-  const Y_FILA = 58; // arriba quedan las marcas de los punteros
+  const Y_FILA = 58; // y de la primera fila: arriba quedan las marcas de los punteros
   const SVG = "http://www.w3.org/2000/svg";
   const ORDEN_PUNTEROS = ["nuevo", "actual", "temp"];
 
@@ -371,17 +371,30 @@
   };
 
   // ------------------------------------------------------------------
-  // Dibujo: los nodos alcanzables desde cabeza van en una fila; los que
-  // están sueltos (recién creados o desenganchados) van debajo. Todo se
-  // reutiliza por id para que se deslice con transiciones CSS.
+  // Dibujo: los nodos alcanzables desde cabeza van en filas, como un texto
+  // que salta de línea al llegar al borde; los que están sueltos (recién
+  // creados o desenganchados) van debajo de su fila. Todo se reutiliza por
+  // id para que se deslice con transiciones CSS.
   // ------------------------------------------------------------------
 
   const pasoX = (s) => (s.direcciones ? 136 : 108);
-  const ySueltos = (s) => Y_FILA + ALTO_NODO + (s.direcciones ? 62 : 48);
-  // La fila de abajo solo ocupa lugar cuando hay nodos sueltos.
-  const altoLienzo = (s, sueltos) => (sueltos ? ySueltos(s) + ALTO_NODO + 34 : Y_FILA + ALTO_NODO + (s.direcciones ? 28 : 14));
+  const anchoNodo = (s) => (s.direcciones ? 94 : 78);
+  const bajada = (s) => ALTO_NODO + (s.direcciones ? 62 : 48); // de una fila a sus nodos sueltos
+  // Entre dos filas: el carril de la flecha que salta de fila y las marcas de los punteros.
+  const separacion = (s) => (s.direcciones ? 70 : 58);
+  // Lo que ocupa una fila: sus nodos sueltos solo ocupan lugar cuando los hay.
+  const altoFila = (s, sueltos) => (sueltos ? bajada(s) + ALTO_NODO + 22 + (s.direcciones ? 14 : 0) : ALTO_NODO);
 
-  function posiciones(s) {
+  // Cuántos nodos caben por fila en el ancho del escenario (al menos 3: si
+  // no caben, el dibujo se reduce). Se mide el ancho visible, sin el zoom del
+  // motor, para que sea el mismo que en las copias con que el motor mide el alto.
+  function columnas(lienzo, s) {
+    const ancho = lienzo.closest(".desliza-lista").getBoundingClientRect().width;
+    if (!ancho) return Number(lienzo.dataset.columnas) || 5; // paso oculto: se mide al mostrarlo
+    return Math.max(3, Math.floor((ancho - X_LISTA - MARGEN - anchoNodo(s)) / pasoX(s)) + 1);
+  }
+
+  function posiciones(s, cols, conNulo) {
     const fila = cadena(s);
     const enFila = new Set(fila);
     // Un nodo recién desenganchado guarda su lugar hasta el delete.
@@ -390,18 +403,36 @@
       .sort((a, b) => a[1].reserva - b[1].reserva);
     const lugares = fila.slice();
     for (const [id, n] of reservados) lugares.splice(Math.min(n.reserva, lugares.length), 0, id);
-    const dx = pasoX(s);
-    const pos = {};
-    lugares.forEach((id, k) => {
-      pos[id] = { x: X_LISTA + k * dx, y: enFila.has(id) ? Y_FILA : ySueltos(s), suelto: !enFila.has(id) };
-    });
+    const filaDe = (k) => Math.max(0, Math.floor(k / cols));
+
+    // El lugar k de cada nodo y si va debajo de su fila.
+    const lugar = {};
+    lugares.forEach((id, k) => { lugar[id] = { k, abajo: !enFila.has(id) }; });
     let extra = 0;
     for (const [id, n] of Object.entries(s.nodos)) {
-      if (pos[id]) continue;
-      const ancla = n.ancla != null ? n.ancla : lugares.length + extra++;
-      pos[id] = { x: X_LISTA + ancla * dx, y: ySueltos(s), suelto: true };
+      if (lugar[id]) continue;
+      const k = n.ancla != null ? n.ancla : lugares.length + extra++;
+      // Si abre una fila que todavía está vacía, aparece ya en ella.
+      const f = filaDe(k);
+      lugar[id] = { k, abajo: !(f > 0 && f * cols >= lugares.length) };
     }
-    return { pos, fin: X_LISTA + lugares.length * dx };
+
+    // Cada fila empieza debajo de la anterior y de sus nodos sueltos.
+    let filas = conNulo ? filaDe(lugares.length) + 1 : 1;
+    const conSueltos = [];
+    for (const { k, abajo } of Object.values(lugar)) {
+      filas = Math.max(filas, filaDe(k) + 1);
+      if (abajo) conSueltos[filaDe(k)] = true;
+    }
+    const tops = [Y_FILA];
+    for (let f = 1; f < filas; f++) tops[f] = tops[f - 1] + altoFila(s, conSueltos[f - 1]) + separacion(s);
+    const en = (k, abajo) => ({ x: X_LISTA + (k - filaDe(k) * cols) * pasoX(s), y: tops[filaDe(k)] + (abajo ? bajada(s) : 0), abajo });
+
+    const pos = {};
+    for (const [id, { k, abajo }] of Object.entries(lugar)) pos[id] = Object.assign(en(k, abajo), { suelto: !enFila.has(id) });
+    const ultima = filas - 1;
+    const alto = tops[ultima] + (conSueltos[ultima] ? bajada(s) + ALTO_NODO + 34 : ALTO_NODO + (s.direcciones ? 28 : 14));
+    return { pos, nulo: en(lugares.length, false), alto };
   }
 
   let lienzos = 0;
@@ -424,7 +455,12 @@
 
   if (typeof window !== "undefined") {
     window.addEventListener("resize", () => {
-      for (const lienzo of document.querySelectorAll(".lienzo-enlazada")) escalar(lienzo);
+      for (const lienzo of document.querySelectorAll(".lienzo-enlazada")) {
+        // Si cambia cuántos nodos caben por fila, se acomodan de nuevo.
+        const s = lienzo._estado;
+        if (s && columnas(lienzo, s) !== Number(lienzo.dataset.columnas)) dibujar(lienzo.closest(".escenario"), s);
+        else escalar(lienzo);
+      }
     });
   }
 
@@ -473,6 +509,17 @@
     const tx = destino.offsetLeft;
     const ty = destino.offsetTop;
     const th = destino.offsetHeight;
+    // Salta a la fila de abajo: sale por la derecha, cruza por encima de las
+    // marcas de la fila nueva y entra al nodo por la izquierda, como las demás.
+    if (ty > origen.offsetTop + 5 && tx < origen.offsetLeft) {
+      const r = 10;
+      const xd = origen.offsetLeft + origen.offsetWidth + 14;
+      const xi = tx - 28;
+      const yc = ty - 40;
+      const y2 = ty + th / 2;
+      return `M ${x1} ${y1} L ${xd - r} ${y1} Q ${xd} ${y1} ${xd} ${y1 + r} L ${xd} ${yc - r} Q ${xd} ${yc} ${xd - r} ${yc}`
+        + ` L ${xi + r} ${yc} Q ${xi} ${yc} ${xi} ${yc + r} L ${xi} ${y2 - r} Q ${xi} ${y2} ${xi + r} ${y2} L ${tx - 3} ${y2}`;
+    }
     if (Math.abs(ty - origen.offsetTop) < 5) {
       const x2 = tx - 3;
       const y2 = ty + th / 2;
@@ -527,7 +574,9 @@
     const lienzo = escenario.querySelector(".lienzo-enlazada") || crearLienzo(escenario);
     const vis = s.vis || {};
     const dx = pasoX(s);
-    const { pos, fin } = posiciones(s);
+    const cols = columnas(lienzo, s);
+    lienzo.dataset.columnas = cols;
+    lienzo._estado = s;
     lienzo.classList.toggle("con-direcciones", s.direcciones);
 
     // Variables y valor devuelto, arriba del dibujo.
@@ -538,9 +587,10 @@
     // ¿Algún puntero local vale nullptr? Entonces se ve el "nullptr" al final.
     const nombres = ORDEN_PUNTEROS.filter((k) => s.ptrs[k] !== undefined);
     const algunoNulo = nombres.some((k) => s.ptrs[k] == null);
+    const { pos, nulo: fin, alto } = posiciones(s, cols, algunoNulo);
     const nulo = lienzo.querySelector(".lnulo");
-    nulo.style.left = `${fin}px`;
-    nulo.style.top = `${Y_FILA + 8}px`;
+    nulo.style.left = `${fin.x}px`;
+    nulo.style.top = `${fin.y + 8}px`;
     nulo.classList.toggle("visible", algunoNulo);
 
     // La variable cabeza, a la izquierda.
@@ -591,7 +641,7 @@
     const pila = {};
     for (const k of nombres) {
       const destino = s.ptrs[k];
-      const lugar = destino == null ? { x: fin, y: Y_FILA, suelto: false, nulo: true } : pos[destino];
+      const lugar = destino == null ? Object.assign({ nulo: true }, fin) : pos[destino];
       if (!lugar) continue;
       const clave = destino == null ? "nulo" : destino;
       const nivel = (pila[clave] = (pila[clave] || 0) + 1) - 1;
@@ -602,9 +652,9 @@
         lienzo.append(marca);
       }
       const ancla = lugar.nulo ? 34 : 23; // centro del campo valor (o del nullptr)
-      marca.textContent = lugar.suelto ? `↑ ${k}` : `${k} ↓`;
+      marca.textContent = lugar.abajo ? `↑ ${k}` : `${k} ↓`;
       marca.style.left = `${lugar.x + ancla}px`;
-      marca.style.top = lugar.suelto
+      marca.style.top = lugar.abajo
         ? `${lugar.y + ALTO_NODO + 4 + nivel * 14 + (s.direcciones ? 14 : 0)}px`
         : `${lugar.y - 18 - nivel * 14}px`;
       marca.classList.toggle("nulo", destino == null);
@@ -613,9 +663,8 @@
     for (const marca of lienzo.querySelectorAll(".lpuntero[data-nombre]")) if (!nombres.includes(marca.dataset.nombre)) retirar(marca);
 
     // Tamaño del dibujo y sacudida si hubo un error.
-    const derecha = Math.max(fin + (algunoNulo ? 80 : 0), ...Object.values(pos).map((p) => p.x + dx));
+    const derecha = Math.max(fin.x + (algunoNulo ? 80 : 0), ...Object.values(pos).map((p) => p.x + dx));
     const ancho = Math.max(320, derecha + MARGEN);
-    const alto = altoLienzo(s, Object.values(pos).some((p) => p.suelto));
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
     lienzo.dataset.ancho = ancho;
