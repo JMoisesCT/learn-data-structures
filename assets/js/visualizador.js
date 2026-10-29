@@ -46,8 +46,8 @@
     {
       slug: "cola",
       titulo: "Cola (queue)",
-      resumen: "El primero que entra es el primero que sale (FIFO), con un arreglo circular.",
-      etiquetas: ["FIFO", "arreglo circular"],
+      resumen: "El primero que entra es el primero que sale (FIFO). std::queue y una cola hecha con nodos y dos punteros.",
+      etiquetas: ["FIFO", "push/pop O(1)"],
       archivo: "cola.cpp",
     },
     {

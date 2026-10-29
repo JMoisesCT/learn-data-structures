@@ -1088,6 +1088,7 @@ pre.codigo .linea.actual {
 .vmarca.acento { color: var(--acento); }
 .vmarca.mala { color: var(--peligro); }
 .vmarca.saliendo { opacity: 0; }
+.lcabeza.mala .sig { border-color: var(--peligro); background: var(--peligro-suave); }
 
 /* Comparador lista contra vector */
 

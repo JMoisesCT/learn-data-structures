@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cola (queue) · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Qué es una cola (FIFO), cómo funciona un arreglo circular, animación paso a paso y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: qué es una cola (FIFO), cómo usar std::queue (push, front, pop y sus trampas), un uso real con el problema de Josefo, y cómo se construye una cola con una lista enlazada y dos punteros (encolar, desencolar y frente en O(1)). Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="cola">
@@ -14,57 +14,146 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Cola</div>
       <h1>Cola (queue)</h1>
-      <p class="resumen">Una colección donde <strong>el primero que entra es el primero que sale</strong> (FIFO, <em>First In, First Out</em>). Se agrega por el final y se saca por el frente.</p>
+      <p class="resumen">Una colección donde <strong>el primero que entra es el primero que sale</strong> (FIFO, <em>First In, First Out</em>). Vas a verla en dos versiones: <code>std::queue</code>, la de la STL, y una <strong>cola enlazada</strong> hecha con nodos, para ver qué pasa por dentro.</p>
     </div>
 
-    <h2>La idea</h2>
-    <p>Es la fila del banco: quien llega se pone al final y atienden primero a quien está adelante.</p>
-    <p>Si la guardáramos en un arreglo normal, sacar el primero obligaría a mover a todos un lugar (O(n)). El truco es un <strong>arreglo circular</strong>: dos índices, <code>inicio</code> y <code>fin</code>, que avanzan y, al llegar al final del arreglo, <strong>dan la vuelta</strong> a la posición 0 gracias al operador <code>%</code> (módulo).</p>
-    <ul>
-      <li><code>encolar(x)</code> (<em>push</em>): guarda <code>x</code> en <code>datos[fin]</code> y avanza <code>fin</code>.</li>
-      <li><code>desencolar()</code> (<em>pop</em>): devuelve <code>datos[inicio]</code> y avanza <code>inicio</code>.</li>
-      <li><code>frente()</code> (<em>front</em>): mira el primero sin sacarlo.</li>
-    </ul>
+    <div class="leccion">
 
-    <h2>Pruébalo paso a paso</h2>
-    <p>Encola varios valores seguidos y mira cómo <code>fin</code> pasa de 7 a 0. Abajo verás la cola “como la ve quien la usa”: en orden de llegada, sin importar dónde quedó cada valor en el arreglo.</p>
-    <div id="visualizador"></div>
+      <section class="paso-leccion" id="idea" data-titulo="Primero en entrar, primero en salir">
+        <h2>Primero en entrar, primero en salir</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Es la fila del banco: quien llega se pone al <strong>final</strong>, y atienden primero a quien está <strong>adelante</strong>, el que lleva más tiempo esperando. A diferencia de la <a href="../pila/">pila</a>, se trabaja por los dos extremos: se entra por uno y se sale por el otro.</p>
+          </div>
+          <div>
+            <p>En C++ ya existe: <code>std::queue&lt;int&gt;</code> (de <code>&lt;queue&gt;</code>). <code>push</code> entra al final, <code>front</code> lee el primero, <code>back</code> el último y <code>pop</code> saca el primero. Todas son <strong>O(1)</strong>. Como en la pila, <code>front</code> y <code>pop</code> con la cola vacía no avisan.</p>
+          </div>
+        </div>
+        <div id="vis-queue"></div>
 
-    <div class="nota">¿Por qué guardamos <code>cantidad</code>? Porque cuando la cola está vacía y cuando está llena, <code>inicio == fin</code> en ambos casos. Sin <code>cantidad</code> no podríamos distinguirlos.</div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Haces <code>push(5)</code>, <code>push(9)</code>, <code>push(2)</code> y después <code>pop()</code>. ¿Qué devuelve <code>front()</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="5 fue el primero en entrar, así que fue el que salió con pop().">5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Salen en el mismo orden en que entraron: salió el 5 y ahora adelante está el 9.">9</button>
+            <button type="button" class="opcion" data-explicacion="2 es back(), el último en entrar. En una pila sería la cima; en una cola es el último en salir.">2</button>
+          </div>
+        </div>
+      </section>
 
-    <h2>Complejidad</h2>
-    <div class="tabla-envoltura">
-      <table>
-        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
-        <tbody>
-          <tr><td><code>encolar</code></td><td class="o-grande bueno">O(1)</td><td>Se escribe en <code>datos[fin]</code> y se avanza un índice.</td></tr>
-          <tr><td><code>desencolar</code></td><td class="o-grande bueno">O(1)</td><td>Se avanza <code>inicio</code>; no se mueve ningún elemento.</td></tr>
-          <tr><td><code>frente</code></td><td class="o-grande bueno">O(1)</td><td>Acceso directo a <code>datos[inicio]</code>.</td></tr>
-        </tbody>
-      </table>
+      <section class="paso-leccion" id="josefo" data-titulo="Un uso: la ronda">
+        <h2>Un uso real: la ronda de Josefo</h2>
+        <p><code>n</code> personas en ronda; se cuenta de <code>k</code> en <code>k</code> y sale la que cae en <code>k</code>, hasta que queda una. Con una cola es natural: las <code>k - 1</code> personas que se cuentan pasan del <strong>frente al final</strong> (<code>push(front())</code> y <code>pop()</code>), y la siguiente sale. Así funcionan también los turnos de un procesador (<em>round robin</em>).</p>
+        <div id="vis-josefo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué primero <code>ronda.push(ronda.front())</code> y después <code>ronda.pop()</code>, y no al revés?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="pop() no devuelve nada: si se saca primero, el valor se pierde. Por eso se copia al final con push(front()) y recién entonces se quita del frente.">Porque <code>pop()</code> no devuelve el valor: hay que copiarlo antes</button>
+            <button type="button" class="opcion" data-explicacion="El orden cambia el resultado: después del pop, front() ya es otra persona.">Da lo mismo el orden</button>
+            <button type="button" class="opcion" data-explicacion="push nunca falla por la cantidad: std::queue crece lo que haga falta.">Porque la cola se llenaría</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="encolar" data-titulo="Por dentro: encolar">
+        <h2>Por dentro: una lista enlazada con dos punteros</h2>
+        <p>Se sale por la cabeza de una <a href="../lista-enlazada/">lista enlazada</a> (<code>primero</code>) y se entra por el final. Para no recorrer la lista en cada <code>encolar</code>, la cola guarda un segundo puntero, <code>ultimo</code>: enganchar el nodo nuevo es <strong>O(1)</strong>. Si la cola está vacía, el nodo nuevo es primero y último a la vez.</p>
+        <div id="vis-encolar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Y si en lugar de guardar <code>ultimo</code> se usara <code>nodoEn(cantidad - 1)</code> para llegar al final?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Funcionaría, pero nodoEn recorre la lista desde la cabeza.">Sería igual de rápido</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="nodoEn da cantidad - 1 saltos: cada encolar sería O(n), y llenar la cola con n valores costaría O(n²). Un puntero más lo deja en O(1).">Cada <code>encolar</code> sería O(n)</button>
+            <button type="button" class="opcion" data-explicacion="nodoEn funciona con cualquier lista; el problema es lo que cuesta.">No compilaría</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué no se encola al inicio y se desencola al final?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Para borrar el último hay que cambiar el siguiente del penúltimo, y en una lista simple no hay forma de volver hacia atrás: habría que recorrerla, O(n). Insertar al final con ultimo sí es O(1).">Porque borrar el último necesita el penúltimo: O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Insertar al inicio sí es O(1); el problema está en el otro extremo.">Porque insertar al inicio es O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desencolar" data-titulo="desencolar">
+        <h2><code>desencolar</code>: sale el primero</h2>
+        <p>Es borrar la cabeza de la lista: <code>temp</code> guarda el primero, se lee su valor, <code>primero</code> pasa al siguiente y el nodo se libera. Hay un detalle: si la cola queda vacía, <code>ultimo</code> también tiene que volver a <code>nullptr</code>. Esta versión devuelve el valor y lanza <code>std::underflow_error</code> si la cola está vacía.</p>
+        <div id="vis-desencolar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si se borraran las líneas <code>if (primero == nullptr) { ultimo = nullptr; }</code>, ¿qué pasaría al encolar después de vaciar la cola?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El problema no se nota al vaciarla, sino en el encolar siguiente.">Nada: primero ya es nullptr</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="ultimo seguiría apuntando al nodo liberado (un puntero colgante). encolar vería ultimo != nullptr y haría ultimo->siguiente = nuevo: escribir en memoria liberada, y primero quedaría en nullptr. AddressSanitizer lo detecta.">Se escribiría en memoria ya liberada</button>
+            <button type="button" class="opcion" data-explicacion="No es una fuga: el nodo sí se liberó. El problema es el puntero que sigue apuntándolo.">Una fuga de memoria</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="frente" data-titulo="frente">
+        <h2><code>frente</code>: mirar sin sacar</h2>
+        <p>Devuelve el valor del nodo al que apunta <code>primero</code>, sin cambiar nada: <strong>O(1)</strong>. Es el <code>front()</code> de <code>std::queue</code>, pero con la cola vacía lanza una excepción en lugar de leer basura.</p>
+        <div id="vis-frente"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cómo escribirías <code>int fondo() const</code> (el <code>back()</code> de <code>std::queue</code>) en O(1)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="ultimo ya apunta al último nodo: basta revisar que no sea nullptr y devolver ultimo->valor.">Devolviendo <code>ultimo-&gt;valor</code></button>
+            <button type="button" class="opcion" data-explicacion="Funciona, pero recorre toda la lista: O(n). Para eso está ultimo.">Recorriendo desde <code>primero</code> hasta el final</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>Los mismos botones para las dos versiones. Cambia de versión y compara: <code>std::queue</code> esconde cómo guarda los valores; en <code>ColaEnlazada</code> se ven los nodos y los dos punteros.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarla</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th><code>std::queue</code></th><th><code>ColaEnlazada</code></th><th>Tiempo</th><th>Con la cola vacía</th></tr></thead>
+            <tbody>
+              <tr><td>Entrar al final</td><td><code>push(x)</code></td><td><code>encolar(x)</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+              <tr><td>Leer el primero</td><td><code>front()</code></td><td><code>frente()</code></td><td class="o-grande bueno">O(1)</td><td><code>front</code>: comportamiento indefinido; <code>frente</code>: excepción</td></tr>
+              <tr><td>Sacar el primero</td><td><code>pop()</code> (no devuelve nada)</td><td><code>desencolar()</code> (devuelve el valor)</td><td class="o-grande bueno">O(1)</td><td><code>pop</code>: comportamiento indefinido; <code>desencolar</code>: excepción</td></tr>
+              <tr><td>Leer el último</td><td><code>back()</code></td><td>(ejercicio: <code>ultimo-&gt;valor</code>)</td><td class="o-grande bueno">O(1)</td><td>comportamiento indefinido</td></tr>
+              <tr><td>¿Está vacía? / tamaño</td><td><code>empty()</code> / <code>size()</code></td><td><code>estaVacia()</code> / <code>tamano()</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><strong>Por dentro de <code>std::queue</code></strong> hay un <code>std::deque</code>, que crece y se achica por los dos extremos en O(1). No sirve <code>std::vector</code>: sacar del inicio correría todos los elementos.</li>
+          <li><strong>Con un arreglo</strong> también se puede: un <strong>arreglo circular</strong> con dos índices, <code>inicio</code> y <code>fin</code>, que dan la vuelta con <code>%</code>. No pide memoria en cada operación, pero tiene capacidad fija (o hay que redimensionarlo).</li>
+          <li><strong>Dónde se usa:</strong> colas de impresión, de tareas y de mensajes; turnos de un procesador (<em>round robin</em>); búferes de teclado, audio y red; y el recorrido en anchura (BFS) de árboles y grafos.</li>
+          <li>Si necesitas que salga primero el más <strong>importante</strong> y no el más antiguo, lo que buscas es una cola de prioridad: un <a href="../monticulo/">montículo</a> (<code>std::priority_queue</code>).</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Las dos versiones en un solo archivo. Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra cola.cpp -o cola &amp;&amp; ./cola</span></pre>
+        <div data-codigo-completo="cola.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Agrega a <code>ColaEnlazada</code> el método <code>int fondo() const</code> (como <code>back()</code>), en O(1).</li>
+          <li>Simula una fila de impresión: cada trabajo tiene un número de páginas y la impresora atiende 2 páginas por turno; si a un trabajo le faltan páginas, vuelve al final de la cola.</li>
+          <li>Implementa una cola con un <strong>arreglo circular</strong> de capacidad fija: <code>inicio</code>, <code>fin</code> y <code>cantidad</code>, avanzando con <code>(i + 1) % CAPACIDAD</code>. ¿Por qué hace falta <code>cantidad</code> para distinguir la cola llena de la vacía?</li>
+          <li>Implementa una cola usando <strong>dos pilas</strong> (<code>std::stack</code>). ¿Cuánto cuesta cada operación en promedio?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
     </div>
-
-    <h2>¿Dónde se usa?</h2>
-    <ul>
-      <li>Colas de impresión, de tareas o de mensajes: se atienden en orden de llegada.</li>
-      <li>Búfer de teclado, audio o red (los búferes circulares están en todas partes).</li>
-      <li>El recorrido en anchura de grafos y árboles (BFS).</li>
-    </ul>
-    <p>En C++ real usa <code>std::queue&lt;int&gt;</code> (de <code>&lt;queue&gt;</code>), con <code>push</code>, <code>pop</code> y <code>front</code>.</p>
-
-    <h2>Código completo en C++</h2>
-    <p>Compílalo y ejecútalo con:</p>
-    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra cola.cpp -o cola &amp;&amp; ./cola</span></pre>
-    <div data-codigo-completo="cola.cpp"></div>
-
-    <h2>Para practicar</h2>
-    <ol>
-      <li>Elimina la variable <code>cantidad</code> dejando siempre una casilla libre. ¿Cómo detectas ahora que está llena?</li>
-      <li>Haz que la cola crezca al doble cuando se llene. Cuidado: al copiar, los elementos deben quedar en orden desde <code>inicio</code>.</li>
-      <li>Implementa una cola usando <strong>dos pilas</strong>.</li>
-    </ol>
-
-    <div id="navegacion-temas"></div>
   </main>
 
   <footer class="pie">
