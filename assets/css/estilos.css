@@ -1004,6 +1004,144 @@ pre.codigo .linea.actual {
 
 .secuencia { margin: 1rem 0 0; font-family: var(--fuente-codigo); font-size: 0.82rem; color: var(--texto-suave); }
 
+/* Vector dinámico: filas de casillas (una por bloque reservado) y fichas que se deslizan */
+
+.info-vector { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-vector .variables, .info-vector .salida-valor { margin: 0 0 0.5rem; }
+.info-vector .salida-valor .celda { width: 38px; height: 38px; }
+
+.marco-vector { transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-vector { position: relative; transform-origin: 0 0; transition: transform 0.45s ease, height 0.45s ease; }
+.lienzo-vector svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
+.lienzo-vector svg .salto { fill: none; stroke: var(--activo); stroke-width: 2.5; stroke-dasharray: 1; animation: trazar 0.5s ease both; }
+.lienzo-vector svg marker path { fill: var(--activo); }
+
+.vfila { position: absolute; left: 14px; right: 0; height: 130px; transition: top 0.45s ease, opacity 0.35s ease; }
+.vfila.aparece { animation: aparece 0.4s ease; }
+.vfila.liberada { opacity: 0.4; }
+.vfila.liberada .vmarco { border-color: var(--peligro); }
+.vfila.sacudir { animation: sacudir 0.36s ease; }
+.vfila.saliendo { opacity: 0; }
+.vfila-capa > * { position: absolute; margin: 0; }
+.vfila .fila-titulo { white-space: pre; }
+.vfila .marcador.apilado { white-space: pre; line-height: 12px; min-height: 0; }
+
+.vmarco {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--superficie);
+}
+
+.vmarco.libre { border: 2px dashed var(--borde); }
+.vmarco.hueco { border: 2px dashed var(--activo); background: var(--activo-suave); }
+.vmarco.mala { border: 2px dashed var(--peligro); background: var(--peligro-suave); }
+
+.vdireccion { font-family: var(--fuente-codigo); font-size: 0.62rem; color: var(--texto-suave); text-align: center; }
+
+.vtamano {
+  position: absolute;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--fuente-codigo);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--acento);
+  transition: left 0.45s ease, top 0.45s ease, color 0.25s ease;
+}
+
+.vtamano.activo { animation: latido 0.6s ease; }
+.vtamano.lleno { color: var(--peligro); }
+
+.vficha {
+  position: absolute;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  transition: left 0.45s ease, top 0.45s ease, background-color 0.25s ease, border-color 0.25s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+.vficha.moviendo { z-index: 2; box-shadow: var(--sombra); }
+.vficha.copia { opacity: 0.45; border-style: dashed; }
+.vficha.basura { color: var(--inactivo); background: var(--superficie); border: 2px dashed var(--borde); opacity: 1; }
+.vficha.leida { border-color: var(--activo); background: var(--activo-suave); }
+.vficha.revisada { opacity: 0.45; }
+.vficha.escrita { border-color: var(--activo); background: var(--activo-suave); }
+.vficha.encontrada { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.35s ease; }
+.vficha.condenada, .vficha.mala { border-color: var(--peligro); background: var(--peligro-suave); }
+.vficha.condenada { animation: latido 0.6s ease; }
+.vficha.cae { animation: cae 0.45s ease both; }
+.vficha.saliendo { opacity: 0; transform: translateY(-28px) scale(0.8); }
+
+@keyframes cae {
+  0% { transform: translateY(-46px); opacity: 0; }
+  70% { transform: translateY(4px); opacity: 1; }
+  100% { transform: translateY(0); }
+}
+
+@keyframes aparece { from { transform: translateY(-24px); opacity: 0; } }
+@keyframes latido { 50% { transform: scale(1.15); } }
+@keyframes trazar { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* Experimento del costo amortizado: dos gráficas de barras con la misma escala */
+
+.experimento { margin-top: 1rem; }
+.experimento .controles .boton code { font-size: 0.85em; }
+
+.leyenda-costo { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; padding: 0.75rem 1rem 0; font-size: 0.85rem; color: var(--texto-suave); }
+.leyenda-costo span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.muestra { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--acento); }
+.muestra.con-copias { background: var(--activo); }
+
+.comparacion-costo { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; padding: 0.75rem 1rem; }
+.tarjeta-costo { min-width: 0; }
+.tarjeta-costo .variables { margin-bottom: 0.5rem; font-size: 0.78rem; }
+
+.grafico-costo {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 130px;
+  padding: 0 2px;
+  border-bottom: 1px solid var(--borde);
+  background: repeating-linear-gradient(to top, var(--superficie-2) 0 1px, transparent 1px 25%);
+}
+
+.barra-costo {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--acento);
+  cursor: pointer;
+  transition: height 0.35s ease;
+}
+
+.barra-costo.con-copias { background: var(--activo); }
+.barra-costo.nueva { animation: crecer 0.35s ease both; transform-origin: bottom; }
+.barra-costo.elegida { outline: 2px solid var(--texto); outline-offset: 1px; }
+.barra-costo:focus-visible { outline: 2px solid var(--texto); outline-offset: 1px; }
+
+@keyframes crecer { from { transform: scaleY(0); } }
+
+.eje-costo { display: flex; justify-content: space-between; font-family: var(--fuente-codigo); font-size: 0.7rem; color: var(--texto-suave); margin-top: 0.2rem; }
+.lectura-costo { margin: 0.4rem 0 0; font-size: 0.85rem; color: var(--texto-suave); min-height: 2.6em; }
+.resumen-costo { margin: 0; padding: 0.75rem 1rem; border-top: 1px solid var(--borde); background: var(--superficie-2); font-size: 0.95rem; }
+
 /* Pila vertical */
 
 .pila-vista { display: flex; gap: 2rem; align-items: flex-end; flex-wrap: wrap; }

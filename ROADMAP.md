@@ -6,7 +6,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 | Tema | Operaciones animadas |
 | --- | --- |
-| Vector dinámico | `agregarAlFinal` (con redimensionar), `insertar`, `eliminarEn`, `buscar` |
+| Vector dinámico | Lección en 9 pasos: `obtener` (con el cálculo de la dirección), `agregarAlFinal` con `redimensionar` (copias entre bloques y `delete[]`), experimento de costo amortizado (duplicar contra sumar 1), `insertar`, `eliminarEn`, `buscar` y todas juntas |
 | Lista enlazada simple | `insertarAlInicio`, `insertarAlFinal`, `buscar`, `eliminar` |
 | Pila (sobre arreglo) | `apilar`, `desapilar`, `cima` |
 | Cola (arreglo circular) | `encolar`, `desencolar`, `frente` |
