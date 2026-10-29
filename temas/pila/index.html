@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pila (stack) · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Qué es una pila (LIFO), cómo funcionan apilar y desapilar, animación paso a paso y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: qué es una pila (LIFO), cómo usar std::stack (push, top, pop y sus trampas), un uso real con paréntesis balanceados, y cómo se construye una pila con una lista enlazada (apilar, desapilar y cima en O(1)). Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="pila">
@@ -14,59 +14,146 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Pila</div>
       <h1>Pila (stack)</h1>
-      <p class="resumen">Una colección donde <strong>el último elemento que entra es el primero que sale</strong> (LIFO, <em>Last In, First Out</em>). Solo se trabaja por un extremo: la cima.</p>
+      <p class="resumen">Una colección donde <strong>el último que entra es el primero que sale</strong> (LIFO, <em>Last In, First Out</em>). Vas a verla en dos versiones: <code>std::stack</code>, la de la STL, y una <strong>pila enlazada</strong> hecha con nodos, para ver qué pasa por dentro.</p>
     </div>
 
-    <h2>La idea</h2>
-    <p>Piensa en una pila de platos: pones platos arriba y, cuando necesitas uno, tomas el de arriba. Nunca sacas el de abajo sin quitar antes los que tiene encima.</p>
-    <p>Aquí la construimos sobre un arreglo de tamaño fijo y un índice <code>tope</code> que señala el elemento de arriba. Con la pila vacía, <code>tope</code> vale <code>-1</code>.</p>
-    <ul>
-      <li><code>apilar(x)</code> (<em>push</em>): sube <code>tope</code> y guarda <code>x</code> ahí.</li>
-      <li><code>desapilar()</code> (<em>pop</em>): devuelve el elemento de la cima y baja <code>tope</code>.</li>
-      <li><code>cima()</code> (<em>top</em>): mira el elemento de arriba sin sacarlo.</li>
-    </ul>
+    <div class="leccion">
 
-    <h2>Pruébalo paso a paso</h2>
-    <p>Elige una operación. La animación avanza sola y, a la derecha, se resalta la línea de C++ que se está ejecutando. Puedes pausar y moverte paso a paso.</p>
-    <div id="visualizador"></div>
+      <section class="paso-leccion" id="idea" data-titulo="Último en entrar, primero en salir">
+        <h2>Último en entrar, primero en salir</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Piensa en una pila de platos: el que dejas encima es el primero que vas a sacar, y para llegar al de abajo tienes que quitar todos los de arriba. Solo se trabaja por un extremo, la <strong>cima</strong>.</p>
+          </div>
+          <div>
+            <p>En C++ ya existe: <code>std::stack&lt;int&gt;</code> (de <code>&lt;stack&gt;</code>). <code>push</code> apila, <code>top</code> lee la cima y <code>pop</code> la quita. Las tres son <strong>O(1)</strong>. Ojo: <code>top</code> y <code>pop</code> con la pila vacía no avisan, por eso se pregunta <code>empty()</code> antes.</p>
+          </div>
+        </div>
+        <div id="vis-stack"></div>
 
-    <div class="nota">Fíjate en <code>desapilar()</code>: el valor no se borra de la memoria, solo baja <code>tope</code>. Lo que está por encima de <code>tope</code> se considera basura y se sobrescribirá con el próximo <code>apilar()</code>.</div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Haces <code>push(4)</code>, <code>push(8)</code>, <code>push(15)</code> y después <code>pop()</code> dos veces. ¿Qué devuelve <code>top()</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="15 fue el último en entrar, así que fue el primero en salir.">15</button>
+            <button type="button" class="opcion" data-explicacion="8 salió con el segundo pop(): primero salió el 15 y después el 8.">8</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Salen al revés de como entraron: 15, luego 8. Queda el 4, que fue el primero en entrar.">4</button>
+          </div>
+        </div>
 
-    <h2>Complejidad</h2>
-    <div class="tabla-envoltura">
-      <table>
-        <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
-        <tbody>
-          <tr><td><code>apilar</code></td><td class="o-grande bueno">O(1)</td><td>Solo se modifica la cima.</td></tr>
-          <tr><td><code>desapilar</code></td><td class="o-grande bueno">O(1)</td><td>Solo se modifica la cima.</td></tr>
-          <tr><td><code>cima</code></td><td class="o-grande bueno">O(1)</td><td>Acceso directo a <code>datos[tope]</code>.</td></tr>
-          <tr><td>Buscar un valor</td><td class="o-grande malo">O(n)</td><td>Una pila no está pensada para esto: habría que sacar elementos.</td></tr>
-        </tbody>
-      </table>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué hace <code>int x = pila.pop();</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso hace desapilar() en la versión enlazada de esta lección, no std::stack::pop.">Saca la cima y la guarda en <code>x</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="pop() devuelve void: solo quita. Para quedarte con el valor: int x = pila.top(); y después pila.pop();">No compila: <code>pop()</code> no devuelve nada</button>
+            <button type="button" class="opcion" data-explicacion="pop() no devuelve un tamaño; size() es otro método.">Guarda en <code>x</code> cuántos quedan</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="parentesis" data-titulo="Paréntesis balanceados">
+        <h2>Un uso real: paréntesis balanceados</h2>
+        <p>El compilador revisa que cada <code>(</code>, <code>[</code> y <code>{</code> se cierre en orden. Con una pila es fácil: cada apertura se apila, y cada cierre tiene que corresponder a la <strong>última apertura sin cerrar</strong>, que es justo la cima. Recorre el texto una vez: <strong>O(n)</strong>.</p>
+        <div id="vis-parentesis"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué <code>"([)]"</code> no está balanceado, si tiene un par de cada uno?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Las cantidades sí coinciden: un ( y un ), un [ y un ]. Contar no alcanza.">Porque sobra un paréntesis</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cuando llega ), la última apertura sin cerrar es [, no (. Los pares se cruzan. Por eso hace falta una pila y no un contador.">Porque <code>)</code> llega cuando la última apertura es <code>[</code></button>
+            <button type="button" class="opcion" data-explicacion="Los corchetes pueden ir dentro de paréntesis y al revés; el problema es que se cierren en otro orden.">Porque no se pueden mezclar tipos</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="apilar" data-titulo="Por dentro: apilar">
+        <h2>Por dentro: una lista enlazada, con <code>apilar</code></h2>
+        <p>Una pila se puede construir con nodos: el puntero <code>tope</code> es la cabeza de una <a href="../lista-enlazada/">lista enlazada</a>, y la cima es el primer nodo. <code>apilar</code> es exactamente <code>insertarAlInicio</code>: crear el nodo, hacerlo apuntar a la cima actual y mover <code>tope</code>. <strong>O(1)</strong>, sin recorrer nada.</p>
+        <div id="vis-apilar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué la cima está al <strong>inicio</strong> de la lista y no al final (usando <code>nodoEn(tamano - 1)</code>)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Al final, cada apilar y desapilar tendría que recorrer toda la lista con nodoEn: O(n). Además, para desapilar el último hace falta el penúltimo. Al inicio todo es O(1).">Porque al final cada operación sería O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Funcionaría, pero cada operación recorrería toda la lista. La pila solo usa un extremo: conviene el que está a mano.">Da lo mismo, las dos son O(1)</button>
+            <button type="button" class="opcion" data-explicacion="nodoEn existe y funciona; el problema es lo que cuesta recorrer.">Porque <code>nodoEn</code> no sirve con nodos</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desapilar" data-titulo="desapilar">
+        <h2><code>desapilar</code>: guardar, mover y liberar</h2>
+        <p>Es borrar la cabeza de la lista: <code>temp</code> guarda la cima, se lee su valor, <code>tope</code> pasa al siguiente y el nodo se libera con <code>delete</code>. A diferencia de <code>std::stack</code>, esta versión <strong>devuelve</strong> el valor y lanza <code>std::underflow_error</code> si la pila está vacía.</p>
+        <div id="vis-desapilar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué pasa si se hace <code>delete temp</code> <em>antes</em> de <code>tope = tope-&gt;siguiente</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El orden importa: tope y temp apuntan al mismo nodo.">Nada, da lo mismo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="tope y temp apuntan al mismo nodo: después del delete, leer tope->siguiente es usar memoria liberada (comportamiento indefinido). AddressSanitizer lo marca como heap-use-after-free.">Se lee memoria ya liberada</button>
+            <button type="button" class="opcion" data-explicacion="No hay fuga: el nodo sí se libera. El problema es lo que se lee después.">Una fuga de memoria</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cima" data-titulo="cima">
+        <h2><code>cima</code>: mirar sin sacar</h2>
+        <p>Devuelve el valor del nodo al que apunta <code>tope</code>, sin cambiar nada: <strong>O(1)</strong>. Es el <code>top()</code> de <code>std::stack</code>, pero con la pila vacía lanza una excepción en lugar de leer basura.</p>
+        <div id="vis-cima"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si llamas a <code>cima()</code> tres veces seguidas, ¿qué obtienes?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="cima() no modifica la pila: devuelve siempre el mismo valor hasta que alguien apile o desapile.">El mismo valor tres veces</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría con desapilar(), que sí saca el valor.">Los tres de arriba, uno por llamada</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>Los mismos botones para las dos versiones. Cambia de versión y compara: <code>std::stack</code> esconde cómo guarda los valores; en <code>PilaEnlazada</code> se ven los nodos y los punteros.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarla</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th><code>std::stack</code></th><th><code>PilaEnlazada</code></th><th>Tiempo</th><th>Con la pila vacía</th></tr></thead>
+            <tbody>
+              <tr><td>Apilar</td><td><code>push(x)</code></td><td><code>apilar(x)</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+              <tr><td>Leer la cima</td><td><code>top()</code></td><td><code>cima()</code></td><td class="o-grande bueno">O(1)</td><td><code>top</code>: comportamiento indefinido; <code>cima</code>: excepción</td></tr>
+              <tr><td>Sacar la cima</td><td><code>pop()</code> (no devuelve nada)</td><td><code>desapilar()</code> (devuelve el valor)</td><td class="o-grande bueno">O(1)</td><td><code>pop</code>: comportamiento indefinido; <code>desapilar</code>: excepción</td></tr>
+              <tr><td>¿Está vacía? / tamaño</td><td><code>empty()</code> / <code>size()</code></td><td><code>estaVacia()</code> / <code>tamano()</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><strong>Por dentro de <code>std::stack</code></strong> hay un <code>std::deque</code> (bloques de arreglos). Se puede cambiar: <code>std::stack&lt;int, std::vector&lt;int&gt;&gt;</code> usa un vector. Un arreglo con un índice <code>tope</code> también sirve, pero tiene capacidad fija.</li>
+          <li><strong>Enlazada o con arreglo:</strong> la enlazada nunca se llena y no copia nada al crecer, pero cada nodo pide memoria con <code>new</code> y guarda un puntero extra. En la práctica, <code>std::stack</code> (con deque o vector) suele ser más rápida.</li>
+          <li><strong>Dónde se usa:</strong> la pila de llamadas de las funciones (y la recursión), deshacer y rehacer en un editor, el botón "atrás" del navegador, evaluar expresiones, revisar paréntesis y el recorrido en profundidad (DFS) de un grafo.</li>
+          <li>Si necesitas sacar por el <strong>otro extremo</strong> (el más antiguo primero), lo que buscas es una <a href="../cola/">cola</a>.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Las dos versiones en un solo archivo. Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra pila.cpp -o pila &amp;&amp; ./pila</span></pre>
+        <div data-codigo-completo="pila.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>std::string invertir(const std::string&amp; texto)</code> usando un <code>std::stack&lt;char&gt;</code>.</li>
+          <li>Agrega a <code>PilaEnlazada</code> un método <code>void vaciar()</code>. ¿Puedes reutilizarlo en el destructor?</li>
+          <li>Escribe una <code>PilaArreglo</code> con un <code>std::vector&lt;int&gt;</code> y <code>push_back</code> / <code>pop_back</code>. ¿Por qué la cima va al <strong>final</strong> del vector y no al inicio?</li>
+          <li>Usa una pila para evaluar una expresión en notación posfija, como <code>3 4 + 2 *</code> (resultado: 14).</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
     </div>
-
-    <h2>¿Dónde se usa?</h2>
-    <ul>
-      <li>El botón <strong>deshacer</strong> de un editor: la última acción es la primera que se deshace.</li>
-      <li>La <strong>pila de llamadas</strong>: cada función que llamas se apila y, al terminar, se desapila.</li>
-      <li>Verificar <strong>paréntesis balanceados</strong> como <code>{[()]}</code>.</li>
-      <li>Recorrer grafos en profundidad (DFS) sin recursión.</li>
-    </ul>
-    <p>En C++ real usa <code>std::stack&lt;int&gt;</code> (de <code>&lt;stack&gt;</code>), con <code>push</code>, <code>pop</code> y <code>top</code>.</p>
-
-    <h2>Código completo en C++</h2>
-    <p>Compílalo y ejecútalo con:</p>
-    <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra pila.cpp -o pila &amp;&amp; ./pila</span></pre>
-    <div data-codigo-completo="pila.cpp"></div>
-
-    <h2>Para practicar</h2>
-    <ol>
-      <li>Agrega un método <code>int tamano() const</code>. ¿Necesitas una variable nueva o te basta con <code>tope</code>?</li>
-      <li>Cambia el arreglo fijo por un <code>std::vector&lt;int&gt;</code> para que la pila nunca se llene.</li>
-      <li>Usa tu pila para escribir <code>bool balanceado(const std::string&amp; s)</code> que verifique paréntesis, corchetes y llaves.</li>
-    </ol>
-
-    <div id="navegacion-temas"></div>
   </main>
 
   <footer class="pie">
