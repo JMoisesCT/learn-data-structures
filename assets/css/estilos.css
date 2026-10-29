@@ -1285,8 +1285,9 @@ pre.codigo .linea.actual {
   animation: pop 0.35s ease;
   transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.35s ease, transform 0.35s ease;
 }
-.compacta .na-celda { border-width: 1.5px; border-radius: 4px; font-size: 0.6rem; }
-.compacta .indice { font-size: 0.55rem; }
+.varias-filas .na-celda { border-radius: 6px; font-size: 0.78rem; }
+.varias-filas .indice { font-size: 0.62rem; }
+.varias-filas .na-punto { width: 5px; height: 5px; }
 .na-celda.revisada { opacity: 0.5; }
 .na-celda.descartada { opacity: 0.22; transform: scale(0.85); border-color: var(--inactivo); background: var(--superficie-2); }
 .na-celda.leida { border-color: var(--activo); background: var(--activo-suave); transform: translateY(-4px); box-shadow: 0 0 0 3px var(--activo-suave); opacity: 1; }
@@ -1308,6 +1309,7 @@ pre.codigo .linea.actual {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .leyenda-na { display: flex; align-items: center; gap: 0.35rem; margin: 0.25rem 0 0.75rem; font-size: 0.78rem; color: var(--texto-suave); }
+.leyenda-na[hidden] { display: none; }
 .muestra-punto { position: static; animation: none; --c: var(--texto-suave); }
 
 @keyframes cae-punto {
@@ -1340,6 +1342,7 @@ pre.codigo .linea.actual {
 .pares-na { flex: none; }
 .pares-na[hidden] { display: none; }
 .rejilla-pares { display: grid; gap: 2px; }
+.canvas-pares { display: block; }
 .eje-pares { display: grid; place-items: center; font-family: var(--fuente-codigo); font-size: 0.58rem; color: var(--texto-suave); }
 .par { border-radius: 3px; border: 1px solid var(--borde); background: var(--superficie); transition: background-color 0.25s ease, border-color 0.25s ease; }
 .par.nulo { border: 0; background: transparent; }

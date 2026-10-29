@@ -79,8 +79,14 @@
     hayRepetidos: { o: "O(n²)", serie: 5, peor: (n) => (n * (n - 1)) / 2, forma: "una curva que se empina cada vez más (una parábola)." },
   };
 
-  // Valores distintos para los arreglos sin orden.
-  const BASE = [37, 12, 85, 4, 61, 29, 73, 18, 90, 46, 7, 55, 23, 68, 2, 81];
+  // Valores distintos para los arreglos sin orden: los primeros 16 a mano y
+  // después el resto de 1 a 99, mezclado (alcanza para n = 64).
+  const PRIMEROS = [37, 12, 85, 4, 61, 29, 73, 18, 90, 46, 7, 55, 23, 68, 2, 81];
+  const BASE = PRIMEROS.concat(Array.from({ length: 99 }, (_, k) => k + 1)
+    .filter((v) => !PRIMEROS.includes(v))
+    .sort((a, b) => ((a * 47) % 101) - ((b * 47) % 101)));
+  // Con n grande, la animación agrupa varias vueltas en un paso para no durar minutos.
+  const MAX_DETALLE = 10;
   const impares = (n) => Array.from({ length: n }, (_, k) => 2 * k + 1);
   const hasta = (n) => Array.from({ length: Math.max(0, n) }, (_, k) => k);
   const formato = (x) => x.toLocaleString("es", { maximumFractionDigits: 1 });
@@ -117,7 +123,8 @@
       if (op === "hayRepetidos" && n >= 2 && caso === "inicio") s.datos[1] = s.datos[0];
       if (op === "hayRepetidos" && n >= 2 && caso === "final") s.datos[n - 1] = s.datos[n - 2];
     }
-    if (op === "hayRepetidos") s.pares = { comparados: [], actual: null, igual: false };
+    // Pares comparados: todos los que van hasta (i, j) en el orden de los dos for.
+    if (op === "hayRepetidos") s.pares = { i: -1, j: -1, actual: false, igual: false };
   }
 
   // Cada pasos++ deja caer un punto bajo la casilla que se tocó.
@@ -176,12 +183,16 @@
         let suma = 0;
         s.vis = { vars: { n, suma } };
         paso("sumar", 2, "int suma = 0. Preparar la suma se hace una vez, no por cada elemento: no es lo que crece.");
+        const grupo = n > 16 ? Math.ceil(n / 16) : 1;
         for (let i = 0; i < n; i++) {
           contar(s, "d", i);
           suma += s.datos[i];
-          s.vis = { vars: { n, i, suma }, cambio: ["suma"], marcas: [["i", "d", i]], leidas: [i], revisadas: hasta(i) };
-          paso("sumar", 5, `i = ${i}: pasos++ → ${s.pasos}, y suma += ${s.datos[i]} → ${suma}.`
-            + (i === 0 ? " Cada vuelta del for es un paso." : ""));
+          if ((i + 1) % grupo && i < n - 1) continue;
+          const desde = i + 1 - ((i % grupo) + 1);
+          s.vis = { vars: { n, i, suma }, cambio: ["suma"], marcas: [["i", "d", i]], leidas: hasta(i + 1).slice(desde), revisadas: hasta(desde) };
+          paso("sumar", 5, grupo === 1
+            ? `i = ${i}: pasos++ → ${s.pasos}, y suma += ${s.datos[i]} → ${suma}.` + (i === 0 ? " Cada vuelta del for es un paso." : "")
+            : `i = ${desde}…${i}: ${i - desde + 1} vueltas más (las mostramos juntas), una por elemento. pasos = ${s.pasos}, suma = ${suma}.`);
         }
         s.vis = { vars: { n, suma }, revisadas: hasta(n), salida: suma };
         terminar(s, paso, "sumar", 7, `return ${suma}. Una vuelta por elemento: ${n} pasos para n = ${n}. Con el doble de datos, el doble de pasos: O(n), tiempo lineal.`, "exito");
@@ -197,15 +208,24 @@
         const total = (n * (n - 1)) / 2;
         s.vis = { vars: { n } };
         paso("hayRepetidos", 2, `Hay que comparar cada elemento con todos los que están a su derecha. La tabla de pares tiene ${total} casillas: una por comparación posible.`);
+        // Con n grande, un paso de la animación muestra varias filas de pares.
+        const detallado = n <= MAX_DETALLE;
+        const filasPorPaso = Math.ceil((n - 1) / 24);
         for (let i = 0; i < n; i++) {
           for (let j = i + 1; j < n; j++) {
             contar(s, "d", j);
-            s.pares.comparados.push([i, j]);
-            s.pares.actual = [i, j];
+            Object.assign(s.pares, { i, j, actual: true });
             const igual = d[i] === d[j];
-            s.vis = { vars: { n, i, j }, marcas: [["i", "d", i], ["j", "d", j]], leidas: [i, j] };
-            paso("hayRepetidos", 5, `${j === i + 1 ? `i = ${i}: ahora datos[${i}] se compara con todos los de su derecha. ` : ""}`
-              + `¿datos[${i}] (${d[i]}) == datos[${j}] (${d[j]})? ${igual ? "¡Sí!" : "No."} pasos = ${s.pasos}.`);
+            if (detallado || igual) {
+              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i], ["j", "d", j]], leidas: [i, j] };
+              paso("hayRepetidos", 5, `${j === i + 1 ? `i = ${i}: ahora datos[${i}] se compara con todos los de su derecha. ` : ""}`
+                + `¿datos[${i}] (${d[i]}) == datos[${j}] (${d[j]})? ${igual ? "¡Sí!" : "No."} pasos = ${s.pasos}.`);
+            } else if (j === n - 1 && ((i + 1) % filasPorPaso === 0 || i === n - 2)) {
+              const desde = i - (i % filasPorPaso);
+              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i]], leidas: [i] };
+              paso("hayRepetidos", 5, `${desde < i ? `i = ${desde}…${i}` : `i = ${i}`}: cada uno se comparó con todos los de su derecha (los mostramos juntos). `
+                + `Ninguno es igual. pasos = ${s.pasos} de ${total}.`);
+            }
             if (igual) {
               s.pares.igual = true;
               s.vis = { vars: { n, i, j }, marcas: [["i", "d", i], ["j", "d", j]], encontrada: [i, j], salida: "true" };
@@ -216,7 +236,7 @@
             }
           }
         }
-        s.pares.actual = null;
+        s.pares.actual = false;
         s.vis = { vars: { n }, revisadas: hasta(n), salida: "false" };
         terminar(s, paso, "hayRepetidos", 10, `return false. Comparamos todos los pares: n·(n − 1)/2 = ${n}·${Math.max(0, n - 1)}/2 = ${total}. Con el doble de datos serían unas 4 veces más comparaciones: O(n²), tiempo cuadrático.`, "exito");
       },
@@ -245,6 +265,21 @@
         let encontrados = 0;
         s.vis = { vars: { n, encontrados } };
         paso("contarPresentes", 2, `Por cada una de las ${n} consultas haremos una búsqueda binaria en datos (los impares, ordenados). Mira cómo cada consulta junta su columna de pasos.`);
+        if (n > MAX_DETALLE) {
+          // Con n grande mostramos varias búsquedas por paso; cada una deja igual su columna.
+          const grupo = Math.ceil(n / 16);
+          for (let i = 0; i < n; i++) {
+            if (binaria(s, n, s.consultas[i], null, { consulta: i }).resultado !== -1) encontrados++;
+            if ((i + 1) % grupo && i < n - 1) continue;
+            const desde = i + 1 - ((i % grupo) + 1);
+            s.vis = { vars: { n, i, encontrados }, marcas: [["i", "c", i]], leidasC: hasta(i + 1).slice(desde), revisadasC: hasta(desde) };
+            paso("contarPresentes", 4, `${desde < i ? `i = ${desde}…${i}: ${i - desde + 1} búsquedas binarias` : `i = ${i}: una búsqueda binaria`} (las mostramos juntas). `
+              + `Cada columna junta unos log₂ ${n} ≈ ${formato(log2(n))} pasos. pasos = ${s.pasos}, encontrados = ${encontrados}.`);
+          }
+          s.vis = { vars: { n, encontrados }, revisadasC: hasta(n), salida: encontrados };
+          terminar(s, paso, "contarPresentes", 8, `return ${encontrados}. ${n} búsquedas de a lo sumo ${pisoLog(n)} pasos cada una: ${s.pasos} pasos en total. Un ciclo de n vueltas con algo de O(log n) adentro: se multiplican, O(n log n).`, "exito");
+          return;
+        }
         for (let i = 0; i < n; i++) {
           const q = s.consultas[i];
           s.vis = { vars: { n, i, encontrados }, marcas: [["i", "c", i]], leidasC: [i], revisadasC: hasta(i) };
@@ -282,6 +317,12 @@
       if (o.consulta != null) contar(s, "c", o.consulta);
       else contar(s, "d", medio);
       const v = s.datos[medio];
+      if (!paso) {
+        // Sin animación: solo cuenta los pasos.
+        if (v === objetivo) return { resultado: medio };
+        if (v < objetivo) izq = medio + 1; else der = medio - 1;
+        continue;
+      }
       const quedan = der - izq + 1;
       const marcas = marcasConsulta.concat([["izq", "d", izq], ["medio", "d", medio], ["der", "d", der]]);
       s.vis = vis({ vars: Object.assign({}, base, { izq, der, medio }), marcas, leidas: [medio], descartadas: fuera(izq, der) });
@@ -308,6 +349,7 @@
       paso("busquedaBinaria", derecha ? 11 : 13, `${v} ${derecha ? "<" : ">"} ${objetivo}: el objetivo solo puede estar a la ${derecha ? "derecha" : "izquierda"}. `
         + `${derecha ? `izq = ${izq}` : `der = ${der}`}: descartamos ${descartados} de golpe` + (der >= izq ? `; quedan ${der - izq + 1}.` : "."));
     }
+    if (!paso) return { resultado: -1 };
     s.vis = vis({ vars: Object.assign({}, base, { izq, der }), descartadas: hasta(n), marcas: marcasConsulta });
     return { resultado: -1, vis: s.vis, izq, der };
   }
@@ -352,9 +394,13 @@
 
   const ORDEN_MARCAS = ["i", "j", "izq", "medio", "der"];
 
-  function medidas(n) {
-    const paso = n <= 12 ? 44 : Math.max(18, Math.floor(560 / n));
-    return { paso, celda: paso - (paso >= 30 ? 6 : 3) };
+  // Hasta 12 casillas van en una fila grande (que se reduce en pantallas
+  // angostas). Con más, las casillas se acomodan en varias filas para que los
+  // valores se sigan leyendo.
+  function medidas(n, escenario) {
+    if (n <= 12) return { paso: 44, celda: 38, columnas: n };
+    const disponible = Math.max(260, ((escenario && escenario.clientWidth) || 600) - 32);
+    return { paso: 34, celda: 30, columnas: Math.max(8, Math.min(16, Math.floor((disponible - 16) / 34))) };
   }
 
   if (typeof window !== "undefined") {
@@ -420,26 +466,33 @@
 
   function dibujarArreglo(escenario, lienzo, s, vis) {
     const n = s.n;
-    const { paso, celda } = medidas(n);
-    const compacta = paso < 30;
+    const { paso, celda, columnas } = medidas(n, escenario);
     // Alto de las columnas de puntos: cuántos pasos puede tocar una misma casilla.
-    const columna = s.op === "hayRepetidos" ? Math.max(1, n - 1) : s.op === "contarPresentes" ? pisoLog(n) : 1;
+    // En hayRepetidos con n grande serían demasiados: ahí los cuenta la tabla de pares.
+    const conPuntos = s.op !== "hayRepetidos" || n <= 9;
+    const columna = s.op === "hayRepetidos" ? n - 1 : s.op === "contarPresentes" ? pisoLog(n) : 1;
+    const separacion = n > 12 ? 6 : 8;
+    const altoPuntos = (fila) => (!conPuntos || (s.consultas && fila === "d") ? 0 : columna * separacion + 6);
     const filas = [];
     let y = 0;
-    if (s.consultas) {
-      filas.push({ id: "c", titulo: "consultas", valores: s.consultas, y, yCeldas: y + 32, sufijo: "C" });
-      y += 32 + celda + 18 + columna * 8 + 12;
-    }
-    filas.push({ id: "d", titulo: s.op === "busquedaBinaria" || s.op === "contarPresentes" ? "datos (ordenados)" : "datos", valores: s.datos, y, yCeldas: y + 54, sufijo: "" });
-    y += 54 + celda + 18 + (s.consultas ? 4 : columna * 8 + 6);
-    const extra = vis.fantasma != null && vis.fantasma >= n ? Math.min(vis.fantasma, n + 3) - n + 1 : 0;
-    const ancho = Math.max(280, (n + extra) * paso + 16);
+    const agregarFila = (id, titulo, valores, sufijo, altoMarcas) => {
+      const banda = altoMarcas + celda + 16 + altoPuntos(id);
+      filas.push({ id, titulo, valores, sufijo, y, banda, yCeldas: y + 14 + altoMarcas });
+      y += 14 + Math.ceil(Math.max(valores.length, 1) / columnas) * banda + 8;
+    };
+    // contarPresentes con n grande no anima cada búsqueda: basta con las consultas.
+    const soloConsultas = s.consultas && n > MAX_DETALLE;
+    if (s.consultas) agregarFila("c", soloConsultas ? "consultas (se buscan en datos)" : "consultas", s.consultas, "C", 18);
+    const ordenados = s.op === "busquedaBinaria" || s.op === "contarPresentes";
+    if (!soloConsultas) agregarFila("d", ordenados ? "datos (ordenados)" : "datos", s.datos, "", ordenados ? 40 : 18);
+    const extra = vis.fantasma != null && vis.fantasma >= n && n <= 12 ? Math.min(vis.fantasma, n + 3) - n + 1 : 0;
+    const ancho = Math.max(280, (Math.min(n, columnas) + extra) * paso + 16);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${y}px`;
     lienzo.dataset.ancho = ancho;
     lienzo.dataset.alto = y;
     escalar(escenario, lienzo);
-    lienzo.classList.toggle("compacta", compacta);
+    lienzo.classList.toggle("varias-filas", n > 12);
     lienzo.classList.remove("sacudir");
     if (vis.error) {
       void lienzo.offsetWidth;
@@ -447,7 +500,8 @@
     }
 
     const p = piezas(lienzo);
-    const x = (j) => 8 + j * paso;
+    const x = (j) => 8 + (n <= 12 ? j : j % columnas) * paso;
+    const yCelda = (f, j) => f.yCeldas + (n <= 12 ? 0 : Math.floor(j / columnas)) * f.banda;
     for (const f of filas) {
       const titulo = p.pieza(`t-${f.id}`, () => el("span", { class: "fila-titulo" }));
       titulo.textContent = f.titulo;
@@ -455,7 +509,7 @@
       f.valores.forEach((v, j) => {
         const nodo = p.pieza(`c-${s.corrida}-${f.id}-${j}`, () => el("div", { class: "na-celda" }));
         nodo.textContent = v;
-        nodo.style.cssText = `left:${x(j)}px;top:${f.yCeldas}px;width:${celda}px;height:${celda}px`;
+        nodo.style.cssText = `left:${x(j)}px;top:${yCelda(f, j)}px;width:${celda}px;height:${celda}px`;
         let clase = "na-celda";
         if ((vis[`revisadas${f.sufijo}`] || []).includes(j)) clase += " revisada";
         if (!f.sufijo && (vis.descartadas || []).includes(j)) clase += " descartada";
@@ -463,25 +517,26 @@
         if ((vis[`encontrada${f.sufijo}`] || []).includes(j)) clase += " encontrada";
         nodo.className = clase;
         const indice = p.pieza(`i-${s.corrida}-${f.id}-${j}`, () => el("span", { class: "indice" }));
-        indice.textContent = compacta && j % 2 && n > 20 ? "" : j;
-        indice.style.cssText = `left:${x(j)}px;top:${f.yCeldas + celda + 2}px;width:${celda}px;text-align:center`;
+        indice.textContent = j;
+        indice.style.cssText = `left:${x(j)}px;top:${yCelda(f, j) + celda + 2}px;width:${celda}px;text-align:center`;
         // Puntos de paso: uno por cada pasos++ que tocó esta casilla.
-        const puntos = s.puntos[`${f.id}-${j}`] || 0;
+        const puntos = conPuntos ? s.puntos[`${f.id}-${j}`] || 0 : 0;
         for (let k = 0; k < puntos; k++) {
           const punto = p.pieza(`p-${s.corrida}-${f.id}-${j}-${k}`, () => el("i", { class: `na-punto serie-${CLASES[s.op].serie}` }));
-          punto.style.cssText = `left:${x(j) + celda / 2 - 4}px;top:${f.yCeldas + celda + 18 + k * 8}px`;
+          punto.style.cssText = `left:${x(j) + celda / 2 - separacion / 2}px;top:${yCelda(f, j) + celda + 16 + k * separacion}px`;
         }
       });
     }
-    if (vis.fantasma != null && vis.fantasma >= n && vis.fantasma <= n + 3) {
+    if (vis.fantasma != null && vis.fantasma >= n && vis.fantasma <= n + 3 && n <= 12) {
       p.pieza(`f-${s.corrida}-${vis.fantasma}`, () => el("div", { class: "na-celda fantasma", text: "?" }))
         .style.cssText = `left:${x(vis.fantasma)}px;top:${filas[filas.length - 1].yCeldas}px;width:${celda}px;height:${celda}px`;
     }
+    escenario.querySelector(".leyenda-na").hidden = !conPuntos;
 
     // Marcas (i, j, izq, medio, der) sobre su casilla; se apilan si coinciden.
     const grupos = {};
     for (const [nombre, fila, j] of vis.marcas || []) {
-      if (j < 0 || j > n + 3) continue;
+      if (j < 0 || j > (n <= 12 ? n + 3 : n - 1)) continue;
       (grupos[`${fila}-${j}`] = grupos[`${fila}-${j}`] || []).push(nombre);
     }
     for (const [clave, nombres] of Object.entries(grupos)) {
@@ -494,13 +549,15 @@
         const mala = !!vis.error && nombre === "i";
         marca.classList.toggle("mala", mala);
         marca.style.left = `${x(Number(j)) + celda / 2 - 30}px`;
-        marca.style.top = `${f.yCeldas - 16 - (nombres.length - 1 - k) * 13}px`;
+        marca.style.top = `${yCelda(f, Number(j)) - 16 - (nombres.length - 1 - k) * 13}px`;
       });
     }
     p.fin();
   }
 
   // Tabla de pares de hayRepetidos: una casilla por cada comparación posible.
+  // Se comparan en orden, así que están hechas todas las que van hasta (i, j).
+  // Con n grande son miles de casillas: se pintan en un canvas.
   function dibujarPares(caja, s) {
     if (!s.pares) {
       caja.hidden = true;
@@ -509,29 +566,72 @@
     }
     caja.hidden = false;
     const n = s.n;
-    const lado = n <= 8 ? 18 : 15;
-    let rejilla = caja.querySelector(".rejilla-pares");
-    if (!rejilla || rejilla.dataset.corrida !== String(s.corrida)) {
-      rejilla = el("div", { class: "rejilla-pares", "data-corrida": s.corrida, style: `grid-template-columns:repeat(${n + 1}, ${lado}px)` });
-      rejilla.append(el("span", { class: "eje-pares", text: "i\\j" }));
-      for (let j = 0; j < n; j++) rejilla.append(el("span", { class: "eje-pares", text: j }));
-      for (let i = 0; i < n; i++) {
-        rejilla.append(el("span", { class: "eje-pares", text: i }));
-        for (let j = 0; j < n; j++) {
-          rejilla.append(el("span", { class: j > i ? "par" : "par nulo", "data-par": `${i}-${j}`, style: `height:${lado}px` }));
+    const { i: pi, j: pj, actual, igual } = s.pares;
+    const hecho = (a, b) => a < pi || (a === pi && b <= pj);
+    const hechos = pi < 0 ? 0 : (pi * (2 * n - pi - 1)) / 2 + (pj - pi);
+    if (n > 16) {
+      dibujarParesCanvas(caja, s, hecho);
+    } else {
+      const lado = n <= 8 ? 18 : n <= 12 ? 15 : 12;
+      let rejilla = caja.querySelector(".rejilla-pares");
+      if (!rejilla || rejilla.dataset.corrida !== String(s.corrida)) {
+        rejilla = el("div", { class: "rejilla-pares", "data-corrida": s.corrida, style: `grid-template-columns:repeat(${n + 1}, ${lado}px)` });
+        rejilla.append(el("span", { class: "eje-pares", text: "i\\j" }));
+        for (let j = 0; j < n; j++) rejilla.append(el("span", { class: "eje-pares", text: j }));
+        for (let i = 0; i < n; i++) {
+          rejilla.append(el("span", { class: "eje-pares", text: i }));
+          for (let j = 0; j < n; j++) {
+            rejilla.append(el("span", { class: j > i ? "par" : "par nulo", "data-i": i, "data-j": j, style: `height:${lado}px` }));
+          }
         }
+        caja.replaceChildren(el("p", { class: "fila-titulo" }), rejilla);
       }
-      caja.replaceChildren(el("p", { class: "fila-titulo" }), rejilla);
+      for (const celda of rejilla.querySelectorAll(".par:not(.nulo)")) {
+        const a = Number(celda.dataset.i);
+        const b = Number(celda.dataset.j);
+        const esActual = actual && a === pi && b === pj;
+        celda.classList.toggle("comparado", hecho(a, b));
+        celda.classList.toggle("actual", esActual);
+        celda.classList.toggle("igual", esActual && igual);
+      }
     }
-    const hechos = new Set(s.pares.comparados.map(([i, j]) => `${i}-${j}`));
-    const actual = s.pares.actual ? s.pares.actual.join("-") : null;
-    for (const celda of rejilla.querySelectorAll(".par:not(.nulo)")) {
-      const clave = celda.dataset.par;
-      celda.classList.toggle("comparado", hechos.has(clave));
-      celda.classList.toggle("actual", clave === actual);
-      celda.classList.toggle("igual", clave === actual && s.pares.igual);
+    caja.querySelector(".fila-titulo").textContent = `pares comparados: ${hechos} de ${(n * (n - 1)) / 2}`;
+  }
+
+  function dibujarParesCanvas(caja, s, hecho) {
+    const n = s.n;
+    const lado = Math.max(3, Math.floor(250 / n) - 1);
+    const tam = n * (lado + 1);
+    let lienzo = caja.querySelector("canvas");
+    if (!lienzo || lienzo.dataset.n !== String(n)) {
+      lienzo = el("canvas", { class: "canvas-pares", role: "img" });
+      lienzo.dataset.n = n;
+      caja.replaceChildren(el("p", { class: "fila-titulo" }), lienzo);
     }
-    caja.querySelector(".fila-titulo").textContent = `pares comparados: ${s.pares.comparados.length} de ${(n * (n - 1)) / 2}`;
+    const escala = window.devicePixelRatio || 1;
+    lienzo.width = Math.round(tam * escala);
+    lienzo.height = Math.round(tam * escala);
+    lienzo.style.width = lienzo.style.height = `${tam}px`;
+    const ctx = lienzo.getContext("2d");
+    if (!ctx) return;
+    const estilo = getComputedStyle(caja);
+    const color = (nombre) => estilo.getPropertyValue(nombre).trim();
+    const vacio = color("--superficie-2");
+    const comparado = color("--serie-5");
+    ctx.setTransform(escala, 0, 0, escala, 0, 0);
+    ctx.clearRect(0, 0, tam, tam);
+    for (let a = 0; a < n; a++) {
+      for (let b = a + 1; b < n; b++) {
+        ctx.fillStyle = hecho(a, b) ? comparado : vacio;
+        ctx.fillRect(b * (lado + 1), a * (lado + 1), lado, lado);
+      }
+    }
+    const { i: pi, j: pj, actual, igual } = s.pares;
+    if (actual && pi >= 0) {
+      ctx.fillStyle = color(igual ? "--exito" : "--activo");
+      ctx.fillRect(pj * (lado + 1) - 1, pi * (lado + 1) - 1, lado + 2, lado + 2);
+    }
+    lienzo.setAttribute("aria-label", `Tabla de ${n} por ${n} pares: la parte coloreada son los pares ya comparados`);
   }
 
   // ---- Gráfica de pasos según n ----
@@ -577,7 +677,7 @@
       t.textContent = formato(v);
       ejes.append(t);
     }
-    const saltoX = maxN <= 12 ? 2 : maxN <= 16 ? 4 : 8;
+    const saltoX = maxN <= 12 ? 2 : maxN <= 16 ? 4 : maxN <= 32 ? 8 : 16;
     for (let n = 0; n <= maxN; n += saltoX) {
       const t = svg("text", { x: px(n), y: G.alto - G.aba + 14, "text-anchor": "middle" });
       t.textContent = n;
@@ -592,6 +692,7 @@
     // Curva del peor caso: aparece cuando ya hay puntos con dos n distintos.
     const curvas = piezasSvg(lienzo.querySelector(".curvas"));
     const ops = [...new Set(s.historial.map((h) => h.op))];
+    const etiquetas = [];
     for (const op of ops) {
       const ns = new Set(s.historial.filter((h) => h.op === op).map((h) => h.n));
       if (ns.size < 2) continue;
@@ -606,8 +707,15 @@
       const etiqueta = curvas.pieza(`etq-${op}`, () => svg("text", { class: "etiqueta-curva", "text-anchor": "end" }));
       etiqueta.textContent = c.o;
       etiqueta.setAttribute("x", Math.min(px(nEtiqueta), G.ancho - G.der) - 3);
-      etiqueta.setAttribute("y", Math.max(G.arr + 8, py(c.peor(nEtiqueta)) - 6));
+      etiquetas.push({ etiqueta, x: px(nEtiqueta), y: Math.max(G.arr + 8, py(c.peor(nEtiqueta)) - 6) });
     }
+    // Las etiquetas que terminan cerca se separan para no encimarse.
+    etiquetas.sort((a, b) => b.y - a.y);
+    etiquetas.forEach((e, k) => {
+      const choca = etiquetas.slice(0, k).filter((o) => Math.abs(o.x - e.x) < 70);
+      for (const o of choca) if (e.y > o.y - 11) e.y = o.y - 11;
+      e.etiqueta.setAttribute("y", e.y);
+    });
     curvas.fin();
 
     // Puntos: el de la ejecución en curso sube con cada paso y queda fijo al terminar.
@@ -733,10 +841,10 @@
 
   visualizador("vis-todo", {
     ops: ["obtener", "busquedaBinaria", "sumar", "contarPresentes", "hayRepetidos"],
-    entradas: [entradaN(8, 12), { id: "i", etiqueta: "i", min: -5, max: 20, valor: 3 }, { id: "objetivo", etiqueta: "objetivo", min: -99, max: 999, valor: 99 }, CASO],
-    maxN: 12,
+    entradas: [entradaN(16, 64), { id: "i", etiqueta: "i", min: -5, max: 70, valor: 3 }, { id: "objetivo", etiqueta: "objetivo", min: -99, max: 999, valor: 999 }, CASO],
+    maxN: 64,
     tituloGrafica: "pasos según n",
-    mensajeInicial: "Ejecuta todas las funciones con el mismo n y compara los puntos. Después cambia n y repite: la escala vertical crece sola.",
+    mensajeInicial: "Ejecuta las cinco funciones con n = 16 y compara los puntos. Después prueba n = 32 y n = 64: la escala vertical crece sola y hayRepetidos sale disparada.",
   });
 
   // ------------------------------------------------------------------
