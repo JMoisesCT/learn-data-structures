@@ -514,7 +514,9 @@ body.con-leccion.leccion-final > .pie { display: block; }
   .con-leccion .paso-leccion > p, .con-leccion .paso-leccion > ul, .con-leccion .paso-leccion > ol { max-width: 920px; }
   .con-leccion .paso-leccion > .visualizador { flex: 1 1 auto; grid-template-rows: minmax(0, 1fr); }
   .con-leccion .visualizador > .panel { display: flex; flex-direction: column; }
-  .con-leccion .visualizador .escenario { flex: 1 1 auto; min-height: var(--alto-reservado, 0px); }
+  .con-leccion .visualizador .escenario { flex: 1 1 auto; min-height: var(--alto-minimo, var(--alto-reservado, 0px)); }
+  /* Si el dibujo no cabe a lo alto, el motor lo reduce (--escala, entre 0.8 y 1). */
+  .con-leccion .visualizador .escenario > * { zoom: var(--escala, 1); }
   .con-leccion .columna-codigo { contain: size; overflow-y: auto; }
   /* Aviso de que hay más preguntas abajo (la clase la pone visualizador.js). */
   .con-leccion .columna-codigo.hay-mas::after {
@@ -1478,6 +1480,26 @@ pre.codigo .linea.actual {
 
 .abajo-na { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-start; }
 .grafica-na { flex: 1 1 260px; max-width: 460px; min-width: 0; }
+
+/* Escenario ancho (y clase al-lado, ver notacion-algoritmica.js): la gráfica va
+   al lado del arreglo en lugar de debajo, para que el paso quepa a lo alto. */
+.escenario-na { container-type: inline-size; }
+@container (min-width: 600px) {
+  .cuerpo-na.al-lado {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 44%);
+    grid-template-areas: "info info" "marco grafica" "leyenda grafica" "pares grafica" ". grafica";
+    grid-template-rows: auto auto auto auto 1fr;
+    column-gap: 24px;
+    align-items: start;
+  }
+  .al-lado .info-na { grid-area: info; }
+  .al-lado .marco-na { grid-area: marco; }
+  .al-lado .leyenda-na { grid-area: leyenda; }
+  .al-lado .abajo-na { display: contents; }
+  .al-lado .pares-na { grid-area: pares; }
+  .al-lado .grafica-na { grid-area: grafica; max-width: none; }
+}
 .svg-na, .svg-carrera { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--fuente-codigo); }
 .svg-na text, .svg-carrera text { fill: var(--texto-suave); font-size: 9.5px; }
 .svg-carrera text { font-size: 11px; }
