@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lista enlazada · Aprende Estructuras de Datos</title>
-  <meta name="description" content="Lección por pasos: qué es una lista enlazada simple (como std::forward_list), por qué llegar a una posición cuesta O(n), cómo se insertan, buscan y eliminan nodos cambiando punteros, y cuándo conviene más que un vector. Animaciones y ejemplo en C++.">
+  <meta name="description" content="Lección por pasos: qué es una lista enlazada simple (como std::forward_list), por qué llegar a una posición cuesta O(n) (nodoEn), cómo se insertan al inicio, en medio y al final, se buscan y se eliminan nodos cambiando punteros, y cuándo conviene más que un vector. Animaciones y ejemplo en C++.">
   <link rel="stylesheet" href="../../assets/css/estilos.css">
 </head>
 <body data-raiz="../../" data-tema="lista-enlazada">
@@ -28,13 +28,13 @@
           </div>
           <div>
             <p>Cada nodo se crea con <code>new</code> <strong>donde haya lugar</strong>, así que no quedan uno junto a otro como las casillas de un vector. La lista solo guarda <code>cabeza</code>, la dirección del primero; el resto se encuentra siguiendo los <code>siguiente</code>.</p>
-            <p>Por eso, para leer la posición <code>pos</code> no hay una cuenta como en el vector: hay que <strong>dar <code>pos</code> saltos</strong> desde la cabeza. <code>obtener(pos)</code> es <strong>O(n)</strong>.</p>
+            <p>Para llegar a la posición <code>pos</code> no hay una cuenta como en el vector: hay que <strong>dar <code>pos</code> saltos</strong> desde la cabeza. Eso lo hace <code>nodoEn(pos)</code>, que devuelve el <strong>nodo</strong> (no solo su valor) y lo reutilizan <code>obtener</code>, <code>insertarEn</code> y <code>eliminarEn</code>. Es <strong>O(n)</strong>.</p>
           </div>
         </div>
         <div id="vis-obtener"></div>
 
         <div class="pregunta">
-          <p class="pregunta-enunciado">¿Cuántas veces se ejecuta <code>actual = actual-&gt;siguiente</code> en <code>obtener(3)</code>?</p>
+          <p class="pregunta-enunciado">¿Cuántas veces se ejecuta <code>actual = actual-&gt;siguiente</code> en <code>nodoEn(3)</code>?</p>
           <div class="opciones">
             <button type="button" class="opcion" data-explicacion="Eso sería si se pudiera calcular la dirección, como en el vector. Aquí las direcciones no siguen ningún orden.">1</button>
             <button type="button" class="opcion" data-correcta data-explicacion="Un salto por cada nodo anterior: de la posición 0 a la 1, de la 1 a la 2 y de la 2 a la 3.">3</button>
@@ -58,16 +58,39 @@
         </div>
       </section>
 
+      <section class="paso-leccion" id="insertar-en" data-titulo="insertarEn">
+        <h2><code>insertarEn(pos, valor)</code>: llegar al anterior y enganchar</h2>
+        <p>Para que el nodo nuevo quede en la posición <code>pos</code>, el nodo <strong>anterior</strong> (el de <code>pos - 1</code>) tiene que apuntar a él. <code>nodoEn(pos - 1)</code> nos lleva hasta ese nodo; después enganchar son solo dos punteros. Si <code>pos</code> es 0 no hay anterior, y se reutiliza <code>insertarAlInicio</code>.</p>
+        <div id="vis-insertar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué se pide <code>nodoEn(pos - 1)</code> y no <code>nodoEn(pos)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Da los mismos saltos más uno; el problema no es la velocidad sino dónde queda parado.">Porque es más rápido</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El que cambia es el siguiente del nodo anterior. Si nos paráramos en el de pos, no habría forma de volver un nodo atrás: los punteros solo van hacia adelante.">Porque hay que cambiar el siguiente del anterior, y no se puede volver atrás</button>
+            <button type="button" class="opcion" data-explicacion="nodoEn acepta cualquier posición; con pos daría el nodo que va a quedar después del nuevo.">Porque nodoEn(pos) daría error</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con 4 nodos (posiciones 0 a 3), ¿es válido <code>insertarEn(4, x)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="pos == tamano significa «después del último»: el anterior es el nodo 3, y el nuevo queda al final. Por eso la condición es pos &gt; tamano y no pos &gt;= tamano. Así es como insertarAlFinal lo reutiliza.">Sí: inserta al final</button>
+            <button type="button" class="opcion" data-explicacion="Para leer o eliminar, la posición 4 no existe. Pero para insertar, «en la posición 4» es justo después del último.">No: la posición 4 no existe</button>
+          </div>
+        </div>
+      </section>
+
       <section class="paso-leccion" id="final" data-titulo="insertarAlFinal">
-        <h2><code>insertarAlFinal</code>: primero hay que llegar</h2>
-        <p>Enlazar el nodo nuevo también es un solo puntero, pero la lista no sabe cuál es el último: <code>actual</code> tiene que recorrerla desde la cabeza hasta el nodo cuyo <code>siguiente</code> es <code>nullptr</code>. Ese recorrido hace que sea <strong>O(n)</strong>. Si la lista está vacía, el nodo nuevo pasa a ser la cabeza.</p>
+        <h2><code>insertarAlFinal</code>: una línea, pero O(n)</h2>
+        <p>El final es la posición <code>tamano</code>, así que <code>insertarAlFinal</code> solo llama a <code>insertarEn(tamano, valor)</code>, y esta a <code>nodoEn(tamano - 1)</code>. El código queda corto, pero <code>nodoEn</code> igual recorre la lista hasta el último nodo: sigue siendo <strong>O(n)</strong>. Mira la pila de llamadas arriba del dibujo.</p>
         <div id="vis-final"></div>
 
         <div class="pregunta">
           <p class="pregunta-enunciado">¿Cómo podrías hacer que <code>insertarAlFinal</code> sea O(1)?</p>
           <div class="opciones">
             <button type="button" class="opcion" data-explicacion="Los nodos no están contiguos: no hay ninguna cuenta que lleve al último.">Calculando la dirección del último nodo</button>
-            <button type="button" class="opcion" data-correcta data-explicacion="Con un puntero cola al último nodo, basta cola->siguiente = nuevo y cola = nuevo. A cambio, hay que actualizarlo también al eliminar el último o al insertar en una lista vacía.">Guardando también un puntero <code>cola</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Con un puntero cola al último nodo, basta cola->siguiente = nuevo y cola = nuevo, sin llamar a nodoEn. A cambio, hay que actualizarlo también al eliminar el último o al insertar en una lista vacía. Así lo hace la cola enlazada.">Guardando también un puntero <code>cola</code></button>
             <button type="button" class="opcion" data-explicacion="Insertar al inicio sigue siendo O(1), pero el nodo quedaría en la otra punta: la lista no sería la misma.">Insertando al inicio en su lugar</button>
           </div>
         </div>
@@ -112,6 +135,21 @@
         </div>
       </section>
 
+      <section class="paso-leccion" id="eliminar-en" data-titulo="eliminarEn">
+        <h2><code>eliminarEn(pos)</code>: borrar por posición</h2>
+        <p>Es la misma idea que <code>insertarEn</code>: <code>nodoEn(pos - 1)</code> nos lleva al anterior, que pasa a apuntar por encima del borrado. Antes del <code>delete</code> se guarda el valor para devolverlo. Aquí las posiciones válidas van de <code>0</code> a <code>tamano - 1</code>.</p>
+        <div id="vis-eliminar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué <code>int valor = temp-&gt;valor</code> va <em>antes</em> del <code>delete temp</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Después del delete, la memoria del nodo ya no es nuestra: leer temp-&gt;valor sería comportamiento indefinido (a veces funciona, a veces no). AddressSanitizer lo detecta como heap-use-after-free.">Porque después del <code>delete</code> el nodo ya no existe</button>
+            <button type="button" class="opcion" data-explicacion="delete no toca temp: temp sigue guardando la misma dirección. Lo que ya no se puede es usar esa dirección.">Porque <code>delete</code> pone <code>temp</code> en <code>nullptr</code></button>
+            <button type="button" class="opcion" data-explicacion="El orden importa: después del delete, leer el nodo es un error, aunque el compilador no avise.">Da lo mismo el orden</button>
+          </div>
+        </div>
+      </section>
+
       <section class="paso-leccion" id="comparar" data-titulo="¿Lista o vector?">
         <h2>¿Lista o vector?</h2>
         <p>Ninguna es mejor en todo. Elige una operación y cambia la cantidad de elementos: cada barra es el trabajo que hace cada estructura (verde: la que hace menos).</p>
@@ -130,7 +168,7 @@
 
       <section class="paso-leccion" id="todo" data-titulo="Todo junto">
         <h2>Pruébalo todo junto</h2>
-        <p>La lista de <code>main()</code> con todas las operaciones. Fíjate qué operaciones recorren nodos y cuáles solo cambian punteros.</p>
+        <p>La lista con todas las operaciones. Fíjate qué operaciones llaman a <code>nodoEn</code> (y recorren nodos) y cuáles solo cambian punteros.</p>
         <div id="vis-todo"></div>
       </section>
 
@@ -140,18 +178,20 @@
           <table>
             <thead><tr><th>Operación</th><th>En <code>std::forward_list</code></th><th>Tiempo</th><th>Por qué</th></tr></thead>
             <tbody>
+              <tr><td><code>nodoEn(pos)</code> / <code>obtener(pos)</code></td><td><code>std::next(l.begin(), pos)</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que dar <code>pos</code> saltos.</td></tr>
               <tr><td><code>insertarAlInicio</code></td><td><code>l.push_front(x)</code></td><td class="o-grande bueno">O(1)</td><td>Se crea un nodo y se cambian dos punteros.</td></tr>
-              <tr><td><code>insertarAlFinal</code></td><td>No existe (<code>std::list::push_back</code> sí, en O(1))</td><td class="o-grande malo">O(n)</td><td>Hay que recorrer hasta el último; O(1) con un puntero <code>cola</code>.</td></tr>
-              <tr><td><code>obtener(pos)</code></td><td><code>*std::next(l.begin(), pos)</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que dar <code>pos</code> saltos.</td></tr>
+              <tr><td><code>insertarEn(pos, x)</code></td><td><code>l.insert_after(std::next(l.before_begin(), pos), x)</code></td><td class="o-grande malo">O(n)</td><td>Llegar al anterior cuesta <code>pos - 1</code> saltos; enganchar es O(1).</td></tr>
+              <tr><td><code>insertarAlFinal</code></td><td>No existe (<code>std::list::push_back</code> sí, en O(1))</td><td class="o-grande malo">O(n)</td><td><code>nodoEn</code> recorre hasta el último; O(1) con un puntero <code>cola</code>.</td></tr>
               <tr><td><code>buscar(x)</code></td><td><code>std::find(l.begin(), l.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Nodo por nodo desde la cabeza.</td></tr>
               <tr><td><code>eliminar(x)</code></td><td><code>l.remove(x)</code> (borra todos los iguales)</td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el anterior; el borrado en sí es O(1).</td></tr>
+              <tr><td><code>eliminarEn(pos)</code></td><td><code>l.erase_after(std::next(l.before_begin(), pos))</code></td><td class="o-grande malo">O(n)</td><td>Igual que <code>insertarEn</code>: llegar al anterior y saltar el nodo.</td></tr>
               <tr><td>Insertar o borrar después de un nodo conocido</td><td><code>l.insert_after(it, x)</code> / <code>l.erase_after(it)</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian punteros, sin recorrer.</td></tr>
             </tbody>
           </table>
         </div>
         <ul>
           <li>Úsala cuando insertas y eliminas mucho <strong>al inicio</strong>, o junto a nodos que ya tienes localizados (por ejemplo, con un iterador guardado).</li>
-          <li>Es la base de otras estructuras: pilas, colas, listas de adyacencia de grafos y las cubetas de una <a href="../tabla-hash/">tabla hash con encadenamiento</a>.</li>
+          <li>Es la base de otras estructuras: <a href="../pila/">pilas</a>, <a href="../cola/">colas</a>, listas de adyacencia de grafos y las cubetas de una <a href="../tabla-hash/">tabla hash con encadenamiento</a>.</li>
           <li>Una ventaja poco obvia: insertar o borrar nodos <strong>no mueve a los demás</strong>, así que los punteros a otros nodos siguen siendo válidos (en un vector, al redimensionar, no).</li>
           <li>Evítala si accedes por posición o recorres mucho: <code>std::vector</code> suele ser más rápido por la caché, y gasta menos memoria por elemento. Mide antes de elegir.</li>
           <li><code>std::list</code> es la versión <strong>doblemente enlazada</strong>: cada nodo también apunta al anterior, así que se puede recorrer en los dos sentidos y borrar un nodo sin buscar su anterior.</li>
@@ -166,9 +206,9 @@
 
         <h2>Para practicar</h2>
         <ol>
-          <li>Agrega un puntero <code>cola</code> al último nodo para que <code>insertarAlFinal</code> sea O(1). ¿Qué otros métodos tienes que actualizar?</li>
+          <li>Agrega un puntero <code>cola</code> al último nodo para que <code>insertarAlFinal</code> sea O(1) sin llamar a <code>nodoEn</code>. ¿Qué otros métodos tienes que actualizar?</li>
+          <li>Escribe <code>void modificar(int pos, int valor)</code> usando <code>nodoEn</code>. ¿Qué haces si devuelve <code>nullptr</code>?</li>
           <li>Escribe <code>void invertir()</code> que dé vuelta la lista cambiando solo punteros, sin crear nodos. (Pista: necesitas tres punteros: anterior, actual y siguiente.)</li>
-          <li>Escribe <code>int tamano() const</code>, primero con un ciclo y después de forma recursiva.</li>
           <li>Cambia <code>eliminar</code> para que borre <strong>todas</strong> las apariciones del valor, como <code>std::forward_list::remove</code>.</li>
         </ol>
 
