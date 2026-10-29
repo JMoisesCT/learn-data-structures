@@ -10,7 +10,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | Vector dinámico | Lección en 9 pasos: `obtener` (con el cálculo de la dirección), `agregarAlFinal` con `redimensionar` (copias entre bloques y `delete[]`), experimento de costo amortizado (duplicar contra sumar 1), `insertar`, `eliminarEn`, `buscar` y todas juntas |
 | Lista enlazada simple | Lección en 11 pasos: `nodoEn` y `obtener` (con las direcciones de cada nodo), `insertarAlInicio`, `insertarEn` (en medio, al inicio, al final y fuera de rango), `insertarAlFinal` (llama a `insertarEn(tamano, valor)`, con la pila de llamadas a la vista), `buscar`, `eliminar` (cabeza, en medio y valor ausente), `eliminarEn`, comparador de costos contra el vector y todas juntas |
 | Pila | Lección en 8 pasos con dos versiones: `std::stack` (`push`, `top`, `pop` y por qué se pregunta `empty()` antes), un uso real con `estanBalanceados` (paréntesis, corchetes y llaves), y `PilaEnlazada` sobre nodos (`apilar`, `desapilar` y `cima` en O(1), con la pila vacía como error); todo junto con selector de versión |
-| Cola (arreglo circular) | `encolar`, `desencolar`, `frente` |
+| Cola | Lección en 8 pasos con dos versiones: `std::queue` (`push`, `front`, `pop` y por qué se pregunta `empty()` antes), un uso real con `josefo` (cada persona pasa del frente al final), y `ColaEnlazada` sobre nodos con `primero` y `ultimo` (`encolar`, `desencolar` con el caso de la cola que queda vacía, y `frente`, todo en O(1)); todo junto con selector de versión |
 | Montículo (min-heap / max-heap) y heapsort | Lección en 9 pasos: `maxHeapify`/`minHeapify` (con su recursión), `buildMaxHeap`/`buildMinHeap`, `insertMax`/`insertMin`, `extractMax`/`extractMin`, `maximum`/`minimum`, `heapSort` en dos fases |
 | Tabla hash | Lección en 8 pasos: funciones hash para números (`hashDivision`, `hashMultiplicacion`, `hashCuadradoMedio`, `hashPlegado`) y para texto (`hashSumaLetras`, `hashPolinomial`); encadenamiento (`insertar` al frente, `buscar`, `eliminar`); direccionamiento abierto con sondeo lineal, cuadrático y doble hash (`insertar`, `buscar`, `eliminar` con lápidas); factor de carga y `rehash` |
 
@@ -22,14 +22,6 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | 2 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
 | 3 | Lista doblemente enlazada | insertar/eliminar en ambos extremos | `[Lista doblemente enlazada] Agregar animación y ejemplo en C++` |
 | 4 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
-
-## Pasar al formato de lección
-
-Temas ya publicados que todavía son una sola página. Hay que llevarlos al formato de "Formato de un tema" en CONTRIBUTING.md (lección por pasos, un visualizador por operación con preguntas, animaciones con "juice"), como ya se hizo con Vector dinámico y Lista enlazada. Un PR por tema.
-
-| # | Tema | Qué agregar | Título del PR |
-| --- | --- | --- | --- |
-| 1 | Cola (arreglo circular) | Pasos para `encolar`, `desencolar` y `frente`; marcas `frente` y `fin` que dan la vuelta al arreglo; la vista circular junto a la lineal; cola llena y vacía como errores visibles | `[Cola] Explicar sus operaciones en una lección por pasos animada` |
 
 ## Ideas para el sitio
 
