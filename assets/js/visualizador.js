@@ -39,7 +39,7 @@
     {
       slug: "pila",
       titulo: "Pila (stack)",
-      resumen: "El último que entra es el primero que sale (LIFO). Deshacer, llamadas a funciones, paréntesis.",
+      resumen: "El último que entra es el primero que sale (LIFO). std::stack y una pila hecha con nodos; paréntesis balanceados.",
       etiquetas: ["LIFO", "push/pop O(1)"],
       archivo: "pila.cpp",
     },
