@@ -53,7 +53,7 @@ Prueba cada operación de la animación, incluidos los casos de error (estructur
 
 ## Cómo agregar un tema nuevo
 
-Usa como plantilla **`temas/vector-dinamico/`** (estructura lineal) o **`temas/monticulo/`** (árbol): tienen el formato que se espera de todos los temas (ver "Formato de un tema" más abajo). `pila`, `cola` y `lista-enlazada` todavía tienen el formato viejo de una sola página; no los copies.
+Usa como plantilla **`temas/vector-dinamico/`** (estructura lineal) o **`temas/monticulo/`** (árbol): tienen el formato que se espera de todos los temas (ver "Formato de un tema" más abajo). `pila` y `cola` todavía tienen el formato viejo de una sola página; no los copies. Para estructuras con nodos y punteros, mira también `temas/lista-enlazada/`.
 
 1. **Código C++** — `ejemplos/cpp/<nombre>.cpp`
    - Programa completo con `main()` que demuestre cada operación e imprima resultados.
