@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notación algorítmica (Big-O) · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos sobre la notación O grande: qué significa O(1), O(log n), O(n), O(n log n), O(n²) y O(2ⁿ), con gráficas interactivas, animaciones que cuentan cada paso y ejemplos en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="notacion-algoritmica">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Notación algorítmica</div>
+      <h1>Notación algorítmica (Big-O)</h1>
+      <p class="resumen">Antes de comparar estructuras de datos necesitamos un idioma para decir <strong>qué tan rápido</strong> es algo. La notación O grande no mide segundos: dice <strong>cómo crece el trabajo</strong> cuando los datos crecen. Vas a ver cada clase contar sus pasos, punto por punto.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Contar pasos">
+        <h2>Contar pasos, no segundos</h2>
+        <p>Si cronometras un programa, el resultado depende de tu computadora, del compilador y de qué más está corriendo. En cambio, el número de <strong>pasos</strong> (operaciones básicas: una comparación, una suma, leer una casilla) depende solo del algoritmo y del <strong>tamaño de la entrada</strong>, que llamamos <code>n</code>.</p>
+        <p>La notación O responde una pregunta: <strong>si <code>n</code> crece, ¿cómo crecen los pasos?</strong> Imagina que buscas a un amigo en un estadio. Si sabes su asiento, vas directo: <strong>O(1)</strong>. Si recorres fila por fila, el doble de gente es el doble de trabajo: <strong>O(n)</strong>. Si cada persona saluda a todas las demás, el doble de gente es el <em>cuádruple</em> de saludos: <strong>O(n²)</strong>.</p>
+        <p>Mueve <code>n</code> o pulsa <strong>▶ Ver crecer n</strong>: con números chicos todas se parecen, pero cuando <code>n</code> crece se separan muchísimo.</p>
+        <div id="carrera"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Un algoritmo hace <code>n²</code> pasos. Si <code>n</code> pasa de 1000 a 2000, ¿cuántos pasos hace ahora?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso pasaría con O(n). Con n², el doble de n se eleva al cuadrado: (2n)² = 4n².">El doble</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="(2n)² = 4n²: de un millón de pasos a cuatro millones. Mira la columna «Si duplicas n» de la tabla.">El cuádruple</button>
+            <button type="button" class="opcion" data-explicacion="Sumar una cantidad fija al duplicar n es lo que hace O(log n), que suma 1 paso. Con n², el doble de n multiplica los pasos por 4.">1000 pasos más</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="constante" data-titulo="O(1): constante">
+        <h2>O(1): siempre lo mismo</h2>
+        <p>Leer <code>datos[i]</code> en un arreglo es <strong>un paso</strong>, haya 5 elementos o 5 millones: la dirección de la casilla se calcula con una cuenta. A eso se le llama <strong>tiempo constante</strong>, O(1).</p>
+        <p>En el programa, cada función hace <code>pasos++</code> en cada operación básica. Cada <code>pasos++</code> deja caer un <strong>punto</strong> bajo la casilla que tocó, y cada ejecución deja un punto en la gráfica de la derecha. Ejecútala con varios <code>n</code> distintos.</p>
+        <div id="vis-constante"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Una función hace siempre 3 pasos, sin importar <code>n</code>. ¿Qué complejidad tiene?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El 3 es una constante y no depende de n. Big-O ignora las constantes: lo que importa es si crece con n.">O(3)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="3 pasos, 100 pasos o 1 paso: si no depende de n, es O(1). «Constante» no quiere decir «un solo paso», sino «no crece».">O(1)</button>
+            <button type="button" class="opcion" data-explicacion="O(n) significaría que con el doble de datos hace el doble de pasos. Aquí son siempre 3.">O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="lineal" data-titulo="O(n): lineal">
+        <h2>O(n): una vuelta por elemento</h2>
+        <p>Para sumar un arreglo no queda otra que <strong>mirar cada elemento una vez</strong>. Un <code>for</code> de <code>n</code> vueltas con trabajo fijo adentro hace <code>n</code> pasos: con el doble de datos, el doble de pasos. Es <strong>tiempo lineal</strong>, O(n). En la gráfica, los puntos forman una recta.</p>
+        <div id="vis-lineal"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Una función recorre el arreglo dos veces seguidas: primero para buscar el máximo y después para buscar el mínimo. ¿Qué complejidad tiene?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Hace 2n pasos, y el 2 es una constante: sigue siendo una recta. Dos ciclos seguidos se suman (n + n), no se multiplican.">O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Los ciclos se multiplican solo cuando uno está dentro del otro. Uno después del otro se suman: n + n = 2n.">O(n²)</button>
+            <button type="button" class="opcion" data-explicacion="Es correcto que hace 2n pasos, pero en Big-O se quitan las constantes: O(2n) se escribe O(n).">O(2n), y es distinto de O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cuadratica" data-titulo="O(n²): cuadrática">
+        <h2>O(n²): todos contra todos</h2>
+        <p>Para saber si hay repetidos sin ordenar, se compara <strong>cada par</strong> de elementos: un <code>for</code> dentro de otro. Con <code>n</code> elementos hay <code>n·(n − 1)/2</code> pares; la tabla de la animación tiene una casilla por par y se va llenando. Eso es casi <code>n²/2</code>: con el doble de datos, <strong>cuatro veces</strong> más trabajo. Es <strong>tiempo cuadrático</strong>, O(n²).</p>
+        <p>Prueba también <em>repetido al inicio</em>: termina enseguida. Es el <strong>mejor caso</strong>; cuando decimos «es O(n²)» solemos hablar del <strong>peor caso</strong>, el que no tiene ningún repetido.</p>
+        <div id="vis-cuadratica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">hayRepetidos hace <code>n·(n − 1)/2 = n²/2 − n/2</code> comparaciones. ¿Por qué decimos que es O(n²) y no O(n²/2)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Sí hace la mitad que n², pero eso no cambia cómo crece: al duplicar n, n²/2 también se multiplica por 4.">Porque en realidad hace n² comparaciones</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El ½ es una constante y n/2 es un término más chico que n². Cuando n es grande, lo que manda es n²: se queda solo el término que más crece, sin su constante.">Porque se quitan las constantes y los términos chicos</button>
+            <button type="button" class="opcion" data-explicacion="El peor caso es justamente cuando no hay repetidos, y ahí hace las n·(n − 1)/2 comparaciones.">Porque es el mejor caso</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="logaritmica" data-titulo="O(log n): logarítmica">
+        <h2>O(log n): partir a la mitad</h2>
+        <p>Si los datos están <strong>ordenados</strong>, la búsqueda binaria mira el del medio y descarta <strong>la mitad</strong> que no puede tener al objetivo. Luego repite con la mitad que queda. ¿Cuántas veces se puede partir <code>n</code> a la mitad hasta llegar a 1? Unas <code>log₂ n</code> veces.</p>
+        <p>Es como el juego de adivinar un número del 1 al 100 con pistas «mayor» o «menor»: en 7 preguntas como máximo lo adivinas. Con el doble de datos, solo hace falta <strong>una vuelta más</strong>. Es <strong>tiempo logarítmico</strong>, O(log n), y casi tan bueno como O(1).</p>
+        <div id="vis-logaritmica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántas vueltas da, como mucho, la búsqueda binaria en un arreglo ordenado de un millón de elementos?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Esa es la búsqueda lineal, que mira uno por uno. La binaria descarta la mitad en cada vuelta.">Un millón</button>
+            <button type="button" class="opcion" data-explicacion="La mitad sería si descartara un solo elemento por vuelta desde cada lado. Descarta la mitad del rango cada vez.">Medio millón</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="2²⁰ = 1 048 576, así que 20 mitades bastan para llegar a 1 elemento: unas 20 vueltas. ¡Y con mil millones serían solo 30!">Unas 20</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="n-log-n" data-titulo="O(n log n)">
+        <h2>O(n log n): ciclos que se multiplican</h2>
+        <p>Cuando un ciclo está <strong>dentro</strong> de otro, sus costos se <strong>multiplican</strong>. <code>contarPresentes</code> hace <code>n</code> búsquedas binarias, y cada una cuesta unos <code>log n</code> pasos: en total, <strong>n · log n</strong>. Mira cómo cada consulta junta una columna de puntos: <code>n</code> columnas de altura <code>log n</code>.</p>
+        <p>Es la complejidad de los buenos algoritmos de ordenamiento, como el <a href="../monticulo/#heapsort">heapsort</a> o el merge sort: un poco más que O(n), muchísimo menos que O(n²).</p>
+        <div id="vis-nlogn"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Un <code>for</code> de <code>n</code> vueltas tiene adentro otro <code>for</code> de <code>n</code> vueltas. ¿Y si el de adentro fuera de solo 10 vueltas, siempre?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="n × n = n² sería con el ciclo de adentro de n vueltas. Con 10 fijas, el de adentro es O(1).">O(n²)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="n vueltas × 10 pasos = 10n, y el 10 es una constante: O(n). Lo que se multiplica son los costos, y el de adentro no crece con n.">O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Para que aparezca log n, el ciclo de adentro tendría que partir algo a la mitad en cada vuelta.">O(n log n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="reglas" data-titulo="Quitar lo que no importa">
+        <h2>Las reglas: quedarse con lo que más crece</h2>
+        <p>Un algoritmo real casi nunca hace exactamente <code>n²</code> pasos: hace algo como <code>3n² + 5n + 20</code>. Big-O se queda con el <strong>término que más crece</strong> y le quita la <strong>constante</strong>, porque cuando <code>n</code> es grande lo demás no se nota. Mueve <code>n</code>:</p>
+        <div id="widget-reglas"></div>
+        <div class="nota">Resumen de las reglas: <strong>se quitan las constantes</strong> (O(3n) = O(n)), <strong>se quedan con el término mayor</strong> (O(n² + n) = O(n²)), <strong>los pasos seguidos se suman</strong> (un ciclo y luego otro: O(n + n) = O(n)) y <strong>los anidados se multiplican</strong> (un ciclo dentro de otro: O(n · n) = O(n²)).</div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuál es la complejidad de un algoritmo que hace <code>5n + 2n² + 1000</code> pasos?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="1000 parece grande, pero es constante: con n = 1000, 2n² ya vale dos millones.">O(1000)</button>
+            <button type="button" class="opcion" data-explicacion="5n crece, pero 2n² crece más rápido: con n grande, 5n es una parte cada vez más chica del total.">O(n)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El término que más crece es 2n²; sin su constante, n². Los demás se vuelven insignificantes cuando n es grande.">O(n²)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todas en la misma gráfica</h2>
+        <p>Las cinco funciones, con la misma <code>n</code>. Ejecuta cada una y compara dónde cae su punto; luego cambia <code>n</code> y repite. La escala vertical se ajusta sola: fíjate cómo <code>hayRepetidos</code> se despega del resto.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidades y tiempos">
+        <h2>Las clases de complejidad, de mejor a peor</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Clase</th><th>Nombre</th><th>Al duplicar n</th><th>Ejemplos en este sitio</th></tr></thead>
+            <tbody>
+              <tr><td class="o-grande bueno">O(1)</td><td>constante</td><td>igual</td><td><code>obtener(i)</code> del <a href="../vector-dinamico/">vector</a>, apilar en una <a href="../pila/">pila</a>, la cima del <a href="../monticulo/">montículo</a></td></tr>
+              <tr><td class="o-grande bueno">O(log n)</td><td>logarítmica</td><td>+1 paso</td><td>búsqueda binaria, insertar y extraer en un <a href="../monticulo/">montículo</a></td></tr>
+              <tr><td class="o-grande">O(n)</td><td>lineal</td><td>×2</td><td>buscar en un <a href="../vector-dinamico/#buscar">vector</a> o una <a href="../lista-enlazada/">lista</a> sin ordenar, insertar en medio de un vector</td></tr>
+              <tr><td class="o-grande">O(n log n)</td><td>lineal-logarítmica</td><td>un poco más de ×2</td><td><a href="../monticulo/#heapsort">heapsort</a>, merge sort, <code>std::sort</code></td></tr>
+              <tr><td class="o-grande malo">O(n²)</td><td>cuadrática</td><td>×4</td><td>comparar todos los pares, ordenar por burbuja o por inserción</td></tr>
+              <tr><td class="o-grande malo">O(2ⁿ)</td><td>exponencial</td><td>se eleva al cuadrado</td><td><code>fibonacci</code> recursivo (está en el programa completo)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>¿Y en tiempo real?</h3>
+        <p>Supón una computadora que hace <strong>100 millones de pasos por segundo</strong>:</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Clase</th><th>n = 10</th><th>n = 1000</th><th>n = 1 000 000</th></tr></thead>
+            <tbody>
+              <tr><td class="o-grande bueno">O(1)</td><td>10 ns</td><td>10 ns</td><td>10 ns</td></tr>
+              <tr><td class="o-grande bueno">O(log n)</td><td>33 ns</td><td>100 ns</td><td>200 ns</td></tr>
+              <tr><td class="o-grande">O(n)</td><td>100 ns</td><td>10 µs</td><td>10 ms</td></tr>
+              <tr><td class="o-grande">O(n log n)</td><td>330 ns</td><td>100 µs</td><td>0,2 s</td></tr>
+              <tr><td class="o-grande malo">O(n²)</td><td>1 µs</td><td>10 ms</td><td>casi 3 horas</td></tr>
+              <tr><td class="o-grande malo">O(2ⁿ)</td><td>10 µs</td><td>más que la edad del universo</td><td>ni lo intentes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>Big-O habla de <strong>cómo crece</strong> el trabajo, no de cuánto tarda exactamente: con <code>n</code> chico, un O(n²) sencillo puede ganarle a un O(n log n) complicado.</li>
+          <li>Casi siempre se da el <strong>peor caso</strong>, porque es una garantía. A veces se habla del caso promedio (la tabla hash es O(1) en promedio) o del costo <a href="../vector-dinamico/#amortizado">amortizado</a> (agregar al final de un vector).</li>
+          <li>Lo mismo vale para la <strong>memoria</strong>: un algoritmo que crea una copia del arreglo usa O(n) de memoria extra.</li>
+          <li>Para ser precisos: O es una <strong>cota superior</strong> («no crece más rápido que»). Ω es la cota inferior y Θ, las dos a la vez. En la práctica, cuando alguien dice «es O(n)», casi siempre quiere decir Θ(n).</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo: imprime una tabla con los pasos de cada función para n = 10, 100, 1000 y 10 000, así ves crecer cada clase con números reales.</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra notacion_algoritmica.cpp -o notacion_algoritmica &amp;&amp; ./notacion_algoritmica</span></pre>
+        <div data-codigo-completo="notacion_algoritmica.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>int maximo(const int datos[], int n)</code> con su contador de <code>pasos</code>. ¿Qué complejidad tiene? Compruébalo agregándola a la tabla de <code>main()</code>.</li>
+          <li>¿Qué complejidad tiene este ciclo? <code>for (int i = 1; i &lt; n; i *= 2)</code>. ¿Y si adentro hubiera un <code>for (int j = 0; j &lt; n; j++)</code>?</li>
+          <li>Cambia el ciclo de adentro de <code>hayRepetidos</code> para que empiece en <code>j = 0</code> (saltándose <code>j == i</code>). ¿Cuántas comparaciones hace ahora? ¿Cambia su Big-O?</li>
+          <li>Haz una versión de <code>fibonacci</code> con un ciclo que guarde los dos últimos valores. Cuenta sus pasos para n = 25 y compáralos con los 242 785 de la recursiva.</li>
+          <li>Si ordenas el arreglo primero (O(n log n)) y luego comparas solo vecinos (O(n)), ¿qué complejidad tiene <code>hayRepetidos</code>?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="notacion-algoritmica.js"></script>
+</body>
+</html>

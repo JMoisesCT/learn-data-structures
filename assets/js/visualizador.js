@@ -16,6 +16,13 @@
   // anterior/siguiente. Agrega aquí cada tema nuevo.
   DS.TEMAS = [
     {
+      slug: "notacion-algoritmica",
+      titulo: "Notación algorítmica (Big-O)",
+      resumen: "El idioma para comparar algoritmos: cómo crecen los pasos con n. O(1), O(log n), O(n), O(n log n), O(n²) y O(2ⁿ), con gráficas.",
+      etiquetas: ["empieza aquí", "O(1) a O(2ⁿ)"],
+      archivo: "notacion_algoritmica.cpp",
+    },
+    {
       slug: "vector-dinamico",
       titulo: "Vector dinámico",
       resumen: "Un arreglo que crece solo. Acceso por índice en O(1) y cómo se duplica la capacidad.",
