@@ -37,32 +37,37 @@ public:
         Nodo* nuevo = new Nodo(valor);
         nuevo->siguiente = cabeza;
         cabeza = nuevo;
+        tamano++;
     }
 
-    // O(n): hay que recorrer la lista para encontrar el último nodo.
-    void insertarAlFinal(int valor) {
-        Nodo* nuevo = new Nodo(valor);
-        if (cabeza == nullptr) {
-            cabeza = nuevo;
-            return;
-        }
-        Nodo* actual = cabeza;
-        while (actual->siguiente != nullptr) {
-            actual = actual->siguiente;
-        }
-        actual->siguiente = nuevo;
-    }
-
-    // O(n): no hay índices; hay que avanzar pos veces desde la cabeza.
-    int obtener(int pos) const {
-        Nodo* actual = cabeza;
-        for (int i = 0; i < pos && actual != nullptr; i++) {
-            actual = actual->siguiente;
-        }
-        if (pos < 0 || actual == nullptr) {
+    // O(n): nodoEn recorre hasta el nodo ANTERIOR a pos; enlazar son dos punteros.
+    void insertarEn(int pos, int valor) {
+        if (pos < 0 || pos > tamano) {
             throw std::out_of_range("posicion invalida");
         }
-        return actual->valor;
+        if (pos == 0) {
+            insertarAlInicio(valor);
+            return;
+        }
+        Nodo* anterior = nodoEn(pos - 1);
+        Nodo* nuevo = new Nodo(valor);
+        nuevo->siguiente = anterior->siguiente;
+        anterior->siguiente = nuevo;
+        tamano++;
+    }
+
+    // O(n): el final es la posición tamano, e insertarEn tiene que llegar ahí.
+    void insertarAlFinal(int valor) {
+        insertarEn(tamano, valor);
+    }
+
+    // O(n): nodoEn da pos saltos desde la cabeza.
+    int obtener(int pos) const {
+        Nodo* nodo = nodoEn(pos);
+        if (nodo == nullptr) {
+            throw std::out_of_range("posicion invalida");
+        }
+        return nodo->valor;
     }
 
     // O(n): recorremos nodo por nodo.
@@ -77,7 +82,7 @@ public:
         return false;
     }
 
-    // O(n): buscamos el nodo ANTERIOR al que queremos borrar.
+    // O(n): buscamos el nodo ANTERIOR al que tiene el valor.
     bool eliminar(int valor) {
         if (cabeza == nullptr) {
             return false;
@@ -86,6 +91,7 @@ public:
             Nodo* temp = cabeza;
             cabeza = cabeza->siguiente;
             delete temp;
+            tamano--;
             return true;
         }
         Nodo* actual = cabeza;
@@ -98,7 +104,28 @@ public:
         Nodo* temp = actual->siguiente;
         actual->siguiente = temp->siguiente;
         delete temp;
+        tamano--;
         return true;
+    }
+
+    // O(n): como insertarEn, nodoEn nos lleva al nodo ANTERIOR a pos.
+    int eliminarEn(int pos) {
+        if (pos < 0 || pos >= tamano) {
+            throw std::out_of_range("posicion invalida");
+        }
+        Nodo* temp;
+        if (pos == 0) {
+            temp = cabeza;
+            cabeza = cabeza->siguiente;
+        } else {
+            Nodo* anterior = nodoEn(pos - 1);
+            temp = anterior->siguiente;
+            anterior->siguiente = temp->siguiente;
+        }
+        int valor = temp->valor;
+        delete temp;
+        tamano--;
+        return valor;
     }
 
     void imprimir() const {
@@ -106,11 +133,25 @@ public:
         for (Nodo* n = cabeza; n != nullptr; n = n->siguiente) {
             std::cout << n->valor << " -> ";
         }
-        std::cout << "nullptr\n";
+        std::cout << "nullptr   (tamano = " << tamano << ")\n";
     }
 
 private:
     Nodo* cabeza = nullptr;
+    int tamano = 0;  // cuántos nodos hay; insertarAlFinal lo usa como posición
+
+    // O(n): avanza pos nodos desde la cabeza; nullptr si esa posición no existe.
+    // Es privado: devuelve un nodo interno, y lo usan obtener, insertarEn y eliminarEn.
+    Nodo* nodoEn(int pos) const {
+        if (pos < 0) {
+            return nullptr;
+        }
+        Nodo* actual = cabeza;
+        for (int i = 0; i < pos && actual != nullptr; i++) {
+            actual = actual->siguiente;
+        }
+        return actual;
+    }
 };
 
 int main() {
@@ -120,6 +161,15 @@ int main() {
     lista.insertarAlFinal(12);
     lista.insertarAlInicio(3);
     lista.imprimir();
+
+    lista.insertarEn(2, 9);
+    std::cout << "insertarEn(2, 9) -> ";
+    lista.imprimir();
+    try {
+        lista.insertarEn(8, 1);
+    } catch (const std::out_of_range& e) {
+        std::cout << "insertarEn(8, 1) lanza out_of_range: " << e.what() << "\n";
+    }
 
     std::cout << "obtener(2) = " << lista.obtener(2) << "\n";
     try {
@@ -131,15 +181,23 @@ int main() {
     std::cout << "buscar(12) = " << std::boolalpha << lista.buscar(12) << "\n";
     std::cout << "buscar(99) = " << lista.buscar(99) << "\n";
 
-    lista.eliminar(7);
-    std::cout << "eliminar(7)  -> ";
+    std::cout << "eliminarEn(1) = " << lista.eliminarEn(1) << " -> ";
+    lista.imprimir();
+
+    lista.eliminar(12);
+    std::cout << "eliminar(12)  -> ";
     lista.imprimir();
 
     lista.eliminar(3);
-    std::cout << "eliminar(3)  -> ";
+    std::cout << "eliminar(3)   -> ";
     lista.imprimir();
 
     std::cout << "eliminar(99) = " << lista.eliminar(99) << "\n";
+    try {
+        lista.eliminarEn(1);
+    } catch (const std::out_of_range& e) {
+        std::cout << "eliminarEn(1) lanza out_of_range: " << e.what() << "\n";
+    }
 
     return 0;
 }
