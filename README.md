@@ -17,6 +17,7 @@ Cada tema tiene:
 
 | Tema | Animación | Código C++ |
 | --- | --- | --- |
+| Notación algorítmica (Big-O: O(1), O(log n), O(n), O(n log n), O(n²), O(2ⁿ)) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/notacion-algoritmica/) | [`notacion_algoritmica.cpp`](ejemplos/cpp/notacion_algoritmica.cpp) |
 | Vector dinámico (acceso O(1), redimensionar y costo amortizado) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/vector-dinamico/) | [`vector_dinamico.cpp`](ejemplos/cpp/vector_dinamico.cpp) |
 | Lista enlazada | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-enlazada/) | [`lista_enlazada.cpp`](ejemplos/cpp/lista_enlazada.cpp) |
 | Pila (stack) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/pila/) | [`pila.cpp`](ejemplos/cpp/pila.cpp) |
