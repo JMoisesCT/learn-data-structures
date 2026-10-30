@@ -895,6 +895,19 @@
     mensajeInicial: "Elige un criterio y ordena. Cambia de criterio y vuelve a ordenar el resultado.",
   });
 
+  // centro solo es un argumento de ordenarPorCercania: con los otros criterios no se muestra.
+  {
+    const elegido = document.getElementById("vis-ordenar-criterio");
+    const campoCentro = document.getElementById("vis-ordenar-centro");
+    if (elegido && campoCentro) {
+      const mostrarCentro = () => {
+        campoCentro.closest(".campo").style.display = CRITERIOS[elegido.value].captura ? "" : "none";
+      };
+      elegido.addEventListener("change", mostrarCentro);
+      mostrarCentro();
+    }
+  }
+
   // En Todo junto, un solo campo (n) hace de valor, limite, k y centro.
   const conValor = (id) => {
     const op = OPS[id];
