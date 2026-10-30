@@ -21,6 +21,8 @@
   --peligro: #c23a2b;
   --peligro-suave: #fbe1dd;
   --inactivo: #a9a69d;
+  --lambda: #7b4bc4;
+  --lambda-suave: #efe7fb;
   --codigo-fondo: #1e2230;
   --codigo-texto: #e4e6ee;
   --codigo-linea: rgba(255, 200, 60, 0.18);
@@ -64,6 +66,10 @@
     --peligro: #ff7a6b;
     --peligro-suave: #45201b;
     --inactivo: #5d6270;
+  --lambda: #b994ff;
+  --lambda-suave: #2e2545;
+    --lambda: #b994ff;
+    --lambda-suave: #2e2545;
     --codigo-fondo: #10131a;
     --sombra: 0 1px 2px rgba(0, 0, 0, 0.4);
     --serie-1: #3987e5;
@@ -1664,6 +1670,149 @@ pre.codigo .linea.actual {
 .detalle-terminos { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; font-family: var(--fuente-codigo); font-size: 0.82rem; color: var(--texto-suave); }
 .detalle-terminos span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .detalle-terminos b { color: var(--texto); font-weight: 600; }
+
+/* Lambdas: pila de llamadas con marcos, objetos función (closures) y
+   fichas que vuelan de una variable a otra (las anima lambdas.js) */
+
+.anatomia-lambda code { display: inline-block; padding: 0.35rem 0.6rem; font-size: 1rem; }
+.anatomia-lambda .parte-captura { color: var(--lambda); font-weight: 700; }
+.anatomia-lambda .parte-parametros { color: var(--acento); font-weight: 700; }
+.anatomia-lambda .parte-tipo { color: var(--texto-suave); }
+.anatomia-lambda .parte-cuerpo { color: var(--exito); font-weight: 700; }
+
+.lam-lienzo { position: relative; }
+.lam-lienzo > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
+.lam-flecha { fill: none; stroke: var(--lambda); stroke-width: 2; stroke-dasharray: 1; }
+.lam-flecha.nueva { animation: trazar 0.6s ease both; }
+.lam-flecha.activa { stroke: var(--activo); stroke-width: 3; }
+.lam-lienzo > svg marker path { fill: var(--lambda); }
+.lam-fantasmas { position: absolute; inset: 0; pointer-events: none; }
+.lam-fantasmas .lam-fantasma { position: absolute; margin: 0; z-index: 4; animation: lam-sale 0.45s ease both; }
+@keyframes lam-sale { to { opacity: 0; transform: translateY(10px) scale(0.92); } }
+
+.lam-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2rem; }
+.lam-info .pila-llamadas { width: auto; flex: 1 1 14rem; }
+.lam-info .salida-valor { margin: 0 0 0.3rem; }
+.lam-info .salida-valor .celda { width: auto; min-width: 34px; height: 32px; padding: 0 6px; }
+
+.lam-numeros { display: flex; align-items: flex-start; gap: 0.75rem; margin: 0 0 0.4rem; }
+.lam-numeros > .fila-titulo { margin: 0.55rem 0 0; line-height: 1.2; }
+.lam-numeros small { font-size: 0.68rem; }
+.lam-celdas { display: flex; flex-wrap: wrap; gap: 6px; }
+.lam-celda { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 44px; transition: opacity 0.3s ease; }
+.lam-caja { width: 42px; height: 40px; display: grid; place-items: center; border: 2px solid var(--acento); border-radius: 8px; background: var(--acento-suave); transition: background-color 0.25s ease, border-color 0.25s ease; }
+.lam-caja .lam-valor { border: 0; background: none; box-shadow: none; padding: 0; min-width: 0; }
+.lam-celda.actual .lam-caja { border-color: var(--activo); background: var(--activo-suave); }
+.lam-celda.cumple .lam-caja { border-color: var(--exito); background: var(--exito-suave); }
+.lam-celda.no .lam-caja, .lam-celda.revisada .lam-caja { opacity: 0.5; }
+.lam-celda.fin .lam-caja { border: 2px dashed var(--borde); background: none; }
+.lam-fin { font-family: var(--fuente-codigo); font-size: 0.68rem; color: var(--texto-suave); }
+.lam-marcas { min-height: 1rem; line-height: 1; }
+.lam-numeros > .lam-sin, .lam-celdas > .lam-sin { padding: 0.6rem 0; }
+
+/* Los marcos van en una sola fila y se angostan para caber (a lo más hay tres). */
+.lam-marcos { display: flex; align-items: flex-start; gap: 10px 12px; }
+.lam-marcos.sacudir { animation: sacudir 0.36s ease; }
+
+.lam-marco {
+  flex: 0 1 auto;
+  min-width: 140px;
+  max-width: 220px;
+  border: 1px solid var(--borde);
+  border-top: 4px solid var(--acento);
+  border-radius: 8px;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  transition: border-color 0.25s ease, opacity 0.25s ease;
+}
+.lam-marcos.amplio .lam-marco { max-width: 320px; }
+.lam-marco.lambda { border-top-color: var(--lambda); }
+.lam-marco.biblioteca { border-top-color: var(--inactivo); background: var(--superficie-2); }
+.lam-marco:not(.actual) { opacity: 0.82; }
+.lam-marco.actual { border-color: var(--activo); border-top-color: var(--activo); }
+
+.lam-marco-titulo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.45rem; padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--borde); }
+.lam-marco-titulo code { padding: 0; border: 0; background: none; font-size: 0.74rem; font-weight: 700; color: var(--texto); line-height: 1.3; overflow-wrap: anywhere; }
+.lam-tipo { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--texto-suave); }
+.lam-marco.lambda .lam-tipo { color: var(--lambda); }
+
+/* Las variables numéricas comparten fila; las lambdas, referencias y el return ocupan la suya. */
+.lam-vars { display: flex; flex-wrap: wrap; gap: 3px 1rem; padding: 0.3rem 0.6rem 0.4rem; }
+.lam-var { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0.5rem; min-height: 26px; border-radius: 6px; transition: background-color 0.25s ease; }
+.lam-var.activo { background: var(--activo-suave); }
+.lam-var.cambio .lam-nombre { color: var(--activo); }
+.lam-var.mal .lam-ref { color: var(--peligro); font-weight: 700; }
+.lam-var.activo .lam-ref { color: var(--activo); font-weight: 700; }
+.lam-var.ancha, .lam-devuelve { flex-basis: 100%; }
+.lam-devuelve { padding-top: 4px; border-top: 1px dashed var(--borde); }
+.lam-devuelve .lam-nombre { color: var(--exito); font-weight: 700; }
+.lam-nombre { min-width: 2.6rem; font-family: var(--fuente-codigo); font-size: 0.78rem; color: var(--texto-suave); white-space: nowrap; }
+.lam-slot { display: inline-flex; min-width: 0; }
+.lam-ref { font-family: var(--fuente-codigo); font-size: 0.75rem; color: var(--texto-suave); white-space: nowrap; }
+.lam-sin { font-family: var(--fuente-codigo); font-size: 0.72rem; color: var(--texto-suave); font-style: italic; }
+
+.lam-valor {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 6px;
+  border: 2px solid var(--acento);
+  border-radius: 7px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.lam-valor.verdadero { border-color: var(--exito); background: var(--exito-suave); }
+.lam-valor.falso { border-color: var(--peligro); background: var(--peligro-suave); }
+.lam-valor.activo, .lam-closure.activo { border-color: var(--activo); background: var(--activo-suave); }
+.lam-valor.bien { border-color: var(--exito); background: var(--exito-suave); animation: latido 0.6s ease; }
+.lam-valor.mal { border-color: var(--peligro); background: var(--peligro-suave); }
+.lam-var.cambio .lam-valor { animation: pop 0.4s ease; }
+
+.lam-closure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 0.6rem;
+  padding: 0.2rem 0.45rem;
+  border: 2px dashed var(--lambda);
+  border-radius: 9px;
+  background: var(--lambda-suave);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.lam-firma { display: flex; align-items: center; gap: 0.35rem; }
+.lam-firma code { padding: 0; border: 0; background: none; font-size: 0.74rem; color: var(--texto); white-space: nowrap; }
+.lam-lambda { color: var(--lambda); font-weight: 800; }
+.lam-capturas { display: flex; flex-direction: column; gap: 3px; }
+.lam-captura { display: flex; align-items: center; gap: 0.4rem; }
+.lam-captura .lam-nombre { min-width: 0; color: var(--lambda); font-weight: 700; }
+.lam-captura .lam-valor { height: 24px; min-width: 28px; font-size: 0.82rem; }
+.lam-ancla { width: 12px; height: 12px; border-radius: 50%; background: var(--lambda); }
+
+/* Teléfonos: los marcos van de a dos por fila, con el título abreviado, y
+   los que quedan más abajo en la pila se pliegan a su título. */
+@media (max-width: 600px) {
+  .lam-info { min-height: 0; }
+  .lam-info .pila-llamadas { display: none; }
+  .lam-marcos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .lam-marco { min-width: 0; max-width: none; }
+  .lam-marco.lejano { grid-column: 1 / -1; }
+  .lam-marco.lejano .lam-vars { display: none; }
+  .lam-marco.lejano .lam-marco-titulo { border-bottom: 0; }
+  .lam-vars { padding: 0.4rem 0.45rem 0.45rem; }
+  .lam-nombre { min-width: 0; }
+  .lam-firma code { white-space: normal; overflow-wrap: anywhere; }
+  .lam-closure { max-width: 100%; }
+}
+
+/* Lo que aparece hace pop; lo que vuela pasa por encima del resto. */
+.lam-entra { animation: pop 0.35s ease; }
+.lam-vuela { z-index: 5; }
+.lam-valor.lam-vuela { box-shadow: var(--sombra); }
 
 /* Pila vertical */
 
