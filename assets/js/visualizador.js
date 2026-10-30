@@ -23,6 +23,13 @@
       archivo: "notacion_algoritmica.cpp",
     },
     {
+      slug: "lambdas",
+      titulo: "Lambdas en C++",
+      resumen: "Funciones sin nombre que se escriben donde se usan: capturas por valor y por referencia, lambdas anidadas y cómo le dan un criterio a std::sort o std::count_if.",
+      etiquetas: ["herramienta de C++", "capturas [=] [&]"],
+      archivo: "lambdas.cpp",
+    },
+    {
       slug: "vector-dinamico",
       titulo: "Vector dinámico",
       resumen: "Un arreglo que crece solo. Acceso por índice en O(1) y cómo se duplica la capacidad.",

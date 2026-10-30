@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lambdas en C++ · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es una lambda en C++, cuándo se ejecuta, capturas por valor y por referencia, lambdas anidadas (una dentro de otra y una que fabrica otras), y usos prácticos con std::count_if, std::find_if y std::sort. Animaciones de la pila de llamadas y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="lambdas">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Lambdas en C++</div>
+      <h1>Lambdas en C++</h1>
+      <p class="resumen">Una lambda es una <strong>función sin nombre que se escribe justo donde se usa</strong>. No es una estructura de datos, pero la vas a ver en todos los temas que siguen: así se le dice a <code>std::sort</code> cómo ordenar, a <code>std::count_if</code> qué contar o a <code>std::priority_queue</code> quién tiene más prioridad.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Una función sin nombre">
+        <h2>Una función sin nombre</h2>
+        <div class="dos-columnas">
+          <div>
+            <p class="anatomia-lambda" aria-label="Partes de una lambda"><code><span class="parte-captura">[capturas]</span><span class="parte-parametros">(parámetros)</span> <span class="parte-tipo">-&gt; tipo</span> <span class="parte-cuerpo">{ cuerpo }</span></code></p>
+            <p>Los <strong>corchetes</strong> dicen qué variables de afuera puede usar, los <strong>paréntesis</strong> qué recibe en cada llamada y el <strong>cuerpo</strong> qué hace. El tipo de retorno casi nunca se escribe: el compilador lo deduce del <code>return</code>.</p>
+          </div>
+          <div>
+            <p>Escribir la lambda <strong>crea un objeto función</strong> (por eso se guarda en una variable con <code>auto</code>), pero el cuerpo todavía no corre. Se ejecuta recién al llamarla, como cualquier función: con su propio marco en la pila.</p>
+          </div>
+        </div>
+        <div id="vis-simple"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿En qué línea se calcula <code>x * x</code> por primera vez?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Ahí solo se crea el objeto función y se guarda en cuadrado. El cuerpo todavía no se ejecuta.">En <code>auto cuadrado = [](int x) {…}</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Al llamar cuadrado(n) se abre el marco de la lambda, x recibe una copia de n y recién ahí corre return x * x.">Al llamar <code>cuadrado(n)</code></button>
+            <button type="button" class="opcion" data-explicacion="El return de afuera solo devuelve resultado, que ya tiene el valor calculado.">En <code>return resultado</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="por-valor" data-titulo="Capturar por valor">
+        <h2>Capturar por valor: <code>[factor]</code></h2>
+        <p>Una lambda no ve las variables de la función donde se escribe, salvo que las <strong>capture</strong>. Con <code>[factor]</code> guarda una <strong>copia</strong> en el momento en que se crea: si después cambias <code>factor</code>, la lambda no se entera. <code>[=]</code> copia todo lo que use.</p>
+        <div id="vis-valor"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué devuelve <code>capturaPorValor(3, 4)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="La lambda usa la copia de factor que guardó al crearse (3): 4 × 3 = 12. El factor = 100 llegó tarde.">12</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría con [&amp;factor]: la referencia vería el 100. Con [factor] la lambda tiene su propia copia.">400</button>
+            <button type="button" class="opcion" data-explicacion="Sí compila: cambiar la variable de afuera está permitido. Lo que no se puede es cambiar la copia desde dentro de la lambda (salvo con mutable).">No compila</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Y si dentro del cuerpo escribieras <code>factor = 5;</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="No llega a ejecutarse: el compilador lo rechaza antes.">Cambia el factor de afuera</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Las copias capturadas son de solo lectura. Con [factor](int y) mutable {…} sí se puede, pero cambia solo la copia de la lambda.">No compila, salvo que la lambda sea <code>mutable</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="por-referencia" data-titulo="Capturar por referencia">
+        <h2>Capturar por referencia: <code>[&amp;total]</code></h2>
+        <p>Con <code>&amp;</code> la lambda no se lleva una copia: guarda <strong>dónde está</strong> la variable original (la flecha). Así puede modificarla, como aquí, donde cada llamada suma a <code>total</code>. <code>[&amp;]</code> captura así todo lo que use.</p>
+        <div id="vis-referencia"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con <code>numeros = {3, 1, 6}</code>, ¿cuánto vale <code>total</code> al final?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada acumular(x) suma al total original a través de la referencia: 3 + 1 + 6 = 10.">10</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría con [total] mutable: cada suma iría a la copia de la lambda y el total de afuera seguiría en 0.">0</button>
+            <button type="button" class="opcion" data-explicacion="La lambda no reemplaza total por x: hace total += x, y lo hace en cada vuelta.">6, el último</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="anidadas" data-titulo="Una lambda dentro de otra">
+        <h2>Lambdas anidadas: una dentro de otra</h2>
+        <p>El cuerpo de una lambda puede definir y llamar a otra. <code>cuadrado</code> es una variable local de <code>sumarCuadrados</code>: <strong>se crea cada vez que esta se ejecuta</strong> y se destruye cuando termina. Cada llamada abre su propio marco en la pila.</p>
+        <div id="vis-anidadas"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Podría <code>sumaDeCuadrados</code> llamar a <code>cuadrado(5)</code> en su último <code>return</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Las lambdas siguen las mismas reglas de alcance que cualquier variable local.">Sí, porque las lambdas son globales</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="cuadrado se declara dentro del cuerpo de sumarCuadrados: afuera de esas llaves no existe, igual que cualquier variable local.">No: <code>cuadrado</code> solo existe dentro de <code>sumarCuadrados</code></button>
+            <button type="button" class="opcion" data-explicacion="El problema no es la captura: aunque la capturara, cuadrado no existe en ese alcance.">Sí, si la captura con <code>[&amp;]</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="fabrica" data-titulo="Una lambda que devuelve otra">
+        <h2>Lambdas anidadas: una que fabrica otras</h2>
+        <p>Una lambda puede <strong>devolver otra lambda</strong>. <code>crearSumador(10)</code> fabrica una función que suma 10, y <code>crearSumador(3)</code> otra distinta que suma 3: cada una <strong>recuerda su propia <code>b</code></strong>, aunque el marco donde se creó ya no exista.</p>
+        <div id="vis-fabrica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué la lambda de adentro captura <code>[b]</code> y no <code>[&amp;b]</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="b es un parámetro de crearSumador y muere cuando su marco se cierra. Una referencia quedaría apuntando a memoria liberada (referencia colgante): comportamiento indefinido.">Porque <code>b</code> deja de existir al terminar <code>crearSumador</code></button>
+            <button type="button" class="opcion" data-explicacion="Ese es justo el peligro: [&amp;b] compila sin quejarse y falla (o no) cuando se ejecuta.">Porque <code>[&amp;b]</code> no compila</button>
+            <button type="button" class="opcion" data-explicacion="Copiar un int o guardar una referencia cuesta casi lo mismo. La razón es otra: cuánto vive b.">Porque copiar es más rápido</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="contar" data-titulo="Contar con count_if">
+        <h2>Uso práctico: contar con <code>std::count_if</code></h2>
+        <p>Los algoritmos de <code>&lt;algorithm&gt;</code> saben recorrer; la lambda les dice <strong>qué buscar</strong>. <code>count_if</code> llama a la lambda con cada elemento y cuenta cuántas veces devolvió <code>true</code>. Se escribe ahí mismo, como argumento, y captura <code>limite</code> para compararlo.</p>
+        <div id="vis-contar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si <code>numeros</code> tiene 1000 elementos, ¿cuántas veces llama <code>count_if</code> a la lambda?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Una por elemento, siempre: para contar hay que mirarlos todos. Por eso es O(n).">1000</button>
+            <button type="button" class="opcion" data-explicacion="Eso hace find_if, que se detiene en el primero que cumple. count_if tiene que revisarlos todos.">Hasta encontrar el primero que cumple</button>
+            <button type="button" class="opcion" data-explicacion="No puede descartar mitades: el vector no está ordenado y cualquiera podría cumplir.">Unas 10 (log₂ 1000)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Buscar con find_if">
+        <h2>Uso práctico: buscar con <code>std::find_if</code></h2>
+        <p><code>find_if</code> pregunta a la lambda elemento por elemento y <strong>se detiene en el primero que cumple</strong>. Devuelve un iterador a ese elemento, o <code>numeros.end()</code> (la posición después del último) si ninguno cumple.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué devuelve <code>std::find_if</code> si ningún elemento cumple?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El -1 lo devuelve primerMultiplo, después de comparar con end(). find_if devuelve un iterador.">-1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="end() no apunta a ningún elemento: es la marca de «se acabó». Por eso hay que compararlo antes de usar *it.">El iterador <code>numeros.end()</code></button>
+            <button type="button" class="opcion" data-explicacion="Los algoritmos de la STL trabajan con iteradores, no con punteros nulos.">nullptr</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="ordenar" data-titulo="Ordenar con un criterio">
+        <h2>Uso práctico: ordenar con tu criterio</h2>
+        <p><code>std::sort</code> ordena de menor a mayor, pero si le pasas una lambda <code>comp(a, b)</code> que responde <strong>«¿<code>a</code> va antes que <code>b</code>?»</strong>, ordena con el criterio que quieras. El algoritmo no cambia: solo cambia la pregunta.</p>
+        <div id="vis-ordenar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué lambda ordena de menor a mayor?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="a va antes que b cuando es menor. Es justo lo que hace std::sort sin lambda."><code>[](int a, int b) { return a &lt; b; }</code></button>
+            <button type="button" class="opcion" data-explicacion="Parece igual, pero comp(a, a) debe ser false. Con &lt;= dos valores iguales «van antes» uno del otro y std::sort puede fallar: comportamiento indefinido."><code>[](int a, int b) { return a &lt;= b; }</code></button>
+            <button type="button" class="opcion" data-explicacion="Esa dice que b va antes cuando es menor: ordena de mayor a menor."><code>[](int a, int b) { return b &lt; a; }</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>El vector <code>numeros</code> de <code>main()</code> con las funciones que reciben lambdas: agrega valores, ordénalo y vuelve a contar o buscar.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Capturas y usos">
+        <h2>Capturas, costo y dónde las vas a usar</h2>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>Captura</th><th>Qué guarda la lambda</th></tr></thead>
+              <tbody>
+                <tr><td><code>[]</code></td><td>Nada: solo usa sus parámetros.</td></tr>
+                <tr><td><code>[x]</code> / <code>[=]</code></td><td>Una copia de <code>x</code> / de todo lo que use. Sirve aunque la variable muera antes que la lambda.</td></tr>
+                <tr><td><code>[&amp;x]</code> / <code>[&amp;]</code></td><td>Una referencia: puede modificar el original y no copia nada grande. Solo si la variable vive más que la lambda.</td></tr>
+                <tr><td><code>[x, &amp;y]</code></td><td>Mezcla: copia de <code>x</code>, referencia a <code>y</code>.</td></tr>
+                <tr><td><code>[x]() mutable</code></td><td>Una copia que la lambda sí puede modificar.</td></tr>
+                <tr><td><code>[](auto a, auto b)</code></td><td>Lambda genérica (C++14): sirve para cualquier tipo.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>Con una lambda</th><th>Tiempo</th><th>Lo vas a ver en</th></tr></thead>
+              <tbody>
+                <tr><td><code>std::count_if</code>, <code>std::for_each</code></td><td class="o-grande malo">O(n)</td><td>Recorridos: una llamada por elemento</td></tr>
+                <tr><td><code>std::find_if</code></td><td class="o-grande malo">O(n)</td><td>Búsquedas: se detiene en el primero que cumple</td></tr>
+                <tr><td><code>std::sort(…, comp)</code></td><td class="o-grande">O(n log n)</td><td>Ordenamiento: unas n·log n comparaciones</td></tr>
+                <tr><td><code>std::priority_queue</code> con <code>decltype(comp)</code></td><td class="o-grande bueno">O(log n)</td><td>Montículo: un min-heap con <code>x &gt; y</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ul>
+          <li>Crear una lambda es <strong>O(1)</strong>: es un objeto que solo guarda sus capturas. Llamarla cuesta lo mismo que una función normal (el compilador suele copiarla en línea).</li>
+          <li>Guárdala con <code>auto</code>. <code>std::function&lt;int(int)&gt;</code> guarda «cualquier cosa que se pueda llamar» (por ejemplo, una lambda recursiva), pero es un poco más lento.</li>
+          <li>Prefiere lambdas cortas, y cuidado con <code>[&amp;]</code> en una lambda que se devuelve o se guarda para después: las referencias a variables locales quedan colgando.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lambdas.cpp -o lambdas &amp;&amp; ./lambdas</span></pre>
+        <div data-codigo-completo="lambdas.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Con <code>std::count_if</code>, cuenta cuántos números de <code>numeros</code> son pares.</li>
+          <li>Escribe <code>auto crearMultiplicador = [](int k) { … };</code> que devuelva una lambda que multiplique por <code>k</code>. Crea <code>doble</code> y <code>triple</code> y pruébalas.</li>
+          <li>Ordena un <code>std::vector&lt;std::string&gt;</code> por longitud y, si empatan, alfabéticamente.</li>
+          <li>Usa <code>std::for_each</code> con una lambda que capture <code>[&amp;maximo]</code> para encontrar el mayor de <code>numeros</code>. ¿Qué pasa si capturas <code>[maximo]</code>?</li>
+          <li>Cambia <code>[b]</code> por <code>[&amp;b]</code> en <code>crearSumador</code> y compila con <code>-fsanitize=address</code>. ¿Qué te dice el sanitizador al llamar a <code>sumarBase</code>?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="lambdas.js"></script>
+</body>
+</html>
