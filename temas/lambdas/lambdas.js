@@ -896,7 +896,7 @@
   });
 
   // centro solo es un argumento de ordenarPorCercania: con los otros criterios no se muestra.
-  {
+  if (typeof document !== "undefined") {
     const elegido = document.getElementById("vis-ordenar-criterio");
     const campoCentro = document.getElementById("vis-ordenar-centro");
     if (elegido && campoCentro) {
