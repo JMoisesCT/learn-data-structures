@@ -1680,6 +1680,27 @@ pre.codigo .linea.actual {
 .tooltip-carrera span { display: flex; align-items: center; gap: 0.35rem; }
 .tooltip-carrera b { color: var(--texto); }
 
+.preguntas-carrera { padding: 0 1rem 1rem; }
+.preguntas-carrera .pregunta { margin: 0; box-shadow: none; }
+
+/* Lección en pantalla ancha: gráfica y pregunta a la izquierda; tabla y comentario a la derecha. */
+@media (min-width: 1100px) and (min-height: 560px) {
+  .con-leccion .carrera { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .con-leccion .carrera > .controles { grid-column: 1; grid-row: 1; }
+  .con-leccion .carrera > .chips-serie { grid-column: 2; grid-row: 1; align-content: center; padding: 0.5rem 1rem; border-bottom: 1px solid var(--borde); }
+  .con-leccion .carrera > .marco-carrera { grid-column: 1; grid-row: 2; --proporcion: 0.32; }
+  .con-leccion .carrera > .tabla-envoltura { grid-column: 2; grid-row: 2; border-left: 1px solid var(--borde); }
+  .con-leccion .carrera > .preguntas-carrera { grid-column: 1; grid-row: 3; padding-top: 0.25rem; }
+  .con-leccion .carrera > .resumen-costo { grid-column: 2; grid-row: 3; border-left: 1px solid var(--borde); }
+  .con-leccion .carrera .tabla-carrera { border-top: 0; }
+  .con-leccion .carrera .tabla-carrera td, .con-leccion .carrera .tabla-carrera th { padding-top: 0.4rem; padding-bottom: 0.4rem; }
+  .con-leccion .carrera .col-ejemplo { display: none; }
+  .con-leccion .preguntas-carrera .pregunta { padding: 0.75rem 0.9rem; }
+  .con-leccion .carrera .chip-serie { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+  .con-leccion .carrera .chips-serie { gap: 0.3rem; }
+  .con-leccion .preguntas-carrera .opciones { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+}
+
 .tabla-carrera { margin: 0; border: 0; border-top: 1px solid var(--borde); border-radius: 0; box-shadow: none; font-size: 0.88rem; }
 .tabla-carrera .num { text-align: right; font-family: var(--fuente-codigo); white-space: nowrap; }
 .tabla-carrera tr.apagada td { opacity: 0.45; }
