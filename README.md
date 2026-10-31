@@ -22,6 +22,7 @@ Cada tema tiene:
 | Vector dinámico (acceso O(1), redimensionar y costo amortizado) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/vector-dinamico/) | [`vector_dinamico.cpp`](ejemplos/cpp/vector_dinamico.cpp) |
 | Lista enlazada | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-enlazada/) | [`lista_enlazada.cpp`](ejemplos/cpp/lista_enlazada.cpp) |
 | Lista doblemente enlazada (cabeza y cola, extremos en O(1), cuatro punteros al insertar) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-doble/) | [`lista_doble.cpp`](ejemplos/cpp/lista_doble.cpp) |
+| Lista circular (el último apunta al primero, rotar en O(1), turnos round-robin) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-circular/) | [`lista_circular.cpp`](ejemplos/cpp/lista_circular.cpp) |
 | Pila (stack) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/pila/) | [`pila.cpp`](ejemplos/cpp/pila.cpp) |
 | Cola (queue) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/cola/) | [`cola.cpp`](ejemplos/cpp/cola.cpp) |
 | Montículo (min-heap, max-heap) y heapsort | [ver](https://jmoisesct.github.io/learn-data-structures/temas/monticulo/) | [`monticulo.cpp`](ejemplos/cpp/monticulo.cpp) |

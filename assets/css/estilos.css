@@ -2080,3 +2080,60 @@ pre.codigo .linea.actual {
   .dnodo, .lienzo-doble, .marco-doble { transition: none; }
   .lienzo-doble svg path.traza, .dnodo.nuevo, .dnodo.encontrado, .dnodo.condenado { animation: none; }
 }
+
+/* Lista circular: los nodos en un anillo; rotar solo mueve las marcas */
+
+.info-circ { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-circ .variables, .info-circ .salida-valor { margin: 0 0 0.5rem; }
+.info-circ .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+.info-circ .pila-llamadas { width: auto; flex: 1 1 100%; }
+
+.marco-circ { margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-circ { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.lienzo-circ.sacudir { animation: sacudir 0.36s ease; }
+.lienzo-circ svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
+.lienzo-circ svg path { fill: none; stroke: var(--texto-suave); stroke-width: 2; stroke-dasharray: 1; }
+.lienzo-circ svg path.traza { animation: trazar 0.45s ease both; }
+.lienzo-circ svg path.activa { stroke: var(--activo); stroke-width: 3; }
+.lienzo-circ svg path.vuelta-completa { stroke: var(--exito); }
+.lienzo-circ svg marker path { fill: var(--texto-suave); stroke: none; stroke-dasharray: none; }
+.lienzo-circ svg marker.activa path { fill: var(--activo); }
+
+.cnodo {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 26px;
+  width: 76px;
+  height: 42px;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  transition: left 0.5s ease, top 0.5s ease, opacity 0.35s ease, transform 0.35s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.cnodo .valor { display: grid; place-items: center; font-weight: 700; }
+.cnodo .valor.cambia { animation: latido 0.6s ease; }
+.cnodo .sig { display: grid; place-items: center; border-left: 2px solid; border-left-color: inherit; transition: background-color 0.25s ease; }
+.cnodo .sig::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--texto-suave); }
+.cnodo .sig.resaltado { background: var(--activo-suave); }
+.cnodo.nuevo { animation: pop 0.35s ease; }
+.cnodo.suelto { border-style: dashed; }
+.cnodo.activo { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 3px var(--activo-suave); }
+.cnodo.trabaja { box-shadow: 0 0 0 5px var(--activo-suave); }
+.cnodo.revisado { opacity: 0.5; }
+.cnodo.encontrado { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.35s ease; }
+.cnodo.condenado { border-color: var(--peligro); background: var(--peligro-suave); animation: latido 0.6s ease; }
+.cnodo.saliendo { opacity: 0; transform: scale(0.6); }
+
+.circ-vacia { position: absolute; width: 120px; padding: 0.3rem 0; border: 2px dashed var(--borde); border-radius: 8px; text-align: center; font-family: var(--fuente-codigo); font-size: 0.75rem; color: var(--texto-suave); opacity: 0; transition: opacity 0.3s ease; }
+.circ-vacia.visible { opacity: 1; }
+.lienzo-circ .lpuntero.global { color: var(--acento); }
+.lienzo-circ .lpuntero.global.activa { color: var(--activo); }
+.lienzo-circ .lpuntero.oculta { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cnodo, .lienzo-circ, .marco-circ { transition: none; }
+  .lienzo-circ svg path.traza, .cnodo.nuevo, .cnodo.encontrado, .cnodo.condenado, .cnodo .valor.cambia { animation: none; }
+}

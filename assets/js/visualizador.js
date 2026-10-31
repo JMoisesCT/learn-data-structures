@@ -51,6 +51,13 @@
       archivo: "lista_doble.cpp",
     },
     {
+      slug: "lista-circular",
+      titulo: "Lista circular",
+      resumen: "El último nodo apunta al primero: con un solo puntero se llega a los dos extremos. Insertar, rotar y repartir turnos (round-robin) en O(1).",
+      etiquetas: ["rotar O(1)", "round-robin"],
+      archivo: "lista_circular.cpp",
+    },
+    {
       slug: "pila",
       titulo: "Pila (stack)",
       resumen: "El último que entra es el primero que sale (LIFO). std::stack y una pila hecha con nodos; paréntesis balanceados.",

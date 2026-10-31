@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista circular · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es una lista circular (el último nodo apunta al primero), por qué basta con un puntero al último, cómo insertar al inicio y al final en O(1), rotar sin mover nodos, eliminar el primero, recorrer con do-while sin dar vueltas para siempre y repartir turnos (round-robin). Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="lista-circular">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Lista circular</div>
+      <h1>Lista circular</h1>
+      <p class="resumen">Una lista enlazada donde el último nodo, en vez de apuntar a <code>nullptr</code>, <strong>apunta al primero</strong>. Ideal para repartir turnos.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="El último apunta al primero">
+        <h2>El último apunta al primero</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Como una ronda: después del último vuelve el primero. Basta con guardar <code>ultimo</code>, porque el primero es <code>ultimo->siguiente</code>: los <strong>dos extremos</strong> en O(1).</p>
+          </div>
+          <div>
+            <p>No hay un <code>nullptr</code> al final: se recorre con <code>do … while</code> hasta <strong>volver al primero</strong>. Si no, el ciclo daría vueltas para siempre.</p>
+          </div>
+        </div>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué <code>buscar</code> usa <code>do … while</code> y no <code>while (actual != ultimo->siguiente)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Los dos son igual de rápidos: la diferencia es cuándo se revisa la condición.">Porque es más rápido</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="actual empieza justo en ultimo->siguiente: con un while normal, la condición sería falsa de entrada y no revisaría ningún nodo.">Porque con <code>while</code> no entraría nunca al ciclo</button>
+            <button type="button" class="opcion" data-explicacion="Con la condición del while correcta tampoco daría vueltas para siempre; el problema es otro.">Para no dar vueltas para siempre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="inicio" data-titulo="Insertar al inicio">
+        <h2><code>insertarAlInicio</code>: abrir el anillo y cerrarlo</h2>
+        <p>El nuevo se mete entre el último y el primero: apunta al que hoy es el primero, y el último pasa a apuntarle a él. Son dos punteros, O(1). Si la lista estaba vacía, el único nodo <strong>se apunta a sí mismo</strong>.</p>
+        <div id="vis-inicio"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Después de <code>insertarAlInicio</code>, ¿cambió <code>ultimo</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="El último sigue siendo el mismo nodo; solo cambió a quién apunta su siguiente. El nuevo es el primero porque es ultimo->siguiente.">No, solo cambió <code>ultimo->siguiente</code></button>
+            <button type="button" class="opcion" data-explicacion="Si ultimo apuntara al nuevo, el nuevo sería el último, no el primero.">Sí, ahora apunta al nuevo</button>
+            <button type="button" class="opcion" data-explicacion="Solo cuando la lista estaba vacía: ahí el nuevo es el único y ultimo pasa a apuntarle.">Siempre queda en <code>nullptr</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="final" data-titulo="Insertar al final">
+        <h2><code>insertarAlFinal</code>: insertar al inicio y correr <code>ultimo</code></h2>
+        <p>Al inicio y al final quedan <strong>en el mismo lugar del anillo</strong>: entre el último y el primero. La única diferencia es a quién señala <code>ultimo</code>. Por eso insertar al final es insertar al inicio y avanzar <code>ultimo</code> un nodo: O(1).</p>
+        <div id="vis-final"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En una lista enlazada simple con solo <code>cabeza</code>, insertar al final costaba…</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Sin un puntero al final, hay que recorrer toda la lista para llegar al último.">O(1)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Había que caminar hasta el último. Aquí ultimo ya lo tiene, y desde él se llega también al primero.">O(n): había que llegar al último</button>
+            <button type="button" class="opcion" data-explicacion="Llegar al último es recorrer, no ordenar: O(n), no O(n log n).">O(n log n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="rotar" data-titulo="Rotar">
+        <h2><code>rotar</code>: el primero pasa al final sin moverse</h2>
+        <p>En un vector, pasar el primero al final obliga a correr todos los demás. Aquí basta con avanzar <code>ultimo</code> un nodo: el que era primero ahora es el último. <strong>Ningún nodo se mueve en memoria</strong>, solo un puntero: O(1).</p>
+        <div id="vis-rotar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con 4 nodos, ¿cuántas veces hay que llamar a <code>rotar()</code> para que todo quede como al principio?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Con una vuelta, ultimo avanza un solo nodo.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada rotar avanza ultimo un nodo: después de 4, vuelve a señalar al mismo.">4</button>
+            <button type="button" class="opcion" data-explicacion="El anillo no se agota: rotar puede repetirse para siempre, y cada 4 vuelve al principio.">Nunca</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Eliminar el primero">
+        <h2><code>eliminarPrimero</code>: el último salta al segundo</h2>
+        <p>El primero es <code>ultimo->siguiente</code>: para sacarlo, el último pasa a apuntar al segundo y el primero se libera. O(1). Si era el único nodo, la lista queda vacía (<code>ultimo = nullptr</code>); si ya estaba vacía, lanza <code>out_of_range</code>.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cómo sabe <code>eliminarPrimero</code> que queda un solo nodo?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Si el primero es también el último, el nodo se apunta a sí mismo: es el único.">Porque <code>primero == ultimo</code></button>
+            <button type="button" class="opcion" data-explicacion="En una lista circular ningún siguiente es nullptr mientras haya nodos.">Porque <code>primero->siguiente == nullptr</code></button>
+            <button type="button" class="opcion" data-explicacion="tamano también sirve, pero el código mira los punteros: primero == ultimo.">No lo sabe</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="turnos" data-titulo="Turnos (round-robin)">
+        <h2>Un uso real: repartir turnos</h2>
+        <p>Un sistema operativo reparte el procesador entre programas por turnos (<em>round-robin</em>): cada uno trabaja hasta un <code>quantum</code> de tiempo; si termina, sale de la ronda, y si no, va al final. Cada nodo guarda cuánto le <strong>falta</strong> a un proceso.</p>
+        <div id="vis-turnos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con <code>quantum = 3</code> y procesos de 5, 3 y 7, ¿cuál termina primero?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Al 5 le quedan 2 después de su primer turno: vuelve al final.">El de 5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El de 3 termina en su primer turno (3 ≤ 3), que es el segundo turno de la ronda.">El de 3</button>
+            <button type="button" class="opcion" data-explicacion="Al 7 le faltan 4 después de su primer turno y 1 después del segundo.">El de 7</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto</h2>
+        <p>Todas las operaciones sobre el mismo anillo. Fíjate en que ninguna recorre la lista, salvo <code>buscar</code>.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y dónde se usa</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>Tiempo</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>insertarAlInicio</code> / <code>insertarAlFinal</code></td><td class="o-grande bueno">O(1)</td><td>Los dos extremos están junto a <code>ultimo</code>.</td></tr>
+              <tr><td><code>rotar</code></td><td class="o-grande bueno">O(1)</td><td>Solo avanza <code>ultimo</code>; los nodos no se mueven.</td></tr>
+              <tr><td><code>eliminarPrimero</code></td><td class="o-grande bueno">O(1)</td><td>El último salta al segundo.</td></tr>
+              <tr><td><code>buscar</code></td><td class="o-grande malo">O(n)</td><td>Una vuelta completa con <code>do … while</code>.</td></tr>
+              <tr><td>Eliminar el último</td><td class="o-grande malo">O(n)</td><td>Hay que encontrar al penúltimo (con una lista circular doble, O(1)).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Turnos:</strong> el planificador de procesos de un sistema operativo, los jugadores de un juego por turnos, una lista de reproducción en modo repetir.</li>
+          <li><strong>Buffers circulares:</strong> la misma idea con un arreglo (los índices dan la vuelta con <code>% capacidad</code>); así suelen implementarse las <a href="../cola/">colas</a> de tamaño fijo.</li>
+          <li>La STL no tiene una lista circular, pero se imita con <code>std::list</code> y un iterador que vuelve a <code>begin()</code> al llegar a <code>end()</code>.</li>
+          <li>El problema de <a href="../cola/#josefo">Josefo</a> es exactamente una ronda: contar, sacar a uno y seguir.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lista_circular.cpp -o lista_circular &amp;&amp; ./lista_circular</span></pre>
+        <div data-codigo-completo="lista_circular.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>bool eliminar(int valor)</code>. Pista: recorre con un puntero <code>anterior</code> que empieza en <code>ultimo</code>, y cuida los casos del único nodo y de borrar el último.</li>
+          <li>Escribe <code>int josefo(int n, int k)</code>: n personas en ronda, se cuenta de k en k y sale la que toca. ¿Quién queda?</li>
+          <li>Cambia la lista para que sea <strong>circular doble</strong> (cada nodo con anterior). ¿Cuánto cuesta ahora eliminar el último?</li>
+          <li>Escribe <code>void imprimirDesde(int valor)</code>, que dé una vuelta completa empezando en ese valor.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="lista-circular.js"></script>
+</body>
+</html>
