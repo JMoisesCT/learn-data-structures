@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista doblemente enlazada · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es una lista doblemente enlazada (como std::list), cómo cabeza y cola permiten insertar y eliminar en los dos extremos en O(1), cómo se enganchan los cuatro punteros al insertar en medio, por qué eliminar un nodo no necesita buscar su anterior y cómo llegar a una posición desde el extremo más cercano. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="lista-doble">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Lista doblemente enlazada</div>
+      <h1>Lista doblemente enlazada</h1>
+      <p class="resumen">Cada nodo sabe quién está <strong>después</strong> y también quién está <strong>antes</strong>. Es la idea detrás de <code>std::list</code>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Dos punteros por nodo">
+        <h2>Dos punteros por nodo, y la lista con dos extremos</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Como la <a href="../lista-enlazada/">lista enlazada</a>, pero cada nodo guarda también <code>anterior</code>, y la lista guarda <code>cabeza</code> y <code>cola</code>. Es como un tren: desde cualquier vagón se pasa al de adelante o al de atrás.</p>
+          </div>
+          <div>
+            <p>Llegar a una posición sigue siendo O(n), pero <code>nodoEn</code> elige el <strong>extremo más cercano</strong>: si <code>pos</code> está en la segunda mitad, camina hacia atrás desde la cola. Como mucho, <code>n / 2</code> saltos.</p>
+          </div>
+        </div>
+        <div id="vis-obtener"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En una lista de 1000 nodos, ¿cuántos saltos da <code>nodoEn(990)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería en una lista simple, que solo puede avanzar desde la cabeza.">990</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="990 está en la segunda mitad: empieza en la cola (posición 999) y retrocede 999 − 990 = 9 veces.">9</button>
+            <button type="button" class="opcion" data-explicacion="Sigue siendo una lista: no hay cuenta para saltar directo, como en un vector.">1</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="extremos" data-titulo="Insertar en los extremos">
+        <h2>Insertar en los dos extremos: O(1)</h2>
+        <p>Al inicio, el nuevo apunta a la cabeza y la cabeza, <strong>de vuelta</strong>, al nuevo. Al final pasa lo mismo con <code>cola</code>: no hay que recorrer nada para llegar al último. Si la lista estaba vacía, el nuevo es cabeza <strong>y</strong> cola.</p>
+        <div id="vis-extremos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántos punteros cambia <code>insertarAlFinal</code> en una lista que no está vacía?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Falta uno: también hay que mover cola al nuevo.">Dos: <code>nuevo->anterior</code> y <code>cola->siguiente</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="nuevo->anterior, cola->siguiente y la propia cola. El siguiente del nuevo ya empieza en nullptr.">Tres</button>
+            <button type="button" class="opcion" data-explicacion="El siguiente del nuevo ya es nullptr desde que se crea, y cabeza no cambia.">Cuatro</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar-en" data-titulo="Insertar en medio">
+        <h2><code>insertarEn</code>: cuatro punteros</h2>
+        <p><code>nodoEn(pos)</code> da el nodo que hoy está en <code>pos</code>, y su <code>anterior</code> sale gratis. El nuevo se mete entre los dos cambiando <strong>cuatro punteros</strong>: los dos del nuevo y uno de cada vecino. Los extremos reutilizan <code>insertarAlInicio</code> e <code>insertarAlFinal</code>.</p>
+        <div id="vis-insertar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué pasa si te olvidas de <code>siguiente->anterior = nuevo</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El compilador no ve nada raro: los punteros son válidos, solo apuntan mal.">No compila</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Hacia adelante el nuevo aparece, pero hacia atrás el vecino sigue saltando al viejo anterior: recorrer al revés se lo salta.">Al recorrer al revés, el nuevo no aparece</button>
+            <button type="button" class="opcion" data-explicacion="El nuevo sí quedó enganchado hacia adelante: anterior->siguiente ya apunta a él.">El nuevo se pierde y queda una fuga de memoria</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Eliminar sin buscar el anterior">
+        <h2><code>eliminar</code>: el nodo sabe quién está antes</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>En la lista simple, para sacar un nodo había que encontrar su <strong>anterior</strong>. Aquí cada nodo lo guarda: <code>desenganchar</code> hace que sus dos vecinos se apunten entre sí. Eso es <strong>O(1)</strong>.</p>
+          </div>
+          <div>
+            <p><code>eliminar(valor)</code> sigue siendo O(n), pero solo por <strong>buscar</strong> el valor. Si ya tienes el nodo (o un iterador de <code>std::list</code>), borrarlo no recorre nada.</p>
+          </div>
+        </div>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Al desenganchar la cabeza, ¿qué hace la primera parte del <code>if</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="La cabeza no tiene anterior: ese es justamente el caso del else.">Cambia <code>anterior->siguiente</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Como nodo->anterior es nullptr, entra al else: cabeza pasa a ser el segundo nodo.">Mueve <code>cabeza</code> al siguiente</button>
+            <button type="button" class="opcion" data-explicacion="Eso lo decide la segunda parte, mirando nodo->siguiente.">Mueve <code>cola</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar-extremos" data-titulo="Eliminar en los extremos">
+        <h2>Eliminar en los extremos: O(1) también al final</h2>
+        <p>Es la gran diferencia con la lista simple: para quitar el <strong>último</strong>, allá había que recorrer hasta el penúltimo. Aquí <code>cola->anterior</code> ya lo dice. Con la lista vacía, las dos funciones lanzan <code>out_of_range</code>.</p>
+        <div id="vis-eliminar-extremos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con un solo nodo, <code>eliminarAlFinal()</code> deja…</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Si cabeza siguiera apuntando al nodo borrado, sería un puntero colgante.">cola en nullptr y cabeza igual</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="No tiene anterior ni siguiente: el primer if mueve cabeza a nullptr y el segundo, cola a nullptr.">cabeza y cola en nullptr</button>
+            <button type="button" class="opcion" data-explicacion="desenganchar revisa los dos lados, así que nunca queda ningún puntero a un nodo borrado.">Un puntero colgante en cabeza</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto</h2>
+        <p>Todas las operaciones sobre la misma lista. Fíjate en qué casos <code>nodoEn</code> camina hacia atrás.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarla</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>Lista simple</th><th>Lista doble</th><th>En <code>std::list</code></th></tr></thead>
+            <tbody>
+              <tr><td>Insertar al inicio</td><td class="o-grande bueno">O(1)</td><td class="o-grande bueno">O(1)</td><td><code>push_front(x)</code></td></tr>
+              <tr><td>Insertar al final</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>push_back(x)</code></td></tr>
+              <tr><td>Eliminar al final</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>pop_back()</code></td></tr>
+              <tr><td>Eliminar un nodo que ya tienes</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>erase(it)</code></td></tr>
+              <tr><td>Llegar a la posición <code>pos</code></td><td class="o-grande malo">O(n)</td><td class="o-grande malo">O(n), ≤ n / 2</td><td><code>std::next(l.begin(), pos)</code></td></tr>
+              <tr><td>Memoria extra por nodo</td><td>1 puntero</td><td>2 punteros</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li>Úsala cuando agregas y quitas mucho por <strong>los dos extremos</strong>, o borras nodos que ya tienes ubicados.</li>
+          <li>Una <strong>caché LRU</strong> (los menos usados salen primero) combina una lista doble con una <a href="../tabla-hash/">tabla hash</a>: mover un elemento al frente es O(1).</li>
+          <li>El historial de atrás/adelante de un navegador o el deshacer/rehacer de un editor se recorren en los dos sentidos.</li>
+          <li>Para leer por posición o recorrer mucho, <code>std::vector</code> sigue siendo más rápido y gasta menos memoria.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lista_doble.cpp -o lista_doble &amp;&amp; ./lista_doble</span></pre>
+        <div data-codigo-completo="lista_doble.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>eliminarEn(int pos)</code> usando <code>nodoEn</code> y <code>desenganchar</code>.</li>
+          <li>Escribe <code>void invertir()</code>: basta con intercambiar <code>anterior</code> y <code>siguiente</code> en cada nodo, y después <code>cabeza</code> y <code>cola</code>.</li>
+          <li>Escribe <code>bool esPalindromo() const</code> recorriendo con dos punteros, uno desde cada extremo.</li>
+          <li>Agrega <code>moverAlFrente(int valor)</code>: busca el nodo y, sin borrarlo, lo engancha al inicio (es lo que hace una caché LRU).</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="lista-doble.js"></script>
+</body>
+</html>

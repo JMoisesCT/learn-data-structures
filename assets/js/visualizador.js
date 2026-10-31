@@ -44,6 +44,13 @@
       archivo: "lista_enlazada.cpp",
     },
     {
+      slug: "lista-doble",
+      titulo: "Lista doblemente enlazada",
+      resumen: "Cada nodo apunta al siguiente y al anterior, y la lista guarda cabeza y cola: insertar y eliminar en los dos extremos es O(1). La idea de std::list.",
+      etiquetas: ["extremos O(1)", "anterior y siguiente"],
+      archivo: "lista_doble.cpp",
+    },
+    {
       slug: "pila",
       titulo: "Pila (stack)",
       resumen: "El último que entra es el primero que sale (LIFO). std::stack y una pila hecha con nodos; paréntesis balanceados.",
