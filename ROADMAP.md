@@ -11,6 +11,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | Vector dinámico | Lección en 9 pasos: `obtener` (con el cálculo de la dirección), `agregarAlFinal` con `redimensionar` (copias entre bloques y `delete[]`), experimento de costo amortizado (duplicar contra sumar 1), `insertar`, `eliminarEn`, `buscar` y todas juntas |
 | Lista enlazada simple | Lección en 11 pasos: `nodoEn` y `obtener` (con las direcciones de cada nodo), `insertarAlInicio`, `insertarEn` (en medio, al inicio, al final y fuera de rango), `insertarAlFinal` (llama a `insertarEn(tamano, valor)`, con la pila de llamadas a la vista), `buscar`, `eliminar` (cabeza, en medio y valor ausente), `eliminarEn`, comparador de costos contra el vector y todas juntas |
 | Lista doblemente enlazada | Lección en 8 pasos con nodos `[anterior \| valor \| siguiente]` (flechas hacia adelante arriba y de vuelta abajo) y las marcas `cabeza` y `cola`: `obtener` con `nodoEn` desde el extremo más cercano, `insertarAlInicio` e `insertarAlFinal` en O(1), `insertarEn` (la fila le abre lugar al nuevo y se enganchan los cuatro punteros uno por uno), `eliminar` con `desenganchar` en O(1) (el dibujo queda quieto hasta el `delete`), `eliminarAlInicio` y `eliminarAlFinal` con el error de lista vacía; todo junto |
+| Lista circular | Lección en 9 pasos con los nodos en un anillo, cuyas flechas siguen el anillo, y las marcas `ultimo` y `primero` (`ultimo->siguiente`): `buscar` con `do … while` hasta volver al primero, `insertarAlInicio` (el nuevo espera adentro del anillo; con la lista vacía se apunta a sí mismo), `insertarAlFinal` (llama a `insertarAlInicio` y corre `ultimo`), `rotar` (solo se mueven las marcas), `eliminarPrimero` (el último salta al segundo) con el error de lista vacía, turnos round-robin con `unTurno`; todo junto |
 | Pila | Lección en 8 pasos con dos versiones: `std::stack` (`push`, `top`, `pop` y por qué se pregunta `empty()` antes), un uso real con `estanBalanceados` (paréntesis, corchetes y llaves), y `PilaEnlazada` sobre nodos (`apilar`, `desapilar` y `cima` en O(1), con la pila vacía como error); todo junto con selector de versión |
 | Cola | Lección en 8 pasos con dos versiones: `std::queue` (`push`, `front`, `pop` y por qué se pregunta `empty()` antes), un uso real con `josefo` (cada persona pasa del frente al final), y `ColaEnlazada` sobre nodos con `primero` y `ultimo` (`encolar`, `desencolar` con el caso de la cola que queda vacía, y `frente`, todo en O(1)); todo junto con selector de versión |
 | Montículo (min-heap / max-heap) y heapsort | Lección en 9 pasos: `maxHeapify`/`minHeapify` (con su recursión), `buildMaxHeap`/`buildMinHeap`, `insertMax`/`insertMin`, `extractMax`/`extractMin`, `maximum`/`minimum`, `heapSort` en dos fases |
@@ -21,9 +22,8 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 | # | Tema | Operaciones a animar | Título del PR |
 | --- | --- | --- | --- |
-| 1 | Lista circular (antes de Pila) | el último apunta al primero: `insertarAlInicio` e `insertarAlFinal` en O(1) con un solo puntero `ultimo`, `rotar`, `eliminar`, recorrer con `do … while` sin pasarse; uso real: turnos (round-robin) | `[Lista circular] Agregar lección animada con ejemplo en C++` |
-| 2 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
-| 3 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
+| 1 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
+| 2 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
 
 ## Mejoras hechas
 
