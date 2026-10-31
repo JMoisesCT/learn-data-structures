@@ -480,6 +480,12 @@ tr:last-child td { border-bottom: 0; }
 .leccion-pie .boton { padding: 0.5rem 1rem; font-size: 0.95rem; }
 .leccion-pie .boton.principal { margin-left: auto; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
 
+/* Barra de progreso dentro del encabezado (pantallas anchas, ver montarLeccion). */
+.encabezado .leccion-cabecera { position: static; flex: 1 1 auto; min-width: 120px; margin-left: 0.5rem; padding: 0; background: none; }
+@media (max-width: 1100px) {
+  .progreso-arriba .marca-texto.con-tema { display: none; }
+}
+
 /* En pantallas bajas o angostas solo el pie queda fijo, para dejar lugar a la animación. */
 @media (max-width: 640px), (max-height: 600px) {
   .leccion-cabecera { position: static; }
@@ -515,6 +521,10 @@ body.con-leccion.leccion-final > .pie { display: block; }
    visualizador se estira hasta el pie de la lección y las preguntas van junto
    al código, que se desplaza por dentro si no cabe. */
 @media (min-width: 861px) and (min-height: 560px) {
+  /* La presentación del primer paso es compacta: le deja el alto a la animación. */
+  .con-leccion .tema-cabecera { padding: 0.9rem 0 0; }
+  .con-leccion .tema-cabecera h1 { font-size: 1.9rem; margin-bottom: 0.2rem; }
+  .con-leccion .tema-cabecera p.resumen { font-size: 1rem; max-width: 1040px; }
   .con-leccion .paso-leccion:not([hidden]) { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.6rem 0 0.9rem; }
   .con-leccion .paso-leccion > * { flex: none; margin-top: 0; margin-bottom: 0; }
   .con-leccion .paso-leccion > p, .con-leccion .paso-leccion > ul, .con-leccion .paso-leccion > ol { max-width: 920px; }
@@ -540,15 +550,26 @@ body.con-leccion.leccion-final > .pie { display: block; }
     pointer-events: none;
   }
   .con-leccion .columna-codigo .panel-codigo { min-height: 9rem; }
+  .con-leccion .grafico-costo { height: 110px; }
   .con-leccion .columna-codigo pre.codigo { flex: 1 1 auto; min-height: 0; overflow: auto; }
 }
 
 /* Dos columnas dentro de un paso: texto a un lado, actividad al otro */
 .dos-columnas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
-.dos-columnas > :first-child > :first-child { margin-top: 0; }
+/* Sin márgenes en los bordes de cada columna: si no, la segunda queda más abajo
+   y, apiladas en móvil, se suman al espacio entre columnas. */
+.dos-columnas > *, .dos-columnas > .nota, .dos-columnas > .pregunta { margin-top: 0; margin-bottom: 0; }
+.dos-columnas > * > :first-child { margin-top: 0; }
+.dos-columnas > * > :last-child { margin-bottom: 0; }
 
 @media (max-width: 860px) {
-  .dos-columnas { grid-template-columns: minmax(0, 1fr); }
+  .dos-columnas { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+}
+
+/* Una lista larga en dos columnas (en pantallas anchas). */
+@media (min-width: 861px) {
+  .lista-columnas { columns: 2; column-gap: 2.5rem; max-width: none !important; }
+  .lista-columnas > li { break-inside: avoid; }
 }
 
 /* ---------- Preguntas con respuesta inmediata ---------- */

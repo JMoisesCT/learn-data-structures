@@ -250,7 +250,6 @@
       const titulo = p.querySelector("h2");
       if (titulo) titulo.setAttribute("tabindex", "-1");
     }
-    leccion.prepend(cabecera);
     leccion.append(pie);
     leccion.classList.add("lista");
     // La lección ocupa la pantalla: la presentación del tema solo se ve en el
@@ -258,8 +257,21 @@
     document.body.classList.add("con-leccion");
     const presentacion = document.querySelector(".tema-cabecera");
 
-    // La barra de progreso se pega justo debajo del encabezado del sitio (si está fijo).
+    // En pantallas donde la lección cabe en la ventana, la barra de progreso va
+    // en la misma fila que el encabezado del sitio (deja más alto a cada paso);
+    // en las demás, arriba de la lección.
     const encabezado = document.querySelector("header.encabezado");
+    const filaEncabezado = encabezado && encabezado.querySelector(".contenedor");
+    function ubicarProgreso() {
+      const arriba = !!filaEncabezado && PANTALLA_AJUSTADA.matches;
+      if (arriba) filaEncabezado.insertBefore(cabecera, filaEncabezado.querySelector(".menu-temas"));
+      else leccion.prepend(cabecera);
+      document.body.classList.toggle("progreso-arriba", arriba);
+    }
+    ubicarProgreso();
+    if (PANTALLA_AJUSTADA.addEventListener) PANTALLA_AJUSTADA.addEventListener("change", ubicarProgreso);
+
+    // Si no, la barra de progreso se pega justo debajo del encabezado del sitio (si está fijo).
     const altoFijo = () => (encabezado && getComputedStyle(encabezado).position === "sticky" ? encabezado.offsetHeight : 0);
     const medirEncabezado = () => leccion.style.setProperty("--alto-encabezado", `${altoFijo()}px`);
     window.addEventListener("resize", medirEncabezado);
