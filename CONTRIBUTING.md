@@ -92,10 +92,11 @@ Pasos cortos, uno a la vez, al estilo de Brilliant. Un tema típico tiene entre 
 
 ### Cada paso cabe en una pantalla
 
-En pantallas desde 861 px de ancho y 560 px de alto, la lección ocupa la ventana sin scroll: el encabezado es una sola fila, la presentación del tema solo se ve en el primer paso y el pie del sitio solo en el último, el visualizador se estira hasta el pie de la lección y **las preguntas que van justo después de un visualizador se muestran junto al código** (el motor las mueve). Para que eso funcione:
+En pantallas desde 861 px de ancho y 560 px de alto, la lección ocupa la ventana sin scroll: el encabezado es una sola fila (con la barra de progreso de la lección), la presentación del tema es compacta y solo se ve en el primer paso y el pie del sitio solo en el último, el visualizador se estira hasta el pie de la lección y **las preguntas que van justo después de un visualizador se muestran junto al código** (el motor las mueve). Para que eso funcione:
 
 - Pon las preguntas de un paso **inmediatamente después** de su `<div id="vis-…">`.
-- Mantén la explicación en 2 o 3 frases: el texto largo le quita alto a la animación.
+- Mantén la explicación en 2 o 3 frases: el texto largo le quita alto a la animación. Si son dos ideas, ponlas lado a lado con `.dos-columnas`; una lista larga (como los usos del paso de complejidad) puede ir en dos columnas con `<ul class="lista-columnas">`.
+- Comprueba que cada paso, salvo el del código completo, quepa sin scroll a 1280 × 800.
 - Si el dibujo más alto de una operación no entra en el alto disponible, el motor reduce el contenido del escenario con `zoom` (hasta 0,8; si aun así no cabe, la página hace scroll). No hace falta hacer nada en el tema, pero un dibujo compacto se lee mejor: si tiene dos partes (como el arreglo y la gráfica de Notación algorítmica), ponlas lado a lado cuando el escenario es ancho.
 - En una sola columna (móvil y tablet vertical) el código se pliega a la línea que se ejecuta; panel, mensaje y controles deben caber juntos en ~390 × 700 px.
 
