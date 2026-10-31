@@ -20,13 +20,20 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 | # | Tema | Operaciones a animar | Título del PR |
 | --- | --- | --- | --- |
-| 1 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
-| 2 | Lista doblemente enlazada | insertar/eliminar en ambos extremos | `[Lista doblemente enlazada] Agregar animación y ejemplo en C++` |
-| 3 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
+| 1 | Lista doblemente enlazada (después de Lista enlazada) | `insertarAlInicio`, `insertarAlFinal` y `eliminarAlFinal` en O(1) con `cabeza` y `cola`, `insertarEn` (cuatro punteros), `eliminar` un nodo sin buscar su anterior, recorrer en los dos sentidos | `[Lista doblemente enlazada] Agregar lección animada con ejemplo en C++` |
+| 2 | Lista circular (antes de Pila) | el último apunta al primero: `insertarAlInicio` e `insertarAlFinal` en O(1) con un solo puntero `ultimo`, `rotar`, `eliminar`, recorrer con `do … while` sin pasarse; uso real: turnos (round-robin) | `[Lista circular] Agregar lección animada con ejemplo en C++` |
+| 3 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
+| 4 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
+
+## Mejoras hechas
+
+- **Lecciones por pasos** en todos los temas, con preguntas de respuesta inmediata, "Todo junto", complejidad y código completo.
+- **Cada paso cabe en una pantalla** (PR #23 a #26): la barra de progreso va en el encabezado, la presentación del tema es compacta, los textos largos van en dos columnas (`.dos-columnas`, `.lista-columnas`), y Tabla hash, Montículo y Notación algorítmica se reacomodaron para no pasarse a 1280 × 800.
+- **Valor aleatorio** (PR #27): la caja del valor cambia al terminar la operación, no mientras corre la animación.
 
 ## Ideas para el sitio
 
-- **Rediseño visual** con un formato más atractivo, inspirado en sitios de programación con animaciones. Referencia principal: [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation); más ideas en [docs/inspiracion-visual.md](docs/inspiracion-visual.md).
+- **Rediseño visual** con un formato más atractivo, inspirado en sitios de programación con animaciones. Referencia principal: [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation); más ideas en [docs/inspiracion-visual.md](docs/inspiracion-visual.md). Ya hay lecciones por pasos con tarjetas y preguntas; falta pulir la portada y la tipografía.
 - Atajos de teclado para la reproducción (espacio, flechas).
 - Selector de lenguaje para mostrar los ejemplos también en Python o Java.
 - Modo "pregunta": antes de cada paso, preguntar al estudiante qué va a pasar.
