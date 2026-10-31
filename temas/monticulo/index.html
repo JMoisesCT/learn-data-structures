@@ -14,7 +14,7 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Montículo (heap)</div>
       <h1>Montículo (heap) y heapsort</h1>
-      <p class="resumen">Un <strong>árbol binario guardado en un arreglo</strong> que mantiene el mayor (<strong>max-heap</strong>) o el menor (<strong>min-heap</strong>) siempre en la raíz. Lo vas a construir paso a paso y al final lo usarás para ordenar con <strong>heapsort</strong>.</p>
+      <p class="resumen">Un <strong>árbol binario guardado en un arreglo</strong> con el mayor (<strong>max-heap</strong>) o el menor (<strong>min-heap</strong>) siempre en la raíz. Incluye <strong>heapsort</strong>.</p>
     </div>
 
     <div class="leccion">
@@ -23,8 +23,7 @@
         <h2>Un árbol dentro de un arreglo</h2>
         <div class="dos-columnas">
           <div>
-            <p>Un montículo es un árbol binario <strong>completo</strong>: todos los niveles están llenos menos, quizá, el último, que se llena de izquierda a derecha.</p>
-            <p>Gracias a eso no necesita punteros: se guarda por niveles en un <code>vector</code>, y las posiciones de padre e hijos salen con una cuenta.</p>
+            <p>Un montículo es un árbol binario <strong>completo</strong>: todos los niveles están llenos menos, quizá, el último, que se llena de izquierda a derecha. Gracias a eso no necesita punteros: se guarda por niveles en un <code>vector</code>, y las posiciones de padre e hijos salen con una cuenta.</p>
             <pre class="codigo"><span class="linea"><span class="tk-tipo">int</span> padre = (i - <span class="tk-numero">1</span>) / <span class="tk-numero">2</span>;</span><span class="linea"><span class="tk-tipo">int</span> izq   = <span class="tk-numero">2</span> * i + <span class="tk-numero">1</span>;</span><span class="linea"><span class="tk-tipo">int</span> der   = <span class="tk-numero">2</span> * i + <span class="tk-numero">2</span>;</span></pre>
             <p><strong>Pruébalo:</strong> toca cualquier nodo (o celda) y mira dónde están su padre y sus hijos. Este es el arreglo <code>{ 3, 10, 1, 8, 6, 4 }</code> de <code>main()</code>.</p>
           </div>
@@ -79,7 +78,6 @@
             <button type="button" class="opcion" data-explicacion="Es al revés: la raíz se procesa al final, cuando sus subárboles ya son heaps.">Para procesar primero la raíz</button>
           </div>
         </div>
-        <p>Curiosidad: aunque son unas n / 2 llamadas de O(log&nbsp;n), construir el heap cuesta solo <strong>O(n)</strong>, porque la mayoría de los nodos están abajo y casi no bajan.</p>
       </section>
 
       <section class="paso-leccion" id="construir-min" data-titulo="Construir un min-heap">
@@ -99,12 +97,14 @@
 
       <section class="paso-leccion" id="operaciones" data-titulo="Insertar y extraer">
         <h2>Usarlo: insertar, consultar y extraer</h2>
-        <p>Un heap es una <strong>cola de prioridad</strong>. Cambia el <strong>Tipo</strong> para ver la versión max o min:</p>
-        <ul>
-          <li><strong>insert:</strong> el valor entra como última hoja y <strong>sube</strong> mientras le gane a su padre. O(log&nbsp;n).</li>
-          <li><strong>extract:</strong> saca la raíz, pone la última hoja en su lugar y la <strong>hunde</strong> con heapify. O(log&nbsp;n).</li>
-          <li><code>maximum</code> / <code>minimum</code> solo leen <code>v[0]</code>: O(1). Con el heap vacío devuelven <code>INT_MIN</code> / <code>INT_MAX</code>, igual que extract.</li>
-        </ul>
+        <div class="dos-columnas">
+          <div>
+            <p>Un heap es una <strong>cola de prioridad</strong> (el <strong>Tipo</strong> elige max o min). <strong>insert</strong> agrega una hoja que <strong>sube</strong>; <strong>extract</strong> saca la raíz y <strong>hunde</strong> la última hoja: O(log&nbsp;n).</p>
+          </div>
+          <div>
+            <p><code>maximum</code> / <code>minimum</code> solo leen <code>v[0]</code>: O(1). Con el heap vacío devuelven <code>INT_MIN</code> / <code>INT_MAX</code>, igual que extract.</p>
+          </div>
+        </div>
         <div id="vis-operaciones"></div>
         <div class="pregunta">
           <p class="pregunta-enunciado">Insertas un valor y el heap queda con 15 elementos (4 niveles). ¿Cuántos intercambios hace <code>insertMax</code> como máximo?</p>
@@ -118,11 +118,15 @@
 
       <section class="paso-leccion" id="heapsort" data-titulo="Heapsort">
         <h2>Heapsort: ordenar con un max-heap</h2>
-        <p>Sacar la raíz de un max-heap una y otra vez da los valores de mayor a menor. <code>heapSort</code> lo hace <strong>en el mismo arreglo</strong>, sin memoria extra:</p>
-        <ol>
-          <li><strong>Fase 1:</strong> <code>buildMaxHeap(v)</code>, lo que ya viste.</li>
-          <li><strong>Fase 2:</strong> cambia la raíz (el mayor) por el último del heap, que así queda en su lugar final (verde). El heap se achica en uno y <code>maxHeapify(v, i, 0)</code> lo repara.</li>
-        </ol>
+        <div class="dos-columnas">
+          <div>
+            <p>Sacar la raíz de un max-heap una y otra vez da los valores de mayor a menor. <code>heapSort</code> lo hace <strong>en el mismo arreglo</strong>, sin memoria extra, en dos fases.</p>
+          </div>
+          <ol>
+            <li><strong>Fase 1:</strong> <code>buildMaxHeap(v)</code>, lo que ya viste.</li>
+            <li><strong>Fase 2:</strong> cambia la raíz (el mayor) por el último del heap, que queda en su lugar final (verde); el heap se achica en uno y <code>maxHeapify(v, i, 0)</code> lo repara.</li>
+          </ol>
+        </div>
         <div id="vis-heapsort"></div>
         <div class="pregunta">
           <p class="pregunta-enunciado">¿Por qué se usa un <strong>max</strong>-heap para ordenar de <strong>menor a mayor</strong>?</p>

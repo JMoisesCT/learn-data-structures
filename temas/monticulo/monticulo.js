@@ -5,7 +5,7 @@
   const { el } = DS;
   const MAXIMO = 15; // 4 niveles: lo que cabe en pantalla
   const NODO = 38;
-  const NIVEL = 66;
+  const NIVEL = 60;
   const ANCHO_ARBOL = 400;
   const PASO_CELDA = 36;
   const MARGEN = 12;
@@ -159,9 +159,9 @@
 
   // El lienzo solo es tan alto como los niveles que ocupa el árbol.
   function geometria(niveles) {
-    const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 26;
-    const yCeldas = yTitulo + 50; // deja lugar para dos líneas de marcas
-    return { yTitulo, yCeldas, alto: yCeldas + 60 };
+    const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 22;
+    const yCeldas = yTitulo + 46; // deja lugar para dos líneas de marcas
+    return { yTitulo, yCeldas, alto: yCeldas + 54 };
   }
 
   function nuevoId(s) {
@@ -300,7 +300,7 @@
       animarHeapify(s, t, n, i, llamadas, paso, ver, false);
     }
     mostrar({ ok: [0], vars: { n } });
-    paso(t.build, 5, `¡Listo, es un ${t.nombre}! El ${t.extremo} (${s.items[0].v}) quedó en la raíz.`, final);
+    paso(t.build, 5, `¡Listo, es un ${t.nombre}! El ${t.extremo} (${s.items[0].v}) quedó en la raíz. Cuesta solo O(n): la mayoría de los nodos están abajo y casi no bajan.`, final);
   }
 
   // ------------------------------------------------------------------

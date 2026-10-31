@@ -1138,7 +1138,7 @@ pre.codigo .linea.actual {
 
 /* Montículo: árbol y arreglo con posición absoluta (se deslizan al intercambiar) */
 
-.marco-heap { overflow: hidden; transition: width 0.45s ease, height 0.45s ease; }
+.marco-heap { overflow: hidden; margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
 .lienzo-heap { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
 .lienzo-heap svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .lienzo-heap svg line { stroke: var(--borde); stroke-width: 2; }
@@ -1195,7 +1195,7 @@ pre.codigo .linea.actual {
 .pila-llamadas .llamada:last-child { border-color: var(--activo); background: var(--activo-suave); }
 
 /* Explorador de índices (sin reproducción paso a paso) */
-.explorador .escenario { min-height: 0; }
+.explorador .escenario { min-height: 0; padding-top: 0.6rem; padding-bottom: 0.6rem; }
 .relaciones { display: grid; gap: 0.35rem; padding: 0.75rem 1rem; border-top: 1px solid var(--borde); background: var(--superficie-2); }
 
 .relacion {
@@ -1235,6 +1235,12 @@ pre.codigo .linea.actual {
 .relacion.ausente .relacion-nombre, .relacion.ausente .relacion-cuenta { color: var(--texto-suave); }
 .relacion-motivo { font-size: 0.82rem; color: var(--texto-suave); text-align: right; }
 .explorador .reproduccion { justify-content: center; }
+
+/* En pantallas anchas las cuatro relaciones van en dos columnas: el explorador cabe a lo alto. */
+@media (min-width: 861px) {
+  .relaciones { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 0.6rem 1rem; }
+  .relacion { grid-template-columns: 2.7rem minmax(0, 1fr) auto; gap: 0.5rem; min-height: 2.1rem; }
+}
 
 /* Tabla hash: cubetas con fichas (una fila por cubeta, como imprimir()) */
 
