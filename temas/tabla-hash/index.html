@@ -51,14 +51,7 @@
 
       <section class="paso-leccion" id="funciones" data-titulo="Funciones hash para números">
         <h2>Funciones hash para números</h2>
-        <p>Una buena función hash es <strong>rápida</strong>, <strong>siempre da lo mismo para la misma clave</strong> y <strong>reparte las claves parejo</strong> entre las cubetas. Hay varias formas clásicas de calcular el índice:</p>
-        <ul>
-          <li><strong>División:</strong> <code>clave % m</code>. La más simple. Funciona mejor con <code>m</code> primo.</li>
-          <li><strong>Multiplicación</strong> (Knuth): multiplica por <code>A ≈ 0.618</code>, se queda con los decimales y los escala a <code>m</code>. El valor de <code>m</code> casi no importa.</li>
-          <li><strong>Cuadrado medio:</strong> eleva al cuadrado y toma los dígitos del centro, donde influyen todos los dígitos de la clave.</li>
-          <li><strong>Plegado:</strong> corta la clave en grupos de dígitos y los suma (útil para claves largas, como teléfonos o documentos).</li>
-        </ul>
-        <p><strong>Pruébalo:</strong> elige <em>División</em> con <code>m = 10</code> y pulsa <em>Agregar 10, 20, …, 100</em>. Luego cambia a <code>m = 11</code> o a <em>Multiplicación</em> y repite.</p>
+        <p>Una buena función hash es <strong>rápida</strong>, <strong>da siempre lo mismo para la misma clave</strong> y <strong>reparte parejo</strong>. Elige una de las cuatro clásicas. <strong>Pruébalo:</strong> <em>División</em>, <code>m = 10</code> y <em>Agregar 10, 20, …, 100</em>; luego con <code>m = 11</code>.</p>
         <div id="vis-funciones"></div>
 
         <div class="pregunta">
@@ -81,23 +74,20 @@
 
       <section class="paso-leccion" id="texto" data-titulo="Funciones hash para texto">
         <h2>Funciones hash para texto</h2>
-        <p>Las claves no siempre son números: nombres, palabras, correos. Primero hay que convertir el texto en un número, y ahí hay que tener cuidado.</p>
-        <ul>
-          <li><strong>Suma de letras:</strong> suma el código ASCII de cada letra. Es fácil, pero <code>"amor"</code>, <code>"roma"</code>, <code>"mora"</code> y <code>"ramo"</code> tienen las mismas letras… y la misma suma.</li>
-          <li><strong>Polinomial</strong> (método de Horner): en cada letra hace <code>h = h · 31 + c</code>. Cada letra queda multiplicada por una potencia distinta de 31, así que <strong>el orden importa</strong>. Es lo que usa, por ejemplo, <code>String.hashCode()</code> de Java.</li>
-        </ul>
+        <p>Un texto primero se convierte en un número. La <strong>suma de letras</strong> ignora el orden; la <strong>polinomial</strong> multiplica cada letra por una potencia distinta de 31, así que <strong>el orden importa</strong>.</p>
         <div id="vis-palabras"></div>
-        <div class="nota">Aplicar <code>% m</code> en cada vuelta no cambia el resultado final y evita que <code>h</code> crezca hasta desbordar un <code>int</code>.</div>
       </section>
 
       <section class="paso-leccion" id="encadenamiento" data-titulo="Colisiones: encadenamiento">
         <h2>Colisiones con encadenamiento</h2>
-        <p>La solución más común: cada cubeta guarda un puntero al primer nodo de una <strong>lista enlazada</strong> con todas las claves que cayeron ahí. Si una clave choca, simplemente se agrega a la lista de esa cubeta.</p>
-        <ul>
-          <li><code>insertar</code> pone el nodo nuevo <strong>al frente</strong> de la lista, como <code>insertarAlInicio</code> en la <a href="../lista-enlazada/">lista enlazada</a>: O(1) siempre, haya o no colisión.</li>
-          <li><code>buscar</code> y <code>eliminar</code> solo recorren la lista de <strong>una</strong> cubeta. Si las listas son cortas, es casi instantáneo.</li>
-        </ul>
-        <p><strong>Pruébalo:</strong> inserta 21 (cae en la cubeta 0, con 42 y 7), busca 99 y 10, y elimina 15.</p>
+        <div class="dos-columnas">
+          <div>
+            <p>La solución más común: cada cubeta guarda un puntero a una <strong>lista enlazada</strong> con todas las claves que cayeron ahí. <code>insertar</code> pone el nodo nuevo <strong>al frente</strong>, como <code>insertarAlInicio</code> en la <a href="../lista-enlazada/">lista enlazada</a>: O(1), haya o no colisión.</p>
+          </div>
+          <div>
+            <p><code>buscar</code> y <code>eliminar</code> solo recorren la lista de <strong>una</strong> cubeta: si las listas son cortas, es casi instantáneo. Este <code>insertar</code> no revisa repetidos; <code>std::unordered_set</code> sí (es un ejercicio del final).</p>
+          </div>
+        </div>
         <div id="vis-encadenamiento"></div>
         <div class="pregunta">
           <p class="pregunta-enunciado">Insertas 21, 28 y 35 en esta tabla de 7 cubetas. ¿Qué pasa?</p>
@@ -107,23 +97,11 @@
             <button type="button" class="opcion" data-explicacion="El encadenamiento no busca otra cubeta: la clave siempre va a la que le dice la función hash.">Se reparten en las cubetas vacías</button>
           </div>
         </div>
-        <p>Nota: este <code>insertar</code> no revisa si la clave ya existe, así que permite repetidos. <code>std::unordered_set</code> sí lo revisa (es uno de los ejercicios del final).</p>
       </section>
 
       <section class="paso-leccion" id="sondeo" data-titulo="Colisiones: direccionamiento abierto">
         <h2>Colisiones con direccionamiento abierto</h2>
-        <p>Otra idea: no usar listas. Todas las claves viven en el mismo arreglo y, si la celda que toca está ocupada, se prueba otra. Cada prueba es un <strong>intento</strong> <code>i = 0, 1, 2…</code>, y la estrategia que elige la siguiente celda se llama <strong>sondeo</strong>:</p>
-        <div class="tabla-envoltura">
-          <table>
-            <thead><tr><th>Estrategia</th><th>Intento <code>i</code></th><th>Ventaja</th><th>Problema</th></tr></thead>
-            <tbody>
-              <tr><td>Sondeo lineal</td><td class="o-grande">(h + i) % m</td><td>Simple; recorre celdas vecinas (bueno para la caché).</td><td>Se forman <strong>racimos</strong>: bloques de celdas ocupadas que crecen y alargan los sondeos.</td></tr>
-              <tr><td>Sondeo cuadrático</td><td class="o-grande">(h + i²) % m</td><td>Salta cada vez más lejos y rompe los racimos.</td><td>No visita todas las celdas: puede fallar aunque haya lugar.</td></tr>
-              <tr><td>Doble hash</td><td class="o-grande">(h + i · paso) % m</td><td>Cada clave salta distinto (<code>paso</code> sale de un segundo hash). Con <code>m</code> primo recorre todas las celdas.</td><td>Calcula dos hashes; saltos lejanos (peor para la caché).</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p><strong>Pruébalo:</strong> con cada estrategia, inserta 14 (14 % 7 = 0, como 7 y 42). Después elimina 7 y busca 42.</p>
+        <p>Sin listas: las claves viven en el arreglo y, si la celda está ocupada, se prueba otra en el <strong>intento</strong> <code>i = 0, 1, 2…</code> según el <strong>sondeo</strong>. <strong>Pruébalo:</strong> con cada estrategia, inserta 14 (cae en 0); luego elimina 7 y busca 42.</p>
         <div id="vis-abierta"></div>
         <div class="pregunta">
           <p class="pregunta-enunciado">Con sondeo cuadrático, insertar 14 falla aunque quedan 2 celdas libres. ¿Por qué?</p>
@@ -145,13 +123,14 @@
 
       <section class="paso-leccion" id="carga" data-titulo="Factor de carga y rehash">
         <h2>Factor de carga y rehash</h2>
-        <p>El número que manda en una tabla hash es el <strong>factor de carga</strong>: <code>α = n / m</code> (claves entre cubetas).</p>
-        <ul>
-          <li>Con encadenamiento, <code>α</code> es el <strong>largo promedio de las listas</strong>: buscar cuesta O(1 + α).</li>
-          <li>Con direccionamiento abierto, <code>α</code> no puede pasar de 1, y los intentos crecen rápido al acercarse: con sondeo lineal, una búsqueda fallida hace en promedio ½ (1 + 1 / (1 − α)²) intentos, unos 50 con α = 0.9.</li>
-        </ul>
-        <p>Por eso, cuando <code>α</code> supera un límite (1.0 en <code>std::unordered_map</code>; 0.75 en el <code>HashMap</code> de Java), se hace <strong>rehash</strong>: se crea una tabla con unas el doble de cubetas (aquí, el siguiente primo de <code>2 · m</code>) y se reubica cada clave. Ojo: <strong>todas cambian de cubeta</strong>, porque <code>clave % m</code> depende de <code>m</code>.</p>
-        <p><strong>Pruébalo:</strong> inserta 20 (α pasa de 1) y luego pulsa <code>rehash</code>.</p>
+        <div class="dos-columnas">
+          <div>
+            <p>El número que manda es el <strong>factor de carga</strong> <code>α = n / m</code>. Con encadenamiento es el <strong>largo promedio de las listas</strong>: buscar cuesta O(1 + α). Con direccionamiento abierto no pasa de 1, y cerca de 1 los intentos se disparan (unos 50 con α = 0.9 y sondeo lineal).</p>
+          </div>
+          <div>
+            <p>Cuando <code>α</code> supera un límite (1.0 en <code>std::unordered_map</code>), se hace <strong>rehash</strong>: una tabla con unas el doble de cubetas (aquí, el siguiente primo de <code>2 · m</code>) donde se reubica cada clave. <strong>Todas cambian de cubeta</strong>, porque <code>clave % m</code> depende de <code>m</code>.</p>
+          </div>
+        </div>
         <div id="vis-carga"></div>
         <div class="pregunta">
           <p class="pregunta-enunciado">El rehash cuesta O(n). ¿Por qué decimos igual que insertar es O(1)?</p>
@@ -178,24 +157,26 @@
             </tbody>
           </table>
         </div>
-        <div class="tabla-envoltura">
-          <table>
-            <thead><tr><th></th><th>Encadenamiento</th><th>Direccionamiento abierto</th></tr></thead>
-            <tbody>
-              <tr><td>Dónde viven las claves</td><td>En nodos fuera del arreglo</td><td>En el mismo arreglo</td></tr>
-              <tr><td>Factor de carga</td><td>Puede pasar de 1</td><td>Siempre ≤ 1 (conviene &lt; 0.7)</td></tr>
-              <tr><td>Eliminar</td><td>Simple: se quita el nodo</td><td>Necesita lápidas</td></tr>
-              <tr><td>Memoria y caché</td><td>Un puntero por nodo; saltos en memoria</td><td>Sin punteros; celdas contiguas</td></tr>
-            </tbody>
-          </table>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th></th><th>Encadenamiento</th><th>Abierto</th></tr></thead>
+              <tbody>
+                <tr><td>Las claves</td><td>En nodos aparte</td><td>En el arreglo</td></tr>
+                <tr><td>Factor de carga</td><td>Puede pasar de 1</td><td>≤ 1 (mejor &lt; 0.7)</td></tr>
+                <tr><td>Eliminar</td><td>Simple: se quita el nodo</td><td>Necesita lápidas</td></tr>
+                <tr><td>Memoria</td><td>Punteros y saltos</td><td>Celdas contiguas</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>Diccionarios y conjuntos:</strong> contar palabras, eliminar repetidos, saber si ya viste algo (<code>std::unordered_set</code>).</li>
+            <li><strong>Cachés:</strong> guardar resultados ya calculados (memoización), cachés de páginas web y de DNS.</li>
+            <li><strong>Índices de bases de datos</strong> y tablas de símbolos de los compiladores.</li>
+            <li><strong>Problemas clásicos:</strong> "dos números que sumen k" en O(n), agrupar anagramas, detectar ciclos.</li>
+          </ul>
         </div>
-        <ul>
-          <li><strong>Diccionarios y conjuntos:</strong> contar palabras, eliminar repetidos, saber si ya viste algo (<code>std::unordered_set</code>).</li>
-          <li><strong>Cachés:</strong> guardar resultados ya calculados (memoización), cachés de páginas web y de DNS.</li>
-          <li><strong>Índices de bases de datos</strong> y tablas de símbolos de los compiladores.</li>
-          <li><strong>Problemas clásicos:</strong> "dos números que sumen k" en O(n), agrupar anagramas, detectar ciclos.</li>
-        </ul>
-        <p>En C++ real: <code>std::unordered_map&lt;string, int&gt;</code> y <code>std::unordered_set&lt;int&gt;</code> son tablas hash con encadenamiento. Puedes mirar sus cubetas con <code>bucket_count()</code>, <code>bucket(clave)</code> y <code>load_factor()</code>, y cambiar el límite con <code>max_load_factor()</code>. La función hash por defecto es <code>std::hash&lt;T&gt;</code>. Si necesitas las claves en orden, usa <code>std::map</code> (un árbol, O(log n)).</p>
+        <p>En C++, <code>std::unordered_map</code> y <code>std::unordered_set</code> son tablas con encadenamiento (mira <code>bucket_count()</code> y <code>load_factor()</code>). Para claves en orden, <code>std::map</code> (un árbol, O(log n)).</p>
       </section>
 
       <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">

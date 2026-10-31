@@ -173,6 +173,7 @@
     division: {
       clave: "hashDivision",
       nombre: "División",
+      idea: "clave % m, la más simple. Reparte mejor con m primo.",
       calcular: (k, m) => hashDivision(k, m),
       pasos(k, m, paso) {
         const r = k % m;
@@ -183,6 +184,7 @@
     multiplicacion: {
       clave: "hashMultiplicacion",
       nombre: "Multiplicación",
+      idea: "multiplica por A ≈ 0.618, se queda con los decimales y los escala a m (Knuth). El valor de m casi no importa.",
       calcular: (k, m) => Math.trunc(m * fraccion(k)),
       pasos(k, m, paso) {
         const producto = k * A;
@@ -199,6 +201,7 @@
     cuadrado: {
       clave: "hashCuadradoMedio",
       nombre: "Cuadrado medio",
+      idea: "eleva al cuadrado y toma los dígitos del centro, donde influyen todos los dígitos de la clave.",
       calcular: (k, m) => (Math.floor((k * k) / 100) % 100) % m,
       pasos(k, m, paso) {
         const cuadrado = k * k;
@@ -214,6 +217,7 @@
     plegado: {
       clave: "hashPlegado",
       nombre: "Plegado",
+      idea: "corta la clave en grupos de 2 dígitos y los suma. Sirve para claves largas, como teléfonos.",
       calcular(k, m) {
         let suma = 0;
         for (let c = k; c > 0; c = Math.floor(c / 100)) suma += c % 100;
@@ -239,6 +243,7 @@
   const TEXTO = {
     suma: {
       clave: "hashSumaLetras",
+      idea: "Suma de letras: suma el código ASCII de cada letra. Es fácil, pero amor, roma, mora y ramo tienen las mismas letras… y la misma suma.",
       calcular: (t, m) => [...t].reduce((s, c) => s + codigo(c), 0) % m,
       pasos(t, m, paso) {
         let suma = 0;
@@ -253,6 +258,7 @@
     },
     polinomial: {
       clave: "hashPolinomial",
+      idea: "Polinomial (Horner): h = h · 31 + c en cada letra, así el orden importa (es el String.hashCode() de Java). El % m de cada vuelta evita desbordar el int.",
       calcular: (t, m) => [...t].reduce((h, c) => (h * 31 + codigo(c)) % m, 0),
       pasos(t, m, paso) {
         let h = 0;
@@ -337,7 +343,7 @@
     codigo: elegir(FUNCIONES, "hashDivision", "hashMultiplicacion", "hashCuadradoMedio", "hashPlegado"),
     tituloCodigo: (clave) => `${clave}(clave, m)`,
     codigoInicial: ({ funcion }) => NUMERICAS[funcion].clave,
-    mensajeInicial: ({ funcion, m }) => `${NUMERICAS[funcion].nombre} con m = ${m} cubetas. Calcula el índice de una clave, o agrega varias de golpe para ver cómo se reparten.`,
+    mensajeInicial: ({ funcion, m }) => `${NUMERICAS[funcion].nombre} (m = ${m}): ${NUMERICAS[funcion].idea} Calcula una clave o agrega varias de golpe.`,
     estadoInicial: ({ funcion, m }) => ({ funcion, m: Number(m), cubetas: cubetasVacias(Number(m)), vis: {} }),
     entradas: [
       { id: "funcion", etiqueta: "Función", opciones: Object.entries(NUMERICAS).map(([k, f]) => [k, f.nombre]), valor: "division" },
@@ -395,7 +401,7 @@
     codigo: elegir(FUNCIONES, "hashSumaLetras", "hashPolinomial"),
     tituloCodigo: (clave) => `${clave}(texto, m)`,
     codigoInicial: ({ funcion }) => TEXTO[funcion].clave,
-    mensajeInicial: "Elige una palabra y calcula su cubeta. Prueba los anagramas amor, roma, mora y ramo con las dos funciones.",
+    mensajeInicial: ({ funcion }) => `${TEXTO[funcion].idea} Prueba los anagramas con las dos funciones.`,
     estadoInicial: ({ funcion }) => ({ funcion, cubetas: cubetasVacias(M_TEXTO), vis: {} }),
     entradas: [
       { id: "funcion", etiqueta: "Función", opciones: [["suma", "Suma de letras"], ["polinomial", "Polinomial"]], valor: "suma" },
@@ -812,7 +818,7 @@
     dibujar: dibujarCadenas,
     codigo: elegir(ENCADENADA, "insertar", "buscar", "eliminar"),
     tituloCodigo: (clave) => `TablaHashEncadenada::${clave}()`,
-    mensajeInicial: `La tabla de main() con m = 7 cubetas, después de insertar ${EJEMPLO.join(", ")}. Mira las cubetas 0 y 1: dos colisiones, cada una resuelta con una lista.`,
+    mensajeInicial: `La tabla de main(), m = 7: las cubetas 0 y 1 tuvieron colisiones. Inserta 21 (cae en la 0), busca 99 y 10, y elimina 15.`,
     estadoInicial: () => estadoCadenas(7, EJEMPLO),
     entradas: [{ id: "clave", etiqueta: "Clave", min: 0, max: 999, valor: 21 }],
     operaciones: [
@@ -847,7 +853,7 @@
     dibujar: dibujarCadenas,
     codigo: elegir(ENCADENADA, "insertar", "rehash"),
     tituloCodigo: (clave) => `TablaHashEncadenada::${clave}()`,
-    mensajeInicial: `Una tabla chica: m = 5 cubetas con ${EJEMPLO.join(", ")}. α = 1: en promedio, un nodo por cubeta. Inserta un par de claves más y luego haz rehash.`,
+    mensajeInicial: `m = 5 cubetas y ${EJEMPLO.length} claves: α = 1, un nodo por cubeta en promedio. Inserta 20 (α pasa de 1) y luego haz rehash.`,
     estadoInicial: () => estadoCadenas(5, EJEMPLO),
     entradas: [{ id: "clave", etiqueta: "Clave", min: 0, max: 999, valor: 20 }],
     operaciones: [
@@ -884,16 +890,19 @@
   const SONDEOS = {
     lineal: {
       nombre: "Sondeo lineal", linea: 3, formula: "(h + i) % m",
+      idea: "prueba la celda siguiente. Es simple y bueno para la caché, pero forma racimos de celdas ocupadas que alargan los sondeos.",
       pos: (k, i, m) => (hashDivision(k, m) + i) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}) % ${m}`,
     },
     cuadratico: {
       nombre: "Sondeo cuadrático", linea: 4, formula: "(h + i²) % m",
+      idea: "salta cada vez más lejos y rompe los racimos, pero no visita todas las celdas: puede fallar aunque haya lugar.",
       pos: (k, i, m) => (hashDivision(k, m) + i * i) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}²) % ${m}`,
     },
     doble: {
       nombre: "Doble hash", linea: 6, formula: "(h + i · paso) % m",
+      idea: "cada clave salta distinto (paso sale de un segundo hash) y, con m primo, recorre todas las celdas. Calcula dos hashes.",
       pos: (k, i, m) => (hashDivision(k, m) + i * (1 + hashDivision(k, m - 1))) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}·${1 + hashDivision(k, m - 1)}) % ${m}`,
     },
@@ -959,7 +968,7 @@
     codigo: ABIERTA,
     tituloCodigo: (clave) => `TablaHashAbierta::${clave}()`,
     codigoInicial: "insertar",
-    mensajeInicial: ({ sondeo }) => `${SONDEOS[sondeo].nombre}, m = 7, después de insertar ${EJEMPLO.join(", ")}. Cambia la estrategia para comparar dónde terminó cada clave.`,
+    mensajeInicial: ({ sondeo }) => `${SONDEOS[sondeo].nombre}, ${SONDEOS[sondeo].formula}: ${SONDEOS[sondeo].idea}`,
     estadoInicial: ({ sondeo }) => estadoAbierta(sondeo),
     entradas: [
       { id: "sondeo", etiqueta: "Estrategia", opciones: Object.entries(SONDEOS).map(([k, t]) => [k, t.nombre]), valor: "lineal" },
