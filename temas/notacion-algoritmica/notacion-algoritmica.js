@@ -858,7 +858,7 @@
     entradas: [entradaN(16, 64), { id: "i", etiqueta: "i", min: -5, max: 70, valor: 3 }, { id: "objetivo", etiqueta: "objetivo", min: -99, max: 999, valor: 999 }, CASO],
     maxN: 64,
     tituloGrafica: "pasos según n",
-    mensajeInicial: "Ejecuta las cinco funciones con n = 16 y compara los puntos. Después prueba n = 32 y n = 64: la escala vertical crece sola y hayRepetidos sale disparada.",
+    mensajeInicial: "Ejecuta las cinco con n = 16 y compara los puntos; luego prueba n = 32 y n = 64.",
   });
 
   // ------------------------------------------------------------------
@@ -909,6 +909,12 @@
     const comentario = el("p", { class: "resumen-costo", "aria-live": "polite" });
 
     caja.classList.add("panel", "carrera");
+    // Las preguntas que siguen a la carrera van dentro, junto a la tabla.
+    const preguntas = [];
+    for (let sig = caja.nextElementSibling; sig && sig.classList.contains("pregunta"); sig = caja.nextElementSibling) {
+      preguntas.push(sig);
+      sig.remove();
+    }
     caja.append(
       el("div", { class: "controles" },
         el("label", { class: "campo campo-n" }, el("span", {}, "n = ", lecturaN), deslizador),
@@ -918,7 +924,8 @@
       comentario,
       el("div", { class: "tabla-envoltura" }, el("table", { class: "tabla-carrera" },
         el("thead", {}, el("tr", {}, el("th", { text: "Clase" }), el("th", { class: "col-ejemplo", text: "Ejemplo" }), el("th", { class: "num", html: "Pasos con <span class=\"n-actual\"></span>" }), el("th", { class: "num", text: "Si duplicas n" }))),
-        cuerpoTabla)));
+        cuerpoTabla)),
+      preguntas.length ? el("div", { class: "preguntas-carrera" }, preguntas) : null);
 
     deslizador.addEventListener("input", () => { detenerAnimacion(); n = Number(deslizador.value); pintar(); });
     bAnimar.addEventListener("click", () => {
@@ -956,7 +963,9 @@
       lecturaN.textContent = n;
       caja.querySelector(".n-actual").textContent = `n = ${n}`;
       const ancho = Math.max(260, marco.clientWidth || 600);
-      const alto = Math.round(Math.max(220, Math.min(340, ancho * 0.52)));
+      // La lección en pantalla ancha usa una gráfica más baja (--proporcion en estilos.css).
+      const proporcion = parseFloat(getComputedStyle(marco).getPropertyValue("--proporcion")) || 0.52;
+      const alto = Math.round(Math.max(200, Math.min(340, ancho * proporcion)));
       tamano = { ancho, alto };
       const visibles = CURVAS.map((c, k) => ({ c, k })).filter(({ k }) => activas.has(k));
       const nMax = Math.max(2, n);
