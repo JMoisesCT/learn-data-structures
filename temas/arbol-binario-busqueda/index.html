@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Árbol binario de búsqueda · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es un árbol binario de búsqueda (la idea detrás de std::set y std::map), cómo buscar e insertar descartando un subárbol en cada paso, los recorridos inorden, preorden y postorden con la pila de llamadas, cómo eliminar en sus tres casos (hoja, un hijo, dos hijos con el sucesor) y por qué la forma del árbol importa. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="arbol-binario-busqueda">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Árbol binario de búsqueda</div>
+      <h1>Árbol binario de búsqueda</h1>
+      <p class="resumen">Nodos con dos punteros, <strong>menores a la izquierda y mayores a la derecha</strong>. Es la idea detrás de <code>std::set</code> y <code>std::map</code>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Menores a la izquierda">
+        <h2>Menores a la izquierda, mayores a la derecha</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Cada nodo tiene dos punteros, <code>izq</code> y <code>der</code>, y una regla: todo su subárbol izquierdo es <strong>menor</strong> que él y todo el derecho, <strong>mayor</strong>. Como adivinar un número con pistas «mayor» o «menor».</p>
+          </div>
+          <div>
+            <p>Para <code>buscar</code>, se compara con la raíz y se baja hacia un solo lado: <strong>el otro subárbol entero queda descartado</strong>. El trabajo depende de la <strong>altura</strong> <code>h</code>, no de cuántos nodos hay: O(h).</p>
+          </div>
+        </div>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántos nodos mira <code>buscar(65)</code> en este árbol?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería recorrerlo entero, como una lista. La regla permite descartar la mitad en cada paso.">Los 7</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="50 (ir a la derecha), 70 (ir a la izquierda) y 60 (ir a la derecha, que es nullptr). Tres comparaciones, una por nivel.">3: el 50, el 70 y el 60</button>
+            <button type="button" class="opcion" data-explicacion="Después del 50 todavía hay dos niveles por mirar: 65 podría estar debajo del 70.">Solo el 50</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar" data-titulo="insertar">
+        <h2><code>insertar</code>: bajar hasta un <code>nullptr</code></h2>
+        <p>Se baja igual que en <code>buscar</code>, pero recordando el <code>padre</code>. Al llegar a un <code>nullptr</code>, ese es el lugar: el nodo nuevo se cuelga como <strong>hoja</strong> cambiando un solo puntero. Los repetidos no se insertan, como en <code>std::set</code>.</p>
+        <div id="vis-insertar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En un árbol vacío insertas 10, 20, 30 y 40, en ese orden. ¿Qué forma queda?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El árbol no se reacomoda solo: el 10 es la raíz porque llegó primero.">Uno balanceado con el 20 arriba</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada valor es mayor que todos los anteriores, así que siempre va a la derecha: una cadena de 4 niveles.">Una cadena hacia la derecha</button>
+            <button type="button" class="opcion" data-explicacion="Al revés: los mayores van a la derecha.">Una cadena hacia la izquierda</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="recorridos" data-titulo="Recorridos">
+        <h2>Recorridos: inorden, preorden y postorden</h2>
+        <p>Para visitar <strong>todos</strong> los nodos (O(n)), una función recursiva hace tres cosas con cada nodo: recorrer su izquierdo, anotarlo y recorrer su derecho. El <strong>orden</strong> de esas tres cosas da el nombre: <strong>in</strong>orden anota en medio; <strong>pre</strong>orden, antes; <strong>post</strong>orden, después.</p>
+        <div id="vis-recorridos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué inorden siempre sale de menor a mayor?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Anota todo lo menor (el izquierdo) antes que el nodo y todo lo mayor (el derecho) después, y eso vale en cada subárbol.">Por la regla: lo menor está a la izquierda</button>
+            <button type="button" class="opcion" data-explicacion="Insertar no ordena nada: el recorrido es el que aprovecha la regla del árbol.">Porque se insertaron ordenados</button>
+            <button type="button" class="opcion" data-explicacion="No hace ninguna comparación: solo sigue los punteros.">Porque compara los valores</button>
+          </div>
+        </div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">El destructor libera los nodos con un recorrido. ¿Cuál sirve?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Si borras primero el nodo, pierdes sus punteros izq y der: ya no puedes llegar a sus hijos.">Preorden</button>
+            <button type="button" class="opcion" data-explicacion="Al borrar el nodo antes de terminar con su derecho, pierdes el puntero der.">Inorden</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Los hijos se liberan antes que el padre, así nunca se usa un puntero de un nodo ya borrado. Es lo que hace liberar en el programa.">Postorden</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="eliminar: hoja o un hijo">
+        <h2><code>eliminar</code>: una hoja o un nodo con un hijo</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Primero hay que encontrar el nodo <strong>y a su padre</strong>: es el padre el que tiene que dejar de apuntarle. Después depende de cuántos hijos tenga.</p>
+          </div>
+          <div>
+            <p><strong>Caso 1, una hoja:</strong> el padre pasa a apuntar a <code>nullptr</code>. <strong>Caso 2, un hijo:</strong> el padre apunta a ese hijo, que sube con todo su subárbol. En los dos, <code>hijo</code> ocupa su lugar.</p>
+          </div>
+        </div>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Al eliminar el 70, el 80 sube a su lugar. ¿Sigue cumpliéndose la regla?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="El 80 estaba en el subárbol derecho del 50, así que es mayor que el 50; quedar como su hijo derecho no rompe nada.">Sí: el 80 ya era mayor que el 50</button>
+            <button type="button" class="opcion" data-explicacion="No hace falta reordenar: todo el subárbol del hijo ya estaba del lado correcto del padre.">No: hay que reordenar el árbol</button>
+            <button type="button" class="opcion" data-explicacion="El padre del 70 es el 50, y la regla se cumple con cualquier subárbol que estuviera del mismo lado.">Solo si el 80 es hoja</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar-dos" data-titulo="eliminar: dos hijos">
+        <h2><code>eliminar</code>: un nodo con dos hijos</h2>
+        <div class="dos-columnas">
+          <div>
+            <p><strong>Caso 3:</strong> no pueden subir los dos hijos al mismo lugar. Se busca el <strong>sucesor</strong>, el siguiente en orden: el menor del subárbol derecho (a la derecha una vez y después a la izquierda hasta el final).</p>
+          </div>
+          <div>
+            <p>Se <strong>copia</strong> su valor en el nodo que queríamos borrar y se borra el nodo del sucesor, que no tiene hijo izquierdo: es un caso 1 o 2. El código lo resuelve con las mismas líneas.</p>
+          </div>
+        </div>
+        <div id="vis-eliminar-dos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué el sucesor nunca tiene hijo izquierdo?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Puede tener uno derecho, como el 60 que tiene al 65.">Porque siempre es una hoja</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Bajamos a la izquierda mientras se pudiera: si tuviera hijo izquierdo, ese sería menor y el sucesor sería él.">Porque es el menor de su subárbol</button>
+            <button type="button" class="opcion" data-explicacion="Eso vale para el predecesor (el mayor del subárbol izquierdo), que no tiene hijo derecho.">Porque está a la izquierda</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="forma" data-titulo="La forma importa">
+        <h2>La forma importa: O(log n) u O(n)</h2>
+        <p>Todo cuesta O(h), y la altura depende del <strong>orden en que llegan</strong> los valores: al azar queda cerca de <code>log₂ n</code>; ordenados, el árbol es una lista. Por eso <code>std::set</code> se <strong>rebalancea</strong> solo (es un árbol rojo-negro).</p>
+        <div id="vis-forma"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Insertas 1000 valores ya ordenados. ¿Cuánto cuesta buscar el último?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería con el árbol balanceado. Con datos ordenados cada nodo cuelga a la derecha del anterior.">Unas 10 comparaciones</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El árbol es una cadena de 1000 niveles: buscar el último recorre todos, O(n).">1000 comparaciones</button>
+            <button type="button" class="opcion" data-explicacion="El último no queda en la raíz: la raíz es el primero que se insertó.">Una sola, está en la raíz</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto: inserta, busca, elimina y recorre</h2>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y dónde se usa</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>Balanceado</th><th>Degenerado</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>buscar</code> / <code>insertar</code> / <code>eliminar</code></td><td class="o-grande bueno">O(log n)</td><td class="o-grande malo">O(n)</td><td>Bajan un nivel por comparación: O(h).</td></tr>
+              <tr><td>Mínimo / máximo</td><td class="o-grande bueno">O(log n)</td><td class="o-grande malo">O(n)</td><td>Todo a la izquierda (o a la derecha) hasta el final.</td></tr>
+              <tr><td>Recorridos, <code>altura</code></td><td class="o-grande">O(n)</td><td class="o-grande">O(n)</td><td>Visitan cada nodo una vez.</td></tr>
+              <tr><td>Recorrer en orden</td><td class="o-grande">O(n)</td><td class="o-grande">O(n)</td><td>Inorden ya sale ordenado, sin ordenar aparte.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">Comparado con la <a href="../tabla-hash/">tabla hash</a>, buscar es un poco más lento (O(log n) contra O(1) en promedio), pero el árbol <strong>guarda el orden</strong>: el mínimo, el siguiente de un valor o todos los valores entre 10 y 20 salen sin recorrer todo.</div>
+        <ul class="lista-columnas">
+          <li><code>std::set</code> y <code>std::map</code> son árboles balanceados: <code>insert</code>, <code>find</code> y <code>erase</code> en O(log n), y se recorren en orden con un <code>for</code>.</li>
+          <li><code>lower_bound(x)</code> da el primer elemento ≥ x: rangos, el «siguiente turno libre», el precio más cercano.</li>
+          <li>Los índices de las bases de datos usan árboles parecidos (árboles B), con muchos hijos por nodo.</li>
+          <li>Se evitan cuando no hace falta el orden: ahí gana <code>std::unordered_set</code>, la tabla hash.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra arbol_binario_busqueda.cpp -o arbol_binario_busqueda &amp;&amp; ./arbol_binario_busqueda</span></pre>
+        <div data-codigo-completo="arbol_binario_busqueda.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>int minimo() const</code> y <code>int maximo() const</code>. ¿Qué haces si el árbol está vacío?</li>
+          <li>Escribe <code>buscar</code> de forma recursiva. ¿Cuál es el caso base?</li>
+          <li>Escribe <code>int contarEntre(int a, int b) const</code>, que cuente los valores entre <code>a</code> y <code>b</code> sin visitar los subárboles que no pueden tenerlos.</li>
+          <li>Cambia <code>eliminar</code> para usar el <strong>predecesor</strong> (el mayor del subárbol izquierdo) en lugar del sucesor.</li>
+          <li>Escribe un recorrido <strong>por niveles</strong> (de arriba abajo y de izquierda a derecha) con una <a href="../cola/">cola</a>.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="arbol-binario-busqueda.js"></script>
+</body>
+</html>

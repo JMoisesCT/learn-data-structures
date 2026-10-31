@@ -1886,3 +1886,137 @@ pre.codigo .linea.actual {
   color: var(--texto-suave);
   font-size: 0.9rem;
 }
+
+/* Árbol binario de búsqueda: nodos con dos punteros que se deslizan,
+   flechas que se trazan, el hueco nullptr y el vector salida de los recorridos */
+
+.info-abb { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-abb .variables, .info-abb .salida-valor { margin: 0 0 0.5rem; }
+.info-abb .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+.info-abb .pila-llamadas { width: auto; flex: 1 1 auto; }
+.abb-caso { margin: 0 0 0.5rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--activo-suave); font-family: var(--fuente-codigo); font-size: 0.75rem; font-weight: 700; color: var(--texto); }
+
+.marco-abb { margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-abb { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.lienzo-abb.sacudir { animation: sacudir 0.36s ease; }
+.lienzo-abb svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+.lienzo-abb svg path { fill: none; stroke: var(--texto-suave); stroke-width: 2; stroke-dasharray: 1; transition: opacity 0.3s ease; }
+.lienzo-abb svg path.traza { animation: trazar 0.45s ease both; }
+.lienzo-abb svg path.activa { stroke: var(--activo); stroke-width: 3; }
+.lienzo-abb svg path.tenue { opacity: 0.25; }
+.lienzo-abb svg marker path { fill: var(--texto-suave); stroke: none; stroke-dasharray: none; }
+.lienzo-abb svg marker.activa path { fill: var(--activo); }
+
+.anodo {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 25px 13px;
+  width: 58px;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.35s ease, transform 0.35s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.anodo .valor { grid-column: 1 / -1; display: grid; place-items: center; font-weight: 700; font-size: 0.92rem; }
+.anodo .ptr { display: grid; place-items: center; border-top: 2px solid; border-top-color: inherit; transition: background-color 0.25s ease; }
+.anodo .ptr.der { border-left: 2px solid; border-left-color: inherit; }
+.anodo .ptr::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--texto-suave); }
+.anodo .ptr.nulo::before { content: "∅"; width: auto; height: auto; background: none; font-size: 0.68rem; line-height: 1; color: var(--texto-suave); }
+.anodo .ptr.resaltado { background: var(--activo-suave); }
+.anodo.nuevo { animation: pop 0.35s ease; }
+.anodo.suelto { border-style: dashed; }
+.anodo.camino { border-color: var(--activo); }
+.anodo.activo { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 3px var(--activo-suave); }
+.anodo.descartado { opacity: 0.28; }
+.anodo.encontrado { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.35s ease; }
+.anodo.visitado { border-color: var(--exito); background: var(--exito-suave); }
+.anodo.en-pila { box-shadow: 0 0 0 3px var(--activo-suave); }
+.anodo.anotado { animation: pop 0.35s ease; }
+.anodo.copiado .valor { animation: latido 0.6s ease; }
+.anodo.condenado { border-color: var(--peligro); background: var(--peligro-suave); animation: latido 0.6s ease; }
+.anodo.saliendo { opacity: 0; transform: translateY(18px) scale(0.75); }
+
+.abb-raiz { position: absolute; display: flex; height: 46px; align-items: center; font-family: var(--fuente-codigo); }
+.abb-raiz .ptr {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--texto-suave);
+  border-radius: 8px;
+  background: var(--superficie-2);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.abb-raiz .ptr::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--texto-suave); }
+.abb-raiz .ptr.nulo::before { content: "∅"; width: auto; height: auto; background: none; font-size: 0.9rem; color: var(--texto-suave); }
+.abb-raiz.activa .ptr { border-color: var(--activo); background: var(--activo-suave); }
+.abb-raiz-nombre { position: absolute; bottom: calc(100% - 2px); left: 0; font-size: 0.72rem; font-weight: 700; color: var(--acento); }
+
+.abb-hueco {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 24px;
+  border: 2px dashed var(--borde);
+  border-radius: 8px;
+  font-family: var(--fuente-codigo);
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  opacity: 0;
+  pointer-events: none;
+  transition: left 0.3s ease, top 0.3s ease, opacity 0.3s ease;
+}
+.abb-hueco.visible { opacity: 1; animation: pop 0.35s ease; }
+.abb-hueco.malo { border-color: var(--peligro); color: var(--peligro); background: var(--peligro-suave); }
+
+.abb-puntero {
+  position: absolute;
+  z-index: 3;
+  transform: translateX(-50%);
+  font-family: var(--fuente-codigo);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--activo);
+  background: var(--superficie);
+  border-radius: 4px;
+  padding: 0 3px;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease;
+}
+.abb-puntero.oculta, .abb-puntero.saliendo { opacity: 0; }
+.abb-puntero.mala { color: var(--peligro); }
+
+.abb-titulo-salida { position: absolute; font-family: var(--fuente-codigo); font-size: 0.75rem; font-weight: 700; color: var(--acento); opacity: 0; transition: opacity 0.3s ease, top 0.45s ease; }
+.abb-titulo-salida.visible { opacity: 1; }
+
+.abb-salida, .abb-ficha {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--exito);
+  border-radius: 6px;
+  background: var(--exito-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--texto);
+  transition: left 0.55s ease, top 0.55s ease, opacity 0.35s ease, transform 0.35s ease;
+}
+.abb-salida.reciente { box-shadow: 0 0 0 3px var(--exito-suave); }
+.abb-salida.saliendo { opacity: 0; transform: scale(0.75); }
+.abb-ficha.copia { border-color: var(--activo); background: var(--activo-suave); }
+
+@media (prefers-reduced-motion: reduce) {
+  .anodo, .abb-puntero, .abb-salida, .abb-ficha, .lienzo-abb, .marco-abb { transition: none; }
+  .lienzo-abb svg path.traza, .anodo.nuevo, .anodo.encontrado, .anodo.anotado, .anodo.condenado, .abb-hueco.visible { animation: none; }
+}

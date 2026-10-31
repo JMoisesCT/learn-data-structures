@@ -71,7 +71,13 @@
       etiquetas: ["buscar O(1) promedio", "colisiones"],
       archivo: "tabla_hash.cpp",
     },
-    { slug: "arbol-binario-busqueda", titulo: "Árbol binario de búsqueda", resumen: "Búsqueda, inserción y recorridos.", etiquetas: ["próximamente"], proximamente: true },
+    {
+      slug: "arbol-binario-busqueda",
+      titulo: "Árbol binario de búsqueda",
+      resumen: "Menores a la izquierda, mayores a la derecha. Buscar, insertar, recorridos y eliminar en sus tres casos; la idea detrás de std::set.",
+      etiquetas: ["buscar O(h)", "inorden ordenado"],
+      archivo: "arbol_binario_busqueda.cpp",
+    },
     { slug: "grafos", titulo: "Grafos", resumen: "Representación, BFS y DFS.", etiquetas: ["próximamente"], proximamente: true },
   ];
 
