@@ -650,7 +650,7 @@
       entradas: [VALOR],
       estadoInicial: () => estadoStl([4, 8, 15]),
       operaciones: ["push", "top", "pop"].map(op),
-      mensajeInicial: "Como en main(): se apilaron 4, 8 y 15. Prueba push, top y pop, y vacía la pila para ver qué pasa con top() y pop().",
+      mensajeInicial: "Como en main(): se apilaron 4, 8 y 15. Prueba también top() y pop() con la pila vacía.",
     },
   });
 

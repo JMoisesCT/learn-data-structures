@@ -937,7 +937,7 @@
     ops: ["obtener"],
     entradas: [POSICION],
     estadoInicial: () => estadoDesde([3, 7, 12, 20], { direcciones: true }),
-    mensajeInicial: "Debajo de cada nodo está su dirección; en su campo siguiente, la dirección del próximo. Pulsa obtener(pos) y prueba también pos = 0 y pos = 6.",
+    mensajeInicial: "Bajo cada nodo, su dirección; en su siguiente, la del próximo. Prueba pos = 2, 0 y 6.",
   });
 
   // Pasos 2 a 7: una operación cada uno.

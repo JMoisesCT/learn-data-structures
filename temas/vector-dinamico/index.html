@@ -21,13 +21,14 @@
 
       <section class="paso-leccion" id="idea" data-titulo="Casillas contiguas">
         <h2>Casillas una junto a otra</h2>
-        <p>Un arreglo normal de C++ (<code>int a[10]</code>) tiene un tamaño fijo. Un vector dinámico guarda tres cosas:</p>
-        <ul>
-          <li><code>datos</code>: un puntero al primer elemento de un bloque reservado con <code>new</code>.</li>
-          <li><code>tamano</code>: cuántos elementos hay realmente (la flecha <strong>▲ tamano</strong> marca la primera casilla libre).</li>
-          <li><code>capacidad</code>: cuántas casillas tiene el bloque. Las de borde punteado están reservadas pero sin usar.</li>
-        </ul>
-        <p>Como las casillas están <strong>contiguas</strong>, la dirección de <code>datos[i]</code> sale con una cuenta: inicio + <code>i</code> × 4 bytes. No hay que recorrer nada: por eso <code>obtener(i)</code> es <strong>O(1)</strong>.</p>
+        <div class="dos-columnas">
+          <div>
+            <p>Guarda tres cosas: <code>datos</code>, un puntero al bloque reservado con <code>new</code>; <code>tamano</code>, cuántos elementos hay (<strong>▲ tamano</strong> marca la primera casilla libre); y <code>capacidad</code>, cuántas casillas tiene el bloque (las punteadas están libres).</p>
+          </div>
+          <div>
+            <p>Como las casillas están <strong>contiguas</strong>, la dirección de <code>datos[i]</code> sale con una cuenta: inicio + <code>i</code> × 4 bytes. No hay que recorrer nada: por eso <code>obtener(i)</code> es <strong>O(1)</strong>.</p>
+          </div>
+        </div>
         <div id="vis-obtener"></div>
 
         <div class="pregunta">
@@ -58,9 +59,10 @@
 
       <section class="paso-leccion" id="amortizado" data-titulo="¿Por qué el doble?">
         <h2>¿Por qué crecer al doble y no de uno en uno?</h2>
-        <p>Cada <code>redimensionar</code> copia <strong>todo</strong>. Si el bloque creciera de a una casilla, ¡cada <code>agregarAlFinal</code> copiaría el vector entero! Compara las dos estrategias agregando valores: cada barra es lo que costó una llamada (escrituras en memoria).</p>
+        <p>Cada <code>redimensionar</code> copia <strong>todo</strong>. Compara las dos estrategias: cada barra es lo que costó una llamada.</p>
         <div id="experimento"></div>
-        <div class="nota">Duplicando, las copias caras son cada vez <strong>más raras</strong>: después de copiar <code>n</code> elementos hay <code>n</code> casillas libres. En total se hacen menos de <code>2n</code> escrituras para <code>n</code> elementos, así que en promedio cada <code>agregarAlFinal</code> es O(1). A eso se le llama <strong>costo amortizado</strong>.</div>
+        <div class="dos-columnas">
+        <div class="nota">Duplicando, las copias caras son cada vez <strong>más raras</strong>: tras copiar <code>n</code> elementos quedan <code>n</code> casillas libres. Para <code>n</code> elementos se hacen menos de <code>2n</code> escrituras: en promedio, cada <code>agregarAlFinal</code> es O(1). Es su <strong>costo amortizado</strong>.</div>
 
         <div class="pregunta">
           <p class="pregunta-enunciado">Empezando con capacidad 2 y duplicando, ¿cuántas veces se redimensiona al agregar 1000 elementos?</p>
@@ -69,6 +71,7 @@
             <button type="button" class="opcion" data-explicacion="Eso pasaría si creciera de 2 en 2. Duplicando, los saltos son cada vez más grandes.">Unas 500 veces</button>
             <button type="button" class="opcion" data-explicacion="Eso pasaría con capacidad + 1: justo lo que muestra la segunda gráfica.">Casi 1000 veces</button>
           </div>
+        </div>
         </div>
       </section>
 

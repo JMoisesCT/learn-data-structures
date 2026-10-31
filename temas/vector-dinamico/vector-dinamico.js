@@ -513,7 +513,7 @@
     ops: ["obtener"],
     entradas: [{ id: "pos", etiqueta: "i", min: -5, max: 20, valor: 2 }],
     estadoInicial: () => estadoDesde([10, 20, 30], 4, { direcciones: true }),
-    mensajeInicial: "Cada casilla tiene su dirección: van de 4 en 4 porque un int ocupa 4 bytes. Pulsa obtener(i); prueba también i = 3 e i = 9.",
+    mensajeInicial: "Las direcciones van de 4 en 4: un int ocupa 4 bytes. Prueba i = 2, 3 y 9.",
   });
 
   // Paso 2: agregarAlFinal y redimensionar.
