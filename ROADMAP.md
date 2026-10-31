@@ -14,15 +14,15 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 | Cola | Lección en 8 pasos con dos versiones: `std::queue` (`push`, `front`, `pop` y por qué se pregunta `empty()` antes), un uso real con `josefo` (cada persona pasa del frente al final), y `ColaEnlazada` sobre nodos con `primero` y `ultimo` (`encolar`, `desencolar` con el caso de la cola que queda vacía, y `frente`, todo en O(1)); todo junto con selector de versión |
 | Montículo (min-heap / max-heap) y heapsort | Lección en 9 pasos: `maxHeapify`/`minHeapify` (con su recursión), `buildMaxHeap`/`buildMinHeap`, `insertMax`/`insertMin`, `extractMax`/`extractMin`, `maximum`/`minimum`, `heapSort` en dos fases |
 | Tabla hash | Lección en 8 pasos: funciones hash para números (`hashDivision`, `hashMultiplicacion`, `hashCuadradoMedio`, `hashPlegado`) y para texto (`hashSumaLetras`, `hashPolinomial`); encadenamiento (`insertar` al frente, `buscar`, `eliminar`); direccionamiento abierto con sondeo lineal, cuadrático y doble hash (`insertar`, `buscar`, `eliminar` con lápidas); factor de carga y `rehash` |
+| Árbol binario de búsqueda | Lección en 9 pasos con cada nodo dibujado con sus punteros `izq` y `der`: `buscar` (cada comparación descarta un subárbol entero, y el `nullptr` donde termina), `insertar` (baja recordando el `padre` y cuelga el nodo nuevo con un solo puntero), recorridos inorden, preorden y postorden con la pila de llamadas y el vector `salida`, `eliminar` de una hoja o un nodo con un hijo, y de un nodo con dos hijos (el valor del sucesor viaja hasta su lugar); la forma importa (1…7 en orden contra mezclados: altura 7 o 3); todo junto |
 
 ## Pendientes
 
 | # | Tema | Operaciones a animar | Título del PR |
 | --- | --- | --- | --- |
-| 1 | Árbol binario de búsqueda | insertar, buscar, recorridos inorden/preorden/postorden, eliminar (3 casos) | `[Árbol binario de búsqueda] Agregar animación de insertar, buscar y recorridos con ejemplo en C++` |
-| 2 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
-| 3 | Lista doblemente enlazada | insertar/eliminar en ambos extremos | `[Lista doblemente enlazada] Agregar animación y ejemplo en C++` |
-| 4 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
+| 1 | Grafos | lista de adyacencia, BFS (con cola), DFS (con pila) | `[Grafos] Agregar animación de BFS y DFS con ejemplo en C++` |
+| 2 | Lista doblemente enlazada | insertar/eliminar en ambos extremos | `[Lista doblemente enlazada] Agregar animación y ejemplo en C++` |
+| 3 | Ordenamiento | burbuja, inserción, merge sort, quicksort (heapsort ya está en Montículo) | `[Ordenamiento] Agregar animaciones de algoritmos de ordenamiento en C++` |
 
 ## Ideas para el sitio
 
