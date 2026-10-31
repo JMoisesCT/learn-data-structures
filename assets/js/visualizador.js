@@ -499,6 +499,9 @@
     let velocidad = 2;
     let modo = "auto";
     let claveMostrada = null;
+    // Entradas aleatorias que cambian de valor cuando termina la operación (no
+    // antes: mientras corre la animación, la caja muestra el valor que se usa).
+    let aleatoriosPendientes = [];
 
     // --- Construcción de la interfaz ---
     const campos = {};
@@ -759,9 +762,7 @@
       s.vis = {};
       estado = s;
       pasos = lista.length ? lista : [pasoInicial("Listo.")];
-      for (const id of op.usa || []) {
-        if (campos[id].cfg.aleatorio) campos[id].input.value = aleatorio(campos[id].cfg);
-      }
+      aleatoriosPendientes = (op.usa || []).filter((id) => campos[id].cfg.aleatorio);
       reservarEspacio();
       ir(0);
       if (pasos.length > 1 && modo === "auto") reproducir();
@@ -769,6 +770,7 @@
 
     function reiniciar() {
       detener();
+      aleatoriosPendientes = [];
       liberarAlturas();
       const valores = valoresEntradas();
       estado = cfg.estadoInicial(valores);
@@ -811,7 +813,11 @@
       contador.textContent = `Paso ${actual + 1} de ${pasos.length}`;
       bInicio.disabled = bAtras.disabled = actual === 0;
       bFin.disabled = bAdelante.disabled = actual === pasos.length - 1;
-      if (actual === pasos.length - 1) detener();
+      if (actual === pasos.length - 1) {
+        detener();
+        for (const id of aleatoriosPendientes) campos[id].input.value = aleatorio(campos[id].cfg);
+        aleatoriosPendientes = [];
+      }
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
       noEncoger(mensaje);
