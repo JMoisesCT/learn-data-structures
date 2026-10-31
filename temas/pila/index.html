@@ -14,7 +14,7 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Pila</div>
       <h1>Pila (stack)</h1>
-      <p class="resumen">Una colección donde <strong>el último que entra es el primero que sale</strong> (LIFO, <em>Last In, First Out</em>). Vas a verla en dos versiones: <code>std::stack</code>, la de la STL, y una <strong>pila enlazada</strong> hecha con nodos, para ver qué pasa por dentro.</p>
+      <p class="resumen"><strong>El último que entra es el primero que sale</strong> (LIFO, <em>Last In, First Out</em>). Vas a ver <code>std::stack</code> y una <strong>pila enlazada</strong> hecha con nodos.</p>
     </div>
 
     <div class="leccion">
@@ -23,10 +23,10 @@
         <h2>Último en entrar, primero en salir</h2>
         <div class="dos-columnas">
           <div>
-            <p>Piensa en una pila de platos: el que dejas encima es el primero que vas a sacar, y para llegar al de abajo tienes que quitar todos los de arriba. Solo se trabaja por un extremo, la <strong>cima</strong>.</p>
+            <p>Como una pila de platos: el último que dejas encima es el primero que sacas. Solo se trabaja por un extremo, la <strong>cima</strong>.</p>
           </div>
           <div>
-            <p>En C++ ya existe: <code>std::stack&lt;int&gt;</code> (de <code>&lt;stack&gt;</code>). <code>push</code> apila, <code>top</code> lee la cima y <code>pop</code> la quita. Las tres son <strong>O(1)</strong>. Ojo: <code>top</code> y <code>pop</code> con la pila vacía no avisan, por eso se pregunta <code>empty()</code> antes.</p>
+            <p><code>std::stack&lt;int&gt;</code>: <code>push</code> apila, <code>top</code> lee la cima y <code>pop</code> la quita, todo en <strong>O(1)</strong>. Con la pila vacía no avisan: se pregunta <code>empty()</code> antes.</p>
           </div>
         </div>
         <div id="vis-stack"></div>

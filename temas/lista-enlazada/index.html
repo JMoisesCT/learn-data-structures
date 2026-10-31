@@ -23,12 +23,11 @@
         <h2>Nodos que se apuntan entre sí</h2>
         <div class="dos-columnas">
           <div>
-            <p>Piensa en una búsqueda del tesoro: cada pista dice dónde está la siguiente. No puedes saltar a la quinta pista; tienes que pasar por las cuatro anteriores.</p>
+            <p>Como una búsqueda del tesoro: cada pista dice dónde está la siguiente.</p>
             <pre class="codigo"><span class="linea"><span class="tk-clave">struct</span> <span class="tk-tipo">Nodo</span> {</span><span class="linea">    <span class="tk-tipo">int</span> valor;</span><span class="linea">    <span class="tk-tipo">Nodo</span>* siguiente;  <span class="tk-comentario">// nullptr si es el último</span></span><span class="linea">};</span></pre>
           </div>
           <div>
-            <p>Cada nodo se crea con <code>new</code> <strong>donde haya lugar</strong>, así que no quedan uno junto a otro como las casillas de un vector. La lista solo guarda <code>cabeza</code>, la dirección del primero; el resto se encuentra siguiendo los <code>siguiente</code>.</p>
-            <p>Para llegar a la posición <code>pos</code> no hay una cuenta como en el vector: hay que <strong>dar <code>pos</code> saltos</strong> desde la cabeza. Eso lo hace <code>nodoEn(pos)</code>, que devuelve el <strong>nodo</strong> (no solo su valor) y lo reutilizan <code>obtener</code>, <code>insertarEn</code> y <code>eliminarEn</code>. Es <strong>O(n)</strong>.</p>
+            <p>Cada nodo se crea con <code>new</code> <strong>donde haya lugar</strong>, no uno junto a otro como en un vector. La lista solo guarda <code>cabeza</code>: para llegar a la posición <code>pos</code> hay que <strong>dar <code>pos</code> saltos</strong> siguiendo los <code>siguiente</code>. Eso hace <code>nodoEn(pos)</code>, que devuelve el <strong>nodo</strong> y lo reutilizan <code>obtener</code>, <code>insertarEn</code> y <code>eliminarEn</code>: <strong>O(n)</strong>.</p>
           </div>
         </div>
         <div id="vis-obtener"></div>
@@ -180,16 +179,16 @@
             <tbody>
               <tr><td><code>nodoEn(pos)</code> / <code>obtener(pos)</code></td><td><code>std::next(l.begin(), pos)</code></td><td class="o-grande malo">O(n)</td><td>No hay índices: hay que dar <code>pos</code> saltos.</td></tr>
               <tr><td><code>insertarAlInicio</code></td><td><code>l.push_front(x)</code></td><td class="o-grande bueno">O(1)</td><td>Se crea un nodo y se cambian dos punteros.</td></tr>
-              <tr><td><code>insertarEn(pos, x)</code></td><td><code>l.insert_after(std::next(l.before_begin(), pos), x)</code></td><td class="o-grande malo">O(n)</td><td>Llegar al anterior cuesta <code>pos - 1</code> saltos; enganchar es O(1).</td></tr>
-              <tr><td><code>insertarAlFinal</code></td><td>No existe (<code>std::list::push_back</code> sí, en O(1))</td><td class="o-grande malo">O(n)</td><td><code>nodoEn</code> recorre hasta el último; O(1) con un puntero <code>cola</code>.</td></tr>
+              <tr><td><code>insertarEn(pos, x)</code></td><td><code>l.insert_after(anterior, x)</code></td><td class="o-grande malo">O(n)</td><td>Llegar al anterior: <code>pos - 1</code> saltos. Enganchar: O(1).</td></tr>
+              <tr><td><code>insertarAlFinal</code></td><td>No existe (<code>std::list</code> sí lo tiene)</td><td class="o-grande malo">O(n)</td><td>Recorre hasta el último (O(1) con un puntero <code>cola</code>).</td></tr>
               <tr><td><code>buscar(x)</code></td><td><code>std::find(l.begin(), l.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Nodo por nodo desde la cabeza.</td></tr>
-              <tr><td><code>eliminar(x)</code></td><td><code>l.remove(x)</code> (borra todos los iguales)</td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el anterior; el borrado en sí es O(1).</td></tr>
-              <tr><td><code>eliminarEn(pos)</code></td><td><code>l.erase_after(std::next(l.before_begin(), pos))</code></td><td class="o-grande malo">O(n)</td><td>Igual que <code>insertarEn</code>: llegar al anterior y saltar el nodo.</td></tr>
-              <tr><td>Insertar o borrar después de un nodo conocido</td><td><code>l.insert_after(it, x)</code> / <code>l.erase_after(it)</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian punteros, sin recorrer.</td></tr>
+              <tr><td><code>eliminar(x)</code></td><td><code>l.remove(x)</code> (borra todos)</td><td class="o-grande malo">O(n)</td><td>Hay que encontrar el anterior; borrar es O(1).</td></tr>
+              <tr><td><code>eliminarEn(pos)</code></td><td><code>l.erase_after(anterior)</code></td><td class="o-grande malo">O(n)</td><td>Como <code>insertarEn</code>: llegar al anterior y saltar el nodo.</td></tr>
+              <tr><td>Después de un nodo conocido</td><td><code>l.insert_after(it, x)</code> / <code>l.erase_after(it)</code></td><td class="o-grande bueno">O(1)</td><td>Solo se cambian punteros, sin recorrer.</td></tr>
             </tbody>
           </table>
         </div>
-        <ul>
+        <ul class="lista-columnas">
           <li>Úsala cuando insertas y eliminas mucho <strong>al inicio</strong>, o junto a nodos que ya tienes localizados (por ejemplo, con un iterador guardado).</li>
           <li>Es la base de otras estructuras: <a href="../pila/">pilas</a>, <a href="../cola/">colas</a>, listas de adyacencia de grafos y las cubetas de una <a href="../tabla-hash/">tabla hash con encadenamiento</a>.</li>
           <li>Una ventaja poco obvia: insertar o borrar nodos <strong>no mueve a los demás</strong>, así que los punteros a otros nodos siguen siendo válidos (en un vector, al redimensionar, no).</li>
