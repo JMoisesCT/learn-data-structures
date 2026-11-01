@@ -77,7 +77,10 @@
 
       <section class="paso-leccion" id="cambio-base" data-titulo="Cambio de base">
         <h2>Cambio de base: los restos son los dígitos</h2>
-        <p>Se divide <code>n</code> entre la base: el <strong>resto</strong> es el último dígito y el <strong>cociente</strong>, los de adelante. Cada marco pega su dígito <strong>después</strong> de lo que devuelve la llamada de abajo, así que quedan en orden. Sirve hasta base 16 (<code>0-9</code> y <code>A-F</code>).</p>
+        <div class="dos-columnas">
+          <p>Se divide <code>n</code> entre la base: el <strong>resto</strong> es el último dígito y el <strong>cociente</strong>, los de adelante. Cada marco pega su dígito <strong>después</strong> de lo que devuelve la llamada de abajo, así que quedan en orden.</p>
+          <p><code>DIGITOS</code> es el texto <code>"0123456789ABCDEF"</code>: en la posición k está el símbolo que vale k (<code>DIGITOS[10]</code> es el char <code>'A'</code>). <code>std::string(1, c)</code> arma un string con <strong>1 copia</strong> del char <code>c</code>, porque <code>aBase</code> devuelve <code>std::string</code>.</p>
+        </div>
         <div id="vis-base"></div>
 
         <div class="pregunta">

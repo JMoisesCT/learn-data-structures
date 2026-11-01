@@ -66,7 +66,14 @@ int invertir(int n, int acumulado) {
 //    del último al primero. La recursión los pone en orden al volver.
 // ---------------------------------------------------------------------
 
+// DIGITOS[k] es el símbolo del dígito que vale k: DIGITOS[3] es '3',
+// DIGITOS[10] es 'A' y DIGITOS[15] es 'F'. Cada uno es un char.
 const std::string DIGITOS = "0123456789ABCDEF";
+
+// std::string(1, c) usa el constructor std::string(cantidad, carácter):
+// arma un string con 1 copia de c ('F' -> "F"). Hace falta porque aBase
+// devuelve std::string, no char. Después, string + char pega el carácter
+// al final ("F" + 'A' -> "FA").
 
 // O(log_base n): cada llamada divide n entre la base.
 std::string aBase(int n, int base) {
