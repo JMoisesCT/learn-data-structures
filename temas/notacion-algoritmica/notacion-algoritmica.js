@@ -217,12 +217,13 @@
             Object.assign(s.pares, { i, j, actual: true });
             const igual = d[i] === d[j];
             if (detallado || igual) {
-              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i], ["j", "d", j]], leidas: [i, j] };
+              // Los pasos solo muestran la línea 5: las vueltas de los dos for van explícitas.
+              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i], ["j", "d", j]], leidas: [i, j], vueltas: { 2: i + 1, 3: j - i } };
               paso("hayRepetidos", 5, `${j === i + 1 ? `i = ${i}: ahora datos[${i}] se compara con todos los de su derecha. ` : ""}`
                 + `¿datos[${i}] (${d[i]}) == datos[${j}] (${d[j]})? ${igual ? "¡Sí!" : "No."} pasos = ${s.pasos}.`);
             } else if (j === n - 1 && ((i + 1) % filasPorPaso === 0 || i === n - 2)) {
               const desde = i - (i % filasPorPaso);
-              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i]], leidas: [i] };
+              s.vis = { vars: { n, i, j }, marcas: [["i", "d", i]], leidas: [i], vueltas: { 2: i + 1, 3: j - i } };
               paso("hayRepetidos", 5, `${desde < i ? `i = ${desde}…${i}` : `i = ${i}`}: cada uno se comparó con todos los de su derecha (los mostramos juntos). `
                 + `Ninguno es igual. pasos = ${s.pasos} de ${total}.`);
             }
