@@ -15,7 +15,8 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
 - Temas pedidos explícitamente:
   - **montículos (min-heap y max-heap) y heapsort** (hecho en `temas/monticulo/`);
   - **árbol binario de búsqueda** (hecho en `temas/arbol-binario-busqueda/`);
-  - **listas doblemente enlazadas y circulares**, como temas propios **después de Lista enlazada y antes de Pila** en `DS.TEMAS`.
+  - **listas doblemente enlazadas y circulares**, como temas propios **después de Lista enlazada y antes de Pila** en `DS.TEMAS`;
+  - **recursión**, **antes de Lambdas** en `DS.TEMAS`, con varios ejemplos que sacan dígitos, cambio de base y otros interesantes (sin Hanói) (hecho en `temas/recursion/`).
 - Los avances se anotan en ROADMAP.md: los temas hechos en "Hechos" y las mejoras del sitio en "Mejoras hechas".
 
 ## Reglas

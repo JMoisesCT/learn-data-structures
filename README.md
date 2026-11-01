@@ -18,6 +18,7 @@ Cada tema tiene:
 | Tema | Animación | Código C++ |
 | --- | --- | --- |
 | Notación algorítmica (Big-O: O(1), O(log n), O(n), O(n log n), O(n²), O(2ⁿ)) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/notacion-algoritmica/) | [`notacion_algoritmica.cpp`](ejemplos/cpp/notacion_algoritmica.cpp) |
+| Recursión (caso base, pila de llamadas, sacar dígitos, cambio de base, palíndromos, potencia rápida, Fibonacci con y sin memoria) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/recursion/) | [`recursion.cpp`](ejemplos/cpp/recursion.cpp) |
 | Lambdas en C++ (capturas por valor y por referencia, lambdas anidadas, `count_if`, `find_if` y `sort` con criterio) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lambdas/) | [`lambdas.cpp`](ejemplos/cpp/lambdas.cpp) |
 | Vector dinámico (acceso O(1), redimensionar y costo amortizado) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/vector-dinamico/) | [`vector_dinamico.cpp`](ejemplos/cpp/vector_dinamico.cpp) |
 | Lista enlazada | [ver](https://jmoisesct.github.io/learn-data-structures/temas/lista-enlazada/) | [`lista_enlazada.cpp`](ejemplos/cpp/lista_enlazada.cpp) |
