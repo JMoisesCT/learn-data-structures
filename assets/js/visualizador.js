@@ -23,6 +23,13 @@
       archivo: "notacion_algoritmica.cpp",
     },
     {
+      slug: "recursion",
+      titulo: "Recursión",
+      resumen: "Una función que se llama a sí misma con un problema más chico. Sacar dígitos, cambio de base, palíndromos, potencia rápida y el árbol de llamadas de Fibonacci, con la pila a la vista.",
+      etiquetas: ["caso base", "pila de llamadas"],
+      archivo: "recursion.cpp",
+    },
+    {
       slug: "lambdas",
       titulo: "Lambdas en C++",
       resumen: "Funciones sin nombre que se escriben donde se usan: capturas por valor y por referencia, lambdas anidadas y cómo le dan un criterio a std::sort o std::count_if.",
@@ -442,6 +449,7 @@
     abs: "<cstdlib>",
     floor: "<cmath>",
     out_of_range: "<stdexcept>",
+    invalid_argument: "<stdexcept>",
     underflow_error: "<stdexcept>",
   };
 
@@ -657,6 +665,11 @@
   // bucle no muestran cada vuelta (por ejemplo, se saltan la línea del for de
   // afuera), el tema puede dar el número: s.vis.vueltas = { 2: i + 1 }, con la
   // línea del for/while (dentro del fragmento) como clave.
+  //
+  // Las llamadas recursivas se deducen cuando la ejecución vuelve a una línea
+  // anterior a la que se llama a sí misma. Si la llamada está en medio de una
+  // expresión (return f(n / 10) + n % 10) o hay dos en la misma línea, el tema
+  // da la profundidad: s.vis.nivel = k (1 = la primera llamada de esa función).
 
   const VELOCIDADES = [0.4, 0.7, 1, 1.6, 2.6];
 
@@ -1023,8 +1036,25 @@
       for (const p of lista) {
         let evento = null;
         const tope = pila[pila.length - 1];
+        const nivel = p.estado && p.estado.vis && p.estado.vis.nivel;
+        // Llamadas seguidas de la misma función en el tope de la pila (la recursión).
+        const mismas = () => {
+          let k = 0;
+          while (k < pila.length && pila[pila.length - 1 - k].clave === p.clave && !pila[pila.length - 1 - k].lambda) k++;
+          return k;
+        };
         if (!tope) {
           pila = [nuevoMarco(p.clave)];
+        } else if (tope.clave === p.clave && nivel && !tope.lambda) {
+          // El tema dio la profundidad de la recursión.
+          const k = mismas();
+          if (nivel > k) {
+            evento = { tipo: "llamada" };
+            for (let i = k; i < nivel; i++) pila.push(nuevoMarco(p.clave));
+          } else if (nivel < k) {
+            evento = { tipo: "retorno", de: nombreDe(p.clave) };
+            pila.length -= k - nivel;
+          }
         } else if (tope.clave === p.clave) {
           const a = analisis[p.clave];
           // Fuera del cuerpo de una lambda: la lambda terminó y se vuelve a quien la llamó.
