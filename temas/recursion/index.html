@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursión · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es la recursión, caso base y caso recursivo, la pila de llamadas, sacar dígitos (sumar, imprimir e invertir), cambio de base, palíndromos, potencia rápida y el árbol de llamadas de Fibonacci con y sin memoria. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="recursion">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Recursión</div>
+      <h1>Recursión</h1>
+      <p class="resumen">Una función recursiva <strong>se llama a sí misma con un problema más chico</strong> hasta llegar a uno que se responde solo. Así se recorren árboles y montículos: la usan heapify, los recorridos del árbol binario y merge sort.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Una función que se llama a sí misma">
+        <h2>Una función que se llama a sí misma</h2>
+        <div class="dos-columnas">
+          <p>El <strong>caso base</strong> se responde sin llamarse (un solo dígito). El <strong>caso recursivo</strong> se llama con algo más chico: <code>n / 10</code> le quita el último dígito, <code>n % 10</code>.</p>
+          <p>Cada llamada abre <strong>su propio marco</strong> en la pila, con su propio <code>n</code>. Al llegar al caso base, las respuestas suben y cada marco termina su suma.</p>
+        </div>
+        <div id="vis-suma"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántos marcos llega a tener la pila con <code>sumaDigitos(90817)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Uno por dígito: 90817, 9081, 908, 90 y 9. El de 9 es el caso base.">5</button>
+            <button type="button" class="opcion" data-explicacion="Los marcos no dependen del valor de los dígitos (9 + 0 + 8 + 1 + 7 = 25), sino de cuántos hay.">25</button>
+            <button type="button" class="opcion" data-explicacion="Las llamadas no corren una tras otra en el mismo marco: cada una espera a la de abajo, así que todas están en la pila a la vez.">1, se reutiliza</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="antes-despues" data-titulo="Antes o después de la llamada">
+        <h2>¿El trabajo va antes o después de la llamada?</h2>
+        <p>Lo que va <strong>antes</strong> de la llamada se hace <strong>de ida</strong>; lo que va <strong>después</strong>, <strong>de vuelta</strong> y en orden contrario. Estas dos funciones solo cambian de lugar el <code>cout</code>, y por eso imprimen los dígitos en órdenes opuestos.</p>
+        <div id="vis-imprimir"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué imprime <code>imprimirDigitos(507)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Ese es imprimirAlReves: imprime de ida, empezando por el último dígito.">7 0 5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El cout va después de la llamada: primero baja hasta imprimirDigitos(5), que imprime 5, y de vuelta cada marco imprime el suyo: 0 y luego 7.">5 0 7</button>
+            <button type="button" class="opcion" data-explicacion="El 0 no se salta: 50 ≥ 10, así que imprimirDigitos(50) llama a imprimirDigitos(5) y después imprime 50 % 10 = 0.">5 7</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="acumulador" data-titulo="Llevar el resultado hacia abajo">
+        <h2>Llevar el resultado hacia abajo</h2>
+        <p>En vez de esperar la respuesta para completar una cuenta, <code>invertir</code> pasa el resultado parcial como parámetro: <code>acumulado</code> crece de ida y, en el caso base, ya es la respuesta. De vuelta nadie la toca. Cuando la llamada recursiva es lo último que se hace, se llama <strong>recursión de cola</strong>.</p>
+        <div id="vis-invertir"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué devuelve <code>invertir(1200, 0)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Un int no guarda ceros a la izquierda: 0·10 + 0 sigue siendo 0.">0021</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Los dos ceros entran primero: acumulado pasa por 0, 0, 2 y 21. Los ceros a la izquierda no existen en un número.">21</button>
+            <button type="button" class="opcion" data-explicacion="El caso base es n == 0, no n < 10: también se procesa el último dígito.">12</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Cuando vuelve la llamada de abajo, ¿qué le queda por hacer a cada marco de <code>invertir</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="return invertir(…) devuelve tal cual lo que recibe. Por eso es fácil pasarlo a un while, y muchos compiladores lo hacen solos.">Nada: devuelve lo mismo que recibió</button>
+            <button type="button" class="opcion" data-explicacion="Eso hace sumaDigitos, que todavía suma n % 10 al volver.">Sumarle su dígito</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cambio-base" data-titulo="Cambio de base">
+        <h2>Cambio de base: los restos son los dígitos</h2>
+        <p>Se divide <code>n</code> entre la base: el <strong>resto</strong> es el último dígito y el <strong>cociente</strong>, los de adelante. Cada marco pega su dígito <strong>después</strong> de lo que devuelve la llamada de abajo, así que quedan en orden. Sirve hasta base 16 (<code>0-9</code> y <code>A-F</code>).</p>
+        <div id="vis-base"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué devuelve <code>aBase(255, 16)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="255 ÷ 16 = 15, resto 15: 'F'. Y aBase(15, 16) es el caso base: 'F'. Juntos, &quot;FF&quot;.">"FF"</button>
+            <button type="button" class="opcion" data-explicacion="Eso es 255 en base 10. En base 16 cada dígito vale hasta 15 (F).">"255"</button>
+            <button type="button" class="opcion" data-explicacion="Ese es 255 en base 2: ocho unos. En base 16 basta con dos dígitos.">"11111111"</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué pasaría si la última línea fuera <code>return DIGITOS[n % base] + aBase(n / base, base);</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El orden de la suma de strings sí importa: es pegar texto, no sumar números.">Lo mismo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El último dígito quedaría adelante: aBase(13, 2) daría &quot;1011&quot; en vez de &quot;1101&quot;.">Los dígitos saldrían al revés</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="palindromo" data-titulo="Dos casos base: palíndromos">
+        <h2>Dos casos base: palíndromos</h2>
+        <p>Un palíndromo se lee igual al derecho y al revés. <code>esPalindromo</code> compara las letras de las puntas, <code>i</code> y <code>j</code>; si son iguales, pregunta lo mismo por el texto de adentro. Tiene <strong>dos casos base</strong>: <code>i</code> y <code>j</code> se cruzaron (todo coincidió) o hay una diferencia.</p>
+        <div id="vis-palindromo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántas llamadas hace <code>esPalindromo</code> con <code>"recorrer"</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="r = r, e = e y en la tercera llamada c ≠ r: devuelve false sin mirar el resto.">3</button>
+            <button type="button" class="opcion" data-explicacion="No llega al medio: se detiene en la primera diferencia (c ≠ r).">5, hasta el medio</button>
+            <button type="button" class="opcion" data-explicacion="Cada llamada compara dos letras a la vez, una de cada punta.">8, una por letra</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En <code>sumaDigitos</code>, ¿qué pasa si borras el caso base, <code>if (n &lt; 10)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="n / 10 llega a 0, pero sumaDigitos(0) vuelve a llamar a sumaDigitos(0), y así para siempre.">Devuelve 0 al llegar a <code>n = 0</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Sin caso base nunca deja de llamarse: la pila crece hasta quedarse sin memoria (stack overflow) y el programa se cae.">La pila crece hasta desbordarse</button>
+            <button type="button" class="opcion" data-explicacion="Compila sin problemas: el compilador no sabe si la recursión termina. El error aparece al ejecutarlo.">No compila</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="potencia" data-titulo="Potencia rápida">
+        <h2>Potencia rápida: dividir el exponente</h2>
+        <p>Con un <code>for</code>, <code>2<sup>10</sup></code> necesita 9 multiplicaciones. Pero <code>2<sup>10</sup> = (2<sup>5</sup>)²</code> y <code>2<sup>5</sup> = (2<sup>2</sup>)² × 2</code>: si cada llamada <strong>divide el exponente a la mitad</strong>, solo hay unas log₂ n llamadas. La clave es calcular <code>mitad</code> <strong>una vez</strong> y multiplicarla por sí misma.</p>
+        <div id="vis-potencia"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántas llamadas hace <code>potencia(2, 1000)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso haría un for, o una recursión que baje el exponente de a 1.">1000</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="1000, 500, 250, 125, 62, 31, 15, 7, 3, 1 y 0: el exponente se divide a la mitad en cada una, así que son unas log₂ 1000 ≈ 10 (más el caso base). Eso sí, 2¹⁰⁰⁰ no cabe en un long long.">11</button>
+            <button type="button" class="opcion" data-explicacion="No es O(1): sigue habiendo una llamada por cada vez que se divide el exponente.">1</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Y si en lugar de <code>mitad * mitad</code> escribieras <code>potencia(base, exponente / 2) * potencia(base, exponente / 2)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada llamada haría dos, que harían cuatro… El árbol de llamadas tendría unos 2·exponente nodos: vuelve a ser O(n), igual que el for.">Volvería a ser O(exponente)</button>
+            <button type="button" class="opcion" data-explicacion="El resultado sería el mismo, pero el costo no: se calcularía dos veces lo mismo en cada nivel.">Lo mismo, solo más largo de escribir</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="fibonacci" data-titulo="Fibonacci: el árbol de llamadas">
+        <h2>Fibonacci: cuando la recursión repite trabajo</h2>
+        <div class="dos-columnas">
+          <p><code>fibonacci(n)</code> hace <strong>dos llamadas</strong>, así que forman un árbol, y las ramas piden muchas veces lo mismo (en rojo): es O(2ⁿ).</p>
+          <p>Con <strong>memoria</strong> (<code>memo</code>), cada valor se calcula una vez; cuando se vuelve a pedir, se devuelve enseguida y esa rama se poda: O(n).</p>
+        </div>
+        <div id="vis-fibonacci"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Sin memo, ¿cuántas veces se llama a <code>fibonacci(2)</code> dentro de <code>fibonacci(5)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso pasa con memo: después de la primera vez, se lee de memo[2].">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Una vez dentro de fibonacci(4) → fibonacci(3), otra dentro de fibonacci(4) y otra dentro de fibonacci(3), la rama derecha de la raíz.">3</button>
+            <button type="button" class="opcion" data-explicacion="fibonacci(5) no llama a fibonacci(2) directamente, pero sus hijos sí.">0</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>Todas las funciones con la pila de llamadas a la vista. <code>b</code> es la base de <code>aBase</code> o el exponente de <code>potencia</code>.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y cuándo usarla">
+        <h2>Complejidad y cuándo usar recursión</h2>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>Función</th><th>Tiempo</th><th>Pila</th><th>Por qué</th></tr></thead>
+              <tbody>
+                <tr><td><code>sumaDigitos</code>, <code>imprimir…</code>, <code>invertir</code></td><td class="o-grande bueno">O(d)</td><td>O(d)</td><td>Una llamada por dígito (d ≈ log₁₀ n).</td></tr>
+                <tr><td><code>aBase</code></td><td class="o-grande bueno">O(log<sub>b</sub>&nbsp;n)</td><td>O(log<sub>b</sub>&nbsp;n)</td><td>Cada llamada divide n entre la base.</td></tr>
+                <tr><td><code>esPalindromo</code></td><td class="o-grande malo">O(n)</td><td>O(n)</td><td>Una llamada por pareja de letras.</td></tr>
+                <tr><td><code>potencia</code></td><td class="o-grande bueno">O(log&nbsp;e)</td><td>O(log&nbsp;e)</td><td>El exponente se divide a la mitad.</td></tr>
+                <tr><td><code>fibonacci</code></td><td class="o-grande malo">O(2ⁿ)</td><td>O(n)</td><td>Repite trabajo: n = 40 hace más de 300 millones de llamadas.</td></tr>
+                <tr><td><code>fibonacciMemo</code></td><td class="o-grande bueno">O(n)</td><td>O(n)</td><td>Cada valor se calcula una vez.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>La pila también cuesta</strong>: cada llamada en curso ocupa un marco. La pila mide unos pocos MB, así que una recursión de un millón de niveles se desborda aunque sea O(n).</li>
+            <li><strong>Cada llamada debe acercarse al caso base</strong> (n / 10, exponente / 2, i + 1 y j - 1). Si no, nunca termina.</li>
+            <li><strong>Úsala</strong> cuando el problema se parte en problemas iguales más chicos: árboles, montículos, divide y vencerás (merge sort, búsqueda binaria), backtracking.</li>
+            <li><strong>Prefiere un bucle</strong> para recorridos simples muy largos, y agrega memoria cuando las ramas repiten cálculos.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra recursion.cpp -o recursion &amp;&amp; ./recursion</span></pre>
+        <div data-codigo-completo="recursion.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>int contarDigitos(int n)</code> recursiva. ¿Cuál es su caso base?</li>
+          <li>Escribe <code>bool contieneDigito(int n, int d)</code>, que diga si el dígito <code>d</code> aparece en <code>n</code>. ¿Cuántos casos base necesita?</li>
+          <li>Haz la operación inversa de <code>aBase</code>: <code>int aDecimal(const std::string&amp; digitos, int base)</code>. Pista: el valor de <code>"1101"</code> es <code>aDecimal("110") * 2 + 1</code>.</li>
+          <li>Escribe el máximo común divisor de Euclides: <code>mcd(a, b) = a</code> si <code>b == 0</code>, y si no, <code>mcd(b, a % b)</code>. ¿Es recursión de cola?</li>
+          <li>Cambia <code>potencia</code> para que calcule <code>base<sup>exponente</sup> % m</code> sin desbordarse (aplica <code>% m</code> después de cada multiplicación).</li>
+          <li>Cuenta las llamadas de <code>fibonacci(n)</code> para n = 10, 20 y 30 con un contador global. ¿Cuánto crece cada vez que n sube en 1?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="recursion.js"></script>
+</body>
+</html>

@@ -2259,3 +2259,244 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .cnodo, .lienzo-circ, .marco-circ { transition: none; }
   .lienzo-circ svg path.traza, .cnodo.nuevo, .cnodo.encontrado, .cnodo.condenado, .cnodo .valor.cambia { animation: none; }
 }
+
+/* Recursión: la pila de marcos en escalera (cada llamada más abajo y más a
+   la derecha), con el hueco donde cae lo que devuelve la llamada de abajo,
+   y el árbol de llamadas de Fibonacci */
+
+.rec-lienzo { position: relative; }
+.rec-fantasmas { position: absolute; inset: 0; pointer-events: none; }
+.rec-fantasmas .rec-fantasma { position: absolute; margin: 0; z-index: 4; animation: rec-sale 0.45s ease both; }
+@keyframes rec-sale { to { opacity: 0; transform: translateY(-8px) scale(0.94); } }
+.rec-entra { animation: pop 0.35s ease; }
+.rec-vuela { position: relative; z-index: 5; }
+.rec-valor.rec-vuela { box-shadow: var(--sombra); }
+
+.rec-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.25rem; min-height: 2rem; margin: 0 0 0.25rem; }
+.rec-info .pila-llamadas { width: auto; margin: 0; }
+.rec-info .variables { margin: 0; }
+.rec-info .salida-valor { margin: 0; }
+.rec-info .salida-valor .celda { width: auto; min-width: 34px; height: 32px; padding: 0 8px; }
+.rec-comparacion { color: var(--texto-suave); }
+.rec-aviso { padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--peligro-suave); color: var(--peligro); font-family: var(--fuente-codigo); font-size: 0.72rem; font-weight: 700; }
+
+.rec-fila { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 0.45rem; }
+.rec-fila > .fila-titulo { min-width: 4.2rem; margin: 0; }
+
+.rec-cifras, .rec-letras, .rec-memo { display: flex; flex-wrap: wrap; gap: 5px; }
+.rec-cifra {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 34px;
+  border: 2px solid var(--acento);
+  border-radius: 7px;
+  background: var(--acento-suave);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  transition: opacity 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+.rec-cifra.sacada { border-style: dashed; border-color: var(--borde); background: none; color: var(--texto-suave); opacity: 0.55; }
+
+.rec-pantalla {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 10rem;
+  min-height: 38px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--codigo-fondo);
+  color: var(--codigo-texto);
+}
+.rec-pantalla .rec-valor { border-color: var(--codigo-borde-linea); background: var(--codigo-linea); color: var(--codigo-texto); }
+.rec-pantalla .rec-valor.activo { border-color: var(--activo); background: var(--activo); color: var(--codigo-fondo); }
+.rec-cursor { font-family: var(--fuente-codigo); animation: rec-parpadeo 1s steps(1) infinite; }
+@keyframes rec-parpadeo { 50% { opacity: 0; } }
+
+.rec-letra-col { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.rec-letra {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 34px;
+  border: 2px solid var(--borde);
+  border-radius: 7px;
+  background: var(--superficie);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.rec-letra.comparando { border-color: var(--activo); background: var(--activo-suave); }
+.rec-letra.bien { border-color: var(--exito); background: var(--exito-suave); }
+.rec-letra.mal { border-color: var(--peligro); background: var(--peligro-suave); animation: latido 0.6s ease; }
+.rec-letra.vacia { border-style: dashed; }
+.rec-letra.vacia-memo { color: var(--texto-suave); border-style: dashed; }
+.rec-letra.lleno { border-color: var(--acento); background: var(--acento-suave); }
+.rec-letra.guarda { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.4s ease 0.3s both; }
+.rec-letra.leida { border-color: var(--activo); background: var(--activo-suave); }
+.rec-memo .rec-letra { width: auto; min-width: 32px; padding: 0 4px; }
+.rec-marcas { min-height: 1rem; display: flex; gap: 2px; line-height: 1; }
+.rec-letra-col.fuera .indice { font-style: italic; }
+
+.rec-marcos { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.rec-marco {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0.55rem;
+  min-height: 36px;
+  max-width: calc(100% - var(--prof) * 16px);
+  margin-left: calc(var(--prof) * 16px);
+  padding: 3px 10px 3px 6px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--acento);
+  border-radius: 8px;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  transition: border-color 0.25s ease, opacity 0.25s ease;
+}
+.rec-marco:not(.actual) { opacity: 0.86; }
+.rec-marco.actual { border-color: var(--activo); border-left-color: var(--activo); }
+.rec-marco.base { border-left-color: var(--exito); }
+.rec-marco.error { border-color: var(--peligro); border-left-color: var(--peligro); background: var(--peligro-suave); }
+.rec-marco.sacudir { animation: sacudir 0.36s ease; }
+.rec-prof {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--superficie-2);
+  color: var(--texto-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+.rec-marco.actual .rec-prof { background: var(--activo); color: var(--acento-texto); }
+.rec-llamada { padding: 0; border: 0; background: none; font-size: 0.8rem; font-weight: 700; color: var(--texto); white-space: nowrap; }
+.rec-etiqueta-base { padding: 0 0.45rem; border-radius: 999px; background: var(--exito-suave); color: var(--exito); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.rec-expr { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 0.4rem; }
+.rec-txt { font-family: var(--fuente-codigo); font-size: 0.78rem; color: var(--texto); white-space: nowrap; }
+.rec-txt.suave { color: var(--texto-suave); }
+.rec-txt.bien { color: var(--exito); font-weight: 700; }
+.rec-txt.mal { color: var(--peligro); font-weight: 700; }
+.rec-nota { font-family: var(--fuente-codigo); font-size: 0.72rem; color: var(--texto-suave); }
+.rec-hueco {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 4px 2px 7px;
+  border: 2px dashed var(--inactivo);
+  border-radius: 8px;
+  background: var(--superficie-2);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.rec-hueco code { padding: 0; border: 0; background: none; font-size: 0.74rem; color: var(--texto-suave); white-space: nowrap; }
+.rec-hueco.lleno { border-style: solid; border-color: var(--acento); }
+.rec-igual { font-family: var(--fuente-codigo); font-size: 0.75rem; color: var(--texto-suave); }
+.rec-hueco-valor { display: inline-flex; gap: 2px; }
+.rec-hueco-vacio { display: inline-grid; place-items: center; min-width: 26px; height: 24px; font-family: var(--fuente-codigo); font-size: 0.75rem; font-weight: 700; color: var(--texto-suave); }
+.rec-hueco-texto { font-family: var(--fuente-codigo); font-size: 0.78rem; font-weight: 700; color: var(--exito); white-space: nowrap; }
+.rec-devuelve { display: inline-flex; align-items: center; gap: 2px; padding-left: 0.5rem; border-left: 1px dashed var(--borde); }
+.rec-flecha { margin-right: 0.3rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--exito); }
+
+.rec-valor {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border: 2px solid var(--acento);
+  border-radius: 7px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+.rec-valor.car { min-width: 22px; padding: 0 4px; border-radius: 5px; }
+.rec-valor.verdadero { border-color: var(--exito); background: var(--exito-suave); }
+.rec-valor.falso { border-color: var(--peligro); background: var(--peligro-suave); }
+.rec-valor.pendiente { border-style: dashed; background: none; color: var(--texto-suave); }
+.rec-valor.activo { border-color: var(--activo); background: var(--activo-suave); }
+.rec-vacio { font-family: var(--fuente-codigo); font-size: 0.75rem; font-style: italic; color: var(--texto-suave); padding: 0.4rem 0; }
+
+/* Recursiones profundas: marcos más bajos para que la pila quepa. */
+.rec-contenido.apretado .rec-marcos { gap: 2px; }
+.rec-contenido.apretado .rec-marco { min-height: 26px; padding-top: 0; padding-bottom: 0; margin-left: calc(var(--prof) * 12px); max-width: calc(100% - var(--prof) * 12px); }
+.rec-contenido.apretado .rec-valor { height: 20px; }
+.rec-contenido.apretado .rec-prof { width: 18px; height: 18px; }
+.rec-contenido.apretado .rec-hueco { padding-top: 0; padding-bottom: 0; }
+.rec-contenido.apretado .rec-hueco-vacio { height: 20px; }
+
+/* Árbol de llamadas de Fibonacci */
+.rec-marco-arbol { margin: 0.4rem auto 0.6rem; transition: width 0.45s ease, height 0.45s ease; }
+.rec-arbol { position: relative; transform-origin: 0 0; }
+.rec-arbol svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.rec-arbol svg line { stroke: var(--inactivo); stroke-width: 2; }
+.rec-arbol svg line.en-pila { stroke: var(--activo); stroke-width: 3; }
+.rec-nodo {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 36px;
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  background: var(--superficie);
+  font-family: var(--fuente-codigo);
+  line-height: 1.05;
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.rec-nodo-k { font-size: 0.7rem; font-weight: 700; color: var(--texto); }
+.rec-nodo-v { font-size: 0.66rem; color: var(--texto-suave); white-space: nowrap; }
+.rec-nodo.pila { border-color: var(--activo); background: var(--activo-suave); }
+.rec-nodo.listo { border-color: var(--acento); background: var(--acento-suave); }
+.rec-nodo.listo .rec-nodo-v { font-size: 0.78rem; font-weight: 700; color: var(--texto); }
+.rec-nodo.memo { border-style: dashed; border-color: var(--exito); background: var(--exito-suave); }
+.rec-nodo.memo .rec-nodo-v { font-weight: 700; color: var(--exito); }
+.rec-nodo.repetido { border-color: var(--peligro); }
+.rec-nodo.repetido.listo { background: var(--peligro-suave); }
+.rec-nodo.actual { box-shadow: 0 0 0 4px var(--activo-suave); }
+.rec-viajero {
+  position: absolute;
+  z-index: 6;
+  padding: 1px 7px;
+  border: 2px solid var(--activo);
+  border-radius: 999px;
+  background: var(--activo-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: var(--sombra);
+  pointer-events: none;
+}
+.rec-memo-fila .rec-fila { justify-content: center; margin: 0; }
+
+/* Teléfonos: cada marco en una sola línea. El hueco muestra solo su valor
+   (la llamada se ve en el marco de abajo) y se ocultan las notas. */
+@media (max-width: 600px) {
+  .rec-marco, .rec-contenido.apretado .rec-marco { gap: 3px 0.35rem; margin-left: calc(var(--prof) * 6px); max-width: calc(100% - var(--prof) * 6px); padding-right: 6px; }
+  .rec-llamada { font-size: 0.72rem; }
+  .rec-hueco { padding-left: 4px; }
+  .rec-hueco code, .rec-igual, .rec-nota, .rec-etiqueta-base, .rec-flecha { display: none; }
+  .rec-devuelve::before { content: "→"; margin-right: 0.25rem; color: var(--exito); font-weight: 700; }
+  .rec-txt { font-size: 0.72rem; }
+  .rec-fila { gap: 0.5rem; }
+  .rec-fila > .fila-titulo { min-width: 0; }
+  .rec-letras { gap: 3px; }
+  .rec-letra, .rec-cifra { width: 28px; height: 30px; }
+  .rec-info .pila-llamadas { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-cursor, .rec-entra, .rec-letra.mal, .rec-letra.guarda, .rec-marco.sacudir { animation: none; }
+  .rec-marco-arbol, .rec-cifra, .rec-letra, .rec-nodo { transition: none; }
+}
