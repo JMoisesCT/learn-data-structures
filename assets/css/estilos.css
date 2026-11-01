@@ -830,6 +830,128 @@ pre.codigo .linea.actual {
   border-left-color: var(--codigo-borde-linea);
 }
 
+/* Indicaciones del código (visualizador.js las calcula solas): el resaltado
+   que se desliza, el corchete y las vueltas de cada bucle, quién llamó a la
+   función y de qué cabecera viene cada función de la biblioteca estándar. */
+
+pre.codigo.con-rastro { position: relative; isolation: isolate; }
+pre.codigo.con-rastro .linea.actual { background: transparent; border-left-color: transparent; }
+.cursor-linea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  min-width: 100%;
+  background: var(--codigo-linea);
+  border-left: 3px solid var(--codigo-borde-linea);
+  transition: top 0.28s cubic-bezier(0.3, 0.7, 0.3, 1), height 0.2s ease;
+  pointer-events: none;
+}
+.cursor-linea[hidden] { display: none; }
+
+.corchete-bucle {
+  position: absolute;
+  left: calc(5px + var(--nivel, 0) * 5px);
+  width: 5px;
+  border: 2px solid var(--sintaxis-pre);
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
+  opacity: 0.75;
+  pointer-events: none;
+}
+/* Una vuelta nueva: un punto sube por el corchete, del final a la condición. */
+.corchete-bucle.vuelve::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sintaxis-pre);
+  animation: subir-bucle 0.55s ease-in-out both;
+}
+@keyframes subir-bucle {
+  from { top: calc(100% - 4px); opacity: 1; }
+  to { top: -4px; opacity: 0.2; }
+}
+
+.insignia {
+  display: inline-block;
+  margin-left: 0.9rem;
+  padding: 0 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family: var(--fuente);
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-style: normal;
+  line-height: 1.45;
+  vertical-align: 1px;
+  white-space: nowrap;
+  user-select: none;
+}
+.insignia.bucle { color: var(--sintaxis-pre); background: color-mix(in srgb, var(--sintaxis-pre) 14%, transparent); }
+.insignia.bucle.termino { color: var(--sintaxis-texto); background: color-mix(in srgb, var(--sintaxis-texto) 14%, transparent); animation: aparecer-insignia 0.3s ease both; }
+.insignia.llamada { color: var(--sintaxis-funcion); background: color-mix(in srgb, var(--sintaxis-funcion) 14%, transparent); }
+.insignia.origen { color: var(--sintaxis-tipo); background: color-mix(in srgb, var(--sintaxis-tipo) 14%, transparent); }
+.insignia.nueva { animation: latir-insignia 0.45s ease both; }
+.insignia.entra { animation: empujar-insignia 0.9s ease-in-out infinite alternate; }
+.indicaciones-plegado { display: none; }
+@keyframes latir-insignia {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes aparecer-insignia {
+  from { opacity: 0; transform: translateX(-6px); }
+}
+@keyframes empujar-insignia {
+  to { transform: translateX(4px); }
+}
+
+/* Al entrar a una función el código llega desde la derecha; al volver, desde la izquierda. */
+pre.codigo.entra-llamada > .linea { animation: entrar-llamada 0.35s ease both; }
+pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; }
+@keyframes entrar-llamada { from { opacity: 0; transform: translateX(28px); } }
+@keyframes volver-llamada { from { opacity: 0; transform: translateX(-28px); } }
+
+/* Cadena de llamadas en el título: si no cabe, se acortan primero las de afuera. */
+.panel-codigo .nombre-codigo { display: flex; align-items: baseline; min-width: 0; white-space: nowrap; }
+.miga-llamada, .miga-actual { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.miga-llamada { flex: 0 10 auto; min-width: 2.5em; color: var(--sintaxis-funcion); }
+.miga-actual { flex: 0 1 auto; }
+.miga-separador { flex: none; margin: 0 0.4rem; opacity: 0.6; }
+
+.llamada-desde {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.35rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--sintaxis-funcion) 10%, transparent);
+  color: var(--codigo-texto);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+.llamada-desde[hidden] { display: none; }
+.llamada-desde.recien { animation: bajar-cinta 0.35s ease both; }
+.llamada-desde-quien { flex: none; font-family: var(--fuente); }
+.llamada-desde-quien b { color: var(--sintaxis-funcion); font-family: var(--fuente-codigo); }
+.llamada-desde code { min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 0; border: 0; background: none; color: inherit; font-size: 0.72rem; opacity: 0.9; }
+.llamada-desde.retorno { background: color-mix(in srgb, var(--sintaxis-texto) 10%, transparent); }
+.llamada-desde.retorno .llamada-desde-quien b { color: var(--sintaxis-texto); }
+@keyframes bajar-cinta { from { opacity: 0; transform: translateY(-6px); } }
+
+@media (max-width: 860px) {
+  /* Plegado solo se ve la línea actual: sin corchetes ni cursor, y con la vuelta en esa línea. */
+  .panel-codigo.plegado .corchete-bucle, .panel-codigo.plegado .cursor-linea { display: none; }
+  .panel-codigo.plegado pre.codigo.con-rastro .linea.actual { background: var(--codigo-linea); border-left-color: var(--codigo-borde-linea); }
+  .panel-codigo.plegado pre.codigo .insignia { display: none; }
+  .panel-codigo.plegado .indicaciones-plegado:not(:empty) { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0 1rem 0.5rem calc(3px + 2.6rem); }
+  .indicaciones-plegado .insignia { margin-left: 0; }
+}
+
 .tk-clave { color: var(--sintaxis-clave); }
 .tk-tipo { color: var(--sintaxis-tipo); }
 .tk-texto { color: var(--sintaxis-texto); }

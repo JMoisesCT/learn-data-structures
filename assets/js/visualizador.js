@@ -422,6 +422,161 @@
   }
   DS.resaltarCpp = resaltarCpp;
 
+  // ------------------------------------------------------------------
+  // Análisis de un fragmento: su nombre, sus bucles y sus llamadas
+  // ------------------------------------------------------------------
+  //
+  // El visualizador lo usa para indicar, sin que cada tema haga nada, en qué
+  // vuelta de un bucle va la ejecución, desde qué línea se llamó a una
+  // función, a cuál llama la línea actual y de dónde sale una función de la
+  // biblioteca estándar.
+
+  // Funciones de la biblioteca estándar: de qué cabecera vienen.
+  const ORIGENES = {
+    swap: "<utility>",
+    sort: "<algorithm>",
+    count_if: "<algorithm>",
+    find_if: "<algorithm>",
+    min: "<algorithm>",
+    max: "<algorithm>",
+    abs: "<cstdlib>",
+    floor: "<cmath>",
+    out_of_range: "<stdexcept>",
+    underflow_error: "<stdexcept>",
+  };
+
+  // Cambia comentarios y textos por espacios (conserva posiciones y saltos de
+  // línea) para buscar bucles y llamadas sin confundirse con lo que dicen.
+  function sinComentarios(codigo) {
+    return codigo.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/g,
+      (m) => m.replace(/[^\n]/g, " "));
+  }
+
+  function analizarFragmento(codigo) {
+    const limpio = sinComentarios(codigo);
+    const lineas = limpio.split("\n");
+    const inicios = [0];
+    for (let k = 0; k < limpio.length; k++) if (limpio[k] === "\n") inicios.push(k + 1);
+    const lineaDe = (pos) => {
+      let n = 0;
+      while (n + 1 < inicios.length && inicios[n + 1] <= pos) n++;
+      return n + 1;
+    };
+    const saltarEspacios = (pos) => {
+      while (pos < limpio.length && /\s/.test(limpio[pos])) pos++;
+      return pos;
+    };
+    // Posición del cierre que corresponde a la apertura en pos.
+    const cierre = (pos) => {
+      const abre = limpio[pos];
+      const cierra = abre === "(" ? ")" : "}";
+      let nivel = 0;
+      for (let k = pos; k < limpio.length; k++) {
+        if (limpio[k] === abre) nivel++;
+        else if (limpio[k] === cierra && --nivel === 0) return k;
+      }
+      return -1;
+    };
+    // Fin de una instrucción sin llaves (el ; fuera de paréntesis).
+    const finInstruccion = (pos) => {
+      let nivel = 0;
+      for (let k = pos; k < limpio.length; k++) {
+        if (limpio[k] === "(") nivel++;
+        else if (limpio[k] === ")") nivel--;
+        else if (limpio[k] === ";" && nivel === 0) return k;
+      }
+      return -1;
+    };
+
+    // Nombre de la función que define el fragmento (si es una definición).
+    const primera = lineas.find((l) => l.trim()) || "";
+    const def = primera.match(/^\s*[\w:<>,*&\s]*?[\w>*&]\s+[*&]?\s*(?:\w+::)?([A-Za-z_]\w*)\s*\([^;]*$/);
+    const nombre = def && !CLAVES.has(def[1]) ? def[1] : null;
+
+    // Bucles: for, while y do … while, con el rango de líneas que abarcan.
+    const bucles = [];
+    const whileDeDo = new Set();
+    const reBucle = /\b(for|while|do)\b/g;
+    let m;
+    while ((m = reBucle.exec(limpio))) {
+      const tipo = m[1];
+      const cabecera = lineaDe(m.index);
+      if (tipo === "do") {
+        const llave = saltarEspacios(m.index + 2);
+        if (limpio[llave] !== "{") continue;
+        const fin = cierre(llave);
+        const pw = saltarEspacios(fin + 1);
+        if (fin < 0 || !limpio.startsWith("while", pw)) continue;
+        whileDeDo.add(pw);
+        const puntoYComa = finInstruccion(pw);
+        const condicion = lineaDe(pw);
+        if (condicion === cabecera) continue;
+        bucles.push({ tipo, cabecera, condicion, inicio: cabecera, fin: lineaDe(puntoYComa), cuerpo: [cabecera, condicion - 1] });
+        continue;
+      }
+      if (whileDeDo.has(m.index)) continue;
+      const parentesis = saltarEspacios(m.index + tipo.length);
+      if (limpio[parentesis] !== "(") continue;
+      const finParentesis = cierre(parentesis);
+      if (finParentesis < 0) continue;
+      const despues = saltarEspacios(finParentesis + 1);
+      if (limpio[despues] === ";") continue; // bucle sin cuerpo
+      const fin = limpio[despues] === "{" ? cierre(despues) : finInstruccion(despues);
+      if (fin < 0) continue;
+      const desde = Math.max(lineaDe(finParentesis) + (limpio[despues] === "{" ? 1 : 0), lineaDe(despues));
+      const hasta = lineaDe(fin);
+      if (hasta <= cabecera || desde > hasta) continue; // todo en una línea: no hay vueltas que mostrar
+      bucles.push({ tipo, cabecera, condicion: cabecera, inicio: cabecera, fin: hasta, cuerpo: [desde, hasta] });
+    }
+    // En un bucle sin otros bucles adentro, la misma línea del cuerpo dos
+    // veces seguidas es otra vuelta (los temas suelen mostrar una sola línea
+    // por vuelta). Con un bucle adentro, no: entre vuelta y vuelta corre el de
+    // adentro, y dos pasos en la misma línea son dos mensajes de una vuelta.
+    for (const b of bucles) {
+      b.repetirEsVuelta = !bucles.some((o) => o !== b && o.inicio >= b.inicio && o.fin <= b.fin);
+    }
+    bucles.sort((a, b) => a.inicio - b.inicio || b.fin - a.fin);
+    // Profundidad de cada bucle (para dibujar los anidados uno al lado del otro).
+    for (const b of bucles) {
+      b.nivel = bucles.filter((o) => o !== b && o.inicio <= b.inicio && o.fin >= b.fin).length;
+    }
+
+    // Llamadas de cada línea: identificadores seguidos de "(".
+    const llamadas = lineas.map((l, k) => {
+      const nombres = [];
+      for (const c of l.matchAll(/\b([A-Za-z_]\w*)\s*\(/g)) {
+        const id = c[1];
+        if (CLAVES.has(id) || TIPOS.has(id)) continue;
+        if (k === lineas.indexOf(primera) && id === nombre) continue; // la propia definición
+        // obj.metodo( u obj->metodo(: método de un objeto, no una función suelta.
+        nombres.push({ id, metodo: /(?:\.|->)\s*$/.test(l.slice(0, c.index)) });
+      }
+      return nombres;
+    });
+
+    // Lambdas de varias líneas: [capturas](parámetros) { … }. Su cuerpo corre
+    // cuando se las llama, no donde se escriben.
+    const lambdas = [];
+    const reLambda = /\[[^\[\]\n]*\]\s*\(/g;
+    while ((m = reLambda.exec(limpio))) {
+      const parentesis = m.index + m[0].length - 1;
+      const finParentesis = cierre(parentesis);
+      if (finParentesis < 0) continue;
+      let pos = saltarEspacios(finParentesis + 1);
+      const resto = limpio.slice(pos).match(/^(?:mutable\s*)?(?:->\s*[\w:<>]+\s*)?/);
+      pos = saltarEspacios(pos + resto[0].length);
+      if (limpio[pos] !== "{") continue;
+      const fin = cierre(pos);
+      const inicio = lineaDe(m.index);
+      if (fin < 0 || lineaDe(fin) <= inicio) continue;
+      const asignada = lineas[inicio - 1].slice(0, m.index - inicios[inicio - 1]).match(/(\w+)\s*=\s*$/);
+      lambdas.push({ nombre: asignada ? asignada[1] : null, inicio, fin: lineaDe(fin) });
+    }
+
+    return { nombre, bucles, llamadas, lambdas };
+  }
+  DS.analizarFragmento = analizarFragmento;
+
   // Quita la sangría común para que los fragmentos se vean alineados.
   function dedent(texto) {
     const lineas = texto.replace(/^\n+|\s+$/g, "").split("\n");
@@ -494,6 +649,14 @@
   // toma una "foto" del estado s. Las líneas empiezan en 1. tipo puede ser
   // "error" o "exito". Usa s.vis para resaltados temporales (se borra al
   // empezar y terminar cada operación).
+  //
+  // El panel de código indica solo, a partir de la secuencia de pasos, en qué
+  // vuelta va cada bucle, quién llamó a la función que se ve (si el fragmento
+  // cambia a uno que el anterior llama), las llamadas recursivas y de qué
+  // cabecera viene cada función de la biblioteca estándar. Si los pasos de un
+  // bucle no muestran cada vuelta (por ejemplo, se saltan la línea del for de
+  // afuera), el tema puede dar el número: s.vis.vueltas = { 2: i + 1 }, con la
+  // línea del for/while (dentro del fragmento) como clave.
 
   const VELOCIDADES = [0.4, 0.7, 1, 1.6, 2.6];
 
@@ -511,6 +674,15 @@
 
     const fragmentos = {};
     for (const [clave, texto] of Object.entries(cfg.codigo)) fragmentos[clave] = dedent(texto);
+    // Nombre, bucles y llamadas de cada fragmento (para las indicaciones del código).
+    const analisis = {};
+    const clavePorNombre = {};
+    for (const [clave, texto] of Object.entries(fragmentos)) {
+      analisis[clave] = analizarFragmento(texto);
+      const n = analisis[clave].nombre;
+      if (n && !(n in clavePorNombre)) clavePorNombre[n] = clave;
+    }
+    const nombreDe = (clave) => (analisis[clave] && analisis[clave].nombre) || clave;
 
     let estado = null;
     let pasos = [];
@@ -573,15 +745,21 @@
       el("div", { class: "fila-reproduccion" }, bInicio, bAtras, bPlay, bAdelante, bFin, contador),
       el("div", { class: "fila-reproduccion" }, selectorModo, etiquetaVelocidad));
 
-    const nombreCodigo = el("span");
-    const preCodigo = el("pre", { class: "codigo", tabindex: "0" });
+    const nombreCodigo = el("span", { class: "nombre-codigo" });
+    const preCodigo = el("pre", { class: "codigo con-rastro", tabindex: "0" });
+    // Desde qué línea se llamó a la función que se ve (solo dentro de una llamada).
+    const procedencia = el("div", { class: "llamada-desde", hidden: true });
+    // Con el código plegado (móvil) las indicaciones de la línea actual van en su propia fila.
+    const filaPlegada = el("div", { class: "indicaciones-plegado", "aria-hidden": "true" });
     // En pantallas angostas el código se pliega a la línea que se ejecuta.
     const bPlegar = el("button", { class: "boton-plegar", type: "button", "aria-expanded": "false", onclick: () => plegar(!panelCodigo.classList.contains("plegado")) });
-    const panelCodigo = el("div", { class: "panel panel-codigo" }, el("div", { class: "titulo-codigo" }, nombreCodigo, bPlegar), preCodigo);
+    const panelCodigo = el("div", { class: "panel panel-codigo" }, el("div", { class: "titulo-codigo" }, nombreCodigo, bPlegar), procedencia, preCodigo, filaPlegada);
     function plegar(si) {
       panelCodigo.classList.toggle("plegado", si);
       bPlegar.setAttribute("aria-expanded", String(!si));
       bPlegar.textContent = si ? "Ver todo ▾" : "Ver menos ▴";
+      // Los corchetes y el cursor se miden con las líneas a la vista.
+      if (pasos[actual]) mostrarCodigo(pasos[actual], false);
     }
     plegar(true);
 
@@ -712,6 +890,7 @@
       if (!altos.has(escenario)) reservarEspacio();
       ajustarEscala();
       centrar();
+      if (pasos[actual]) mostrarCodigo(pasos[actual], false);
     });
 
     function aleatorio(e) {
@@ -763,6 +942,172 @@
       return { estado: clonar(estado), clave, linea: 0, mensaje: texto, tipo: "" };
     }
 
+    // --- Rastro de la ejecución: llamadas y vueltas de los bucles ---
+    //
+    // Se deduce de la secuencia de pasos, sin que el tema haga nada: si el
+    // fragmento cambia a uno que el anterior llama (redimensionar dentro de
+    // agregarAlFinal), es una llamada y se apila; si vuelve a uno que ya
+    // estaba en la pila, es un retorno. Las vueltas de un bucle se cuentan
+    // cada vez que la ejecución entra a su cuerpo desde la condición o salta
+    // hacia atrás dentro de él.
+
+    function nuevoMarco(clave, lambda) {
+      return { clave, lambda: lambda || null, linea: 0, ultima: 0, bucles: new Map() };
+    }
+    const dentroDeLambda = (lambda, l) => l > lambda.inicio && l <= lambda.fin;
+    // Nombre con el que se muestra un marco: la función o la lambda.
+    const nombreMarco = (m) => (m.lambda ? m.lambda.nombre || "lambda" : nombreDe(m.clave));
+    // "insertarEn()" o, para una lambda sin nombre, "la lambda".
+    const comoLlamada = (nombre) => (nombre === "lambda" ? "la lambda" : `${nombre}()`);
+
+    // Línea del fragmento del marco que llama a la función de la clave dada.
+    function lineaDeLlamada(marco, clave) {
+      const nombre = analisis[clave] && analisis[clave].nombre;
+      const a = analisis[marco.clave];
+      if (!nombre || !a) return 0;
+      const candidatas = [];
+      a.llamadas.forEach((ls, k) => { if (ls.some((x) => x.id === nombre)) candidatas.push(k + 1); });
+      if (!candidatas.length) return 0;
+      return candidatas.find((l) => l >= marco.linea) || candidatas[candidatas.length - 1];
+    }
+
+    // Mueve el marco a la línea l y actualiza las vueltas de sus bucles.
+    function avanzar(marco, l, trasRetorno) {
+      const terminados = [];
+      const nuevas = [];
+      if (l > 0) {
+        const bucles = analisis[marco.clave] ? analisis[marco.clave].bucles : [];
+        const previa = marco.ultima;
+        const enCuerpo = (b, x) => x >= b.cuerpo[0] && x <= b.cuerpo[1];
+        for (const b of bucles) {
+          let e = marco.bucles.get(b);
+          const dentro = l >= b.inicio && l <= b.fin;
+          if (!dentro) {
+            if (e) {
+              terminados.push({ bucle: b, vueltas: e.vueltas });
+              marco.bucles.delete(b);
+            }
+            continue;
+          }
+          if (!e) {
+            e = { vueltas: 0 };
+            marco.bucles.set(b, e);
+          }
+          // La condición dos veces seguidas: hubo una vuelta cuyo cuerpo no se mostró
+          // (por ejemplo, una cubeta vacía en la que no hay nada que hacer).
+          if (l === b.condicion && previa === b.condicion && !trasRetorno && b.repetirEsVuelta !== undefined) {
+            e.vueltas++;
+            continue;
+          }
+          if (!enCuerpo(b, l)) continue;
+          // Al volver de una llamada, la misma línea de la llamada sigue en la misma vuelta.
+          const desdeFuera = !e.vueltas || !enCuerpo(b, previa) || (l === previa && b.repetirEsVuelta && !trasRetorno);
+          // Un salto hacia atrás cuenta para este bucle salvo que lo explique
+          // un bucle de adentro (que contiene las dos líneas).
+          const haciaAtras = l < previa && !bucles.some((o) => o !== b && o.nivel > b.nivel
+            && o.inicio >= b.inicio && o.fin <= b.fin
+            && l >= o.inicio && l <= o.fin && previa >= o.inicio && previa <= o.fin);
+          if (desdeFuera || haciaAtras) {
+            e.vueltas++;
+            nuevas.push(b);
+          }
+        }
+        marco.ultima = l;
+      }
+      marco.linea = l;
+      return { terminados, nuevas };
+    }
+
+    function anotarRastro(lista) {
+      let pila = [];
+      for (const p of lista) {
+        let evento = null;
+        const tope = pila[pila.length - 1];
+        if (!tope) {
+          pila = [nuevoMarco(p.clave)];
+        } else if (tope.clave === p.clave) {
+          const a = analisis[p.clave];
+          // Fuera del cuerpo de una lambda: la lambda terminó y se vuelve a quien la llamó.
+          while (pila.length > 1 && pila[pila.length - 1].lambda && p.linea > 0 && !dentroDeLambda(pila[pila.length - 1].lambda, p.linea)) {
+            evento = { tipo: "retorno", de: nombreMarco(pila.pop()) };
+          }
+          const actualMarco = pila[pila.length - 1];
+          const sitio = actualMarco.ultima;
+          // Entra al cuerpo de una lambda desde una línea con una llamada: se llamó a la lambda.
+          const lambda = a && p.linea > 0 && sitio > 0 && (a.llamadas[sitio - 1] || []).length
+            ? a.lambdas.filter((x) => dentroDeLambda(x, p.linea) && !dentroDeLambda(x, sitio)
+              && (!actualMarco.lambda || (x.inicio >= actualMarco.lambda.inicio && x.fin <= actualMarco.lambda.fin)))
+              .sort((x, y) => y.inicio - x.inicio)[0]
+            : null;
+          const llamaASiMisma = a && a.nombre && sitio > 0 && (a.llamadas[sitio - 1] || []).some((x) => x.id === a.nombre && !x.metodo);
+          const deUnBucle = a && a.bucles.some((b) => p.linea >= b.inicio && p.linea <= b.fin && sitio >= b.inicio && sitio <= b.fin);
+          if (evento) {
+            // Ya volvió de una lambda.
+          } else if (lambda) {
+            if (actualMarco.linea !== sitio) avanzar(actualMarco, sitio);
+            evento = { tipo: "llamada" };
+            // Una lambda sin nombre propio toma el de la variable con que se la llama (sumarBase(x)).
+            const llamada = lambda.nombre ? null : a.llamadas[sitio - 1].find((x) => !x.metodo && !ORIGENES[x.id] && !clavePorNombre[x.id]
+              && !a.lambdas.some((o) => o.nombre === x.id));
+            pila.push(nuevoMarco(p.clave, llamada ? { ...lambda, nombre: llamada.id } : lambda));
+          } else if (llamaASiMisma && p.linea > 0 && p.linea < sitio && !deUnBucle && !actualMarco.lambda) {
+            // Recursión: desde la línea que se llama a sí misma, la ejecución
+            // vuelve al principio de la función, en una llamada nueva.
+            evento = { tipo: "llamada" };
+            pila.push(nuevoMarco(p.clave));
+          } else {
+            // Después de la línea de la llamada recursiva sigue la llamada de
+            // afuera: las de adentro ya terminaron.
+            const antes = pila.length;
+            while (pila.length > 1 && !pila[pila.length - 1].lambda && pila[pila.length - 2].clave === p.clave
+              && !pila[pila.length - 2].lambda && p.linea > pila[pila.length - 2].linea) pila.pop();
+            if (pila.length < antes) evento = { tipo: "retorno", de: nombreDe(p.clave) };
+          }
+        } else {
+          const k = pila.map((m) => m.clave).lastIndexOf(p.clave);
+          if (k >= 0) {
+            evento = { tipo: "retorno", de: nombreMarco(tope) };
+            pila = pila.slice(0, k + 1);
+          } else {
+            const sitio = lineaDeLlamada(tope, p.clave);
+            if (sitio) {
+              if (tope.linea !== sitio) avanzar(tope, sitio);
+              evento = { tipo: "llamada" };
+              pila.push(nuevoMarco(p.clave));
+            } else {
+              pila = [nuevoMarco(p.clave)];
+            }
+          }
+        }
+        const marco = pila[pila.length - 1];
+        const antes = new Map([...marco.bucles].map(([b, e]) => [b, e.vueltas]));
+        const { terminados, nuevas } = avanzar(marco, p.linea, evento && evento.tipo === "retorno");
+        // El tema puede dar las vueltas exactas (s.vis.vueltas = { línea del bucle: número })
+        // cuando sus pasos no muestran cada vuelta.
+        const dadas = p.estado && p.estado.vis && p.estado.vis.vueltas;
+        if (dadas) {
+          for (const [b, e] of marco.bucles) {
+            const n = dadas[b.cabecera];
+            if (n == null) continue;
+            e.vueltas = n;
+            const k = nuevas.indexOf(b);
+            if (n > (antes.get(b) || 0)) { if (k < 0) nuevas.push(b); } else if (k >= 0) nuevas.splice(k, 1);
+          }
+        }
+        // Dentro de una lambda se ven también los bucles de la función que la llamó (es el mismo código).
+        const bucles = [...marco.bucles].map(([b, e]) => ({ bucle: b, vueltas: e.vueltas, nueva: nuevas.includes(b) }));
+        for (let k = pila.length - 1; k > 0 && pila[k].lambda && pila[k - 1].clave === marco.clave; k--) {
+          for (const [b, e] of pila[k - 1].bucles) bucles.push({ bucle: b, vueltas: e.vueltas, nueva: false });
+        }
+        p.rastro = {
+          pila: pila.map((m) => ({ clave: m.clave, linea: m.linea, nombre: nombreMarco(m), lambda: !!m.lambda })),
+          bucles,
+          terminados,
+          evento,
+        };
+      }
+    }
+
     function ejecutar(op) {
       detener();
       const { args, error } = leerArgumentos(op);
@@ -781,6 +1126,7 @@
       op.ejecutar(s, args, paso);
       s.vis = {};
       estado = s;
+      anotarRastro(lista);
       pasos = lista.length ? lista : [pasoInicial("Listo.")];
       aleatoriosPendientes = (op.usa || []).filter((id) => campos[id].cfg.aleatorio);
       reservarEspacio();
@@ -801,19 +1147,145 @@
       ir(0);
     }
 
-    function mostrarCodigo(clave, linea) {
+    const tituloDe = (clave) => (cfg.tituloCodigo ? cfg.tituloCodigo(clave) : clave);
+
+    function insignia(clase, texto, titulo) {
+      return el("span", { class: `insignia ${clase}`, title: titulo || null, "aria-hidden": "true", text: texto });
+    }
+
+    function mostrarCodigo(p, animar) {
+      const { clave, linea } = p;
+      const r = p.rastro;
       if (clave !== claveMostrada) {
         claveMostrada = clave;
         preCodigo.innerHTML = resaltarCpp(fragmentos[clave]);
-        nombreCodigo.textContent = cfg.tituloCodigo ? cfg.tituloCodigo(clave) : clave;
+        preCodigo.append(el("div", { class: "cursor-linea", "aria-hidden": "true" }));
         preCodigo.scrollTop = 0;
       }
-      const lineas = preCodigo.children;
+      // Al entrar a una función o volver de ella, el código se desliza.
+      preCodigo.classList.remove("entra-llamada", "vuelve-llamada");
+      if (animar && r && r.evento) {
+        void preCodigo.offsetWidth;
+        preCodigo.classList.add(r.evento.tipo === "llamada" ? "entra-llamada" : "vuelve-llamada");
+      }
+      const lineas = preCodigo.querySelectorAll(":scope > .linea");
       for (let k = 0; k < lineas.length; k++) lineas[k].classList.toggle("actual", k === linea - 1);
-      // Si el código no cabe en su panel, la línea actual se mantiene a la vista.
       const marcada = lineas[linea - 1];
+
+      // Título: la cadena de llamadas (quién llamó a quién) y la función actual.
+      const pila = r ? r.pila : [];
+      // Las llamadas recursivas seguidas se agrupan: maxHeapify() ×3.
+      const grupos = [];
+      for (const m of pila) {
+        const g = grupos[grupos.length - 1];
+        if (g && g.nombre === m.nombre && !m.lambda) g.veces++;
+        else grupos.push({ nombre: m.nombre, lambda: m.lambda, veces: 1 });
+      }
+      const ultimoGrupo = grupos.pop() || { veces: 1 };
+      const conVeces = (texto, g) => texto + (g.veces > 1 ? ` ×${g.veces}` : "");
+      nombreCodigo.replaceChildren(
+        ...grupos.flatMap((g) => [
+          el("span", { class: "miga-llamada", text: conVeces(g.nombre === "lambda" ? "lambda" : `${g.nombre}()`, g) }),
+          el("span", { class: "miga-separador", text: "›" })]),
+        el("span", { class: "miga-actual", text: ultimoGrupo.lambda ? (ultimoGrupo.nombre === "lambda" ? "lambda" : `${ultimoGrupo.nombre} (lambda)`) : conVeces(tituloDe(clave), ultimoGrupo) }));
+      nombreCodigo.title = pila.length > 1 ? `${pila.map((m) => m.nombre).join(" llama a ")}` : "";
+
+      // Cinta "llamada desde": la línea del que llamó, con su código. Justo
+      // después de un retorno, en cambio, dice de qué función se volvió.
+      const llamador = pila.length > 1 ? pila[pila.length - 2] : null;
+      const retorno = r && r.evento && r.evento.tipo === "retorno" ? r.evento : null;
+      procedencia.hidden = !llamador && !retorno;
+      procedencia.classList.toggle("retorno", !!retorno);
+      if (retorno) {
+        procedencia.replaceChildren(
+          el("span", { class: "llamada-desde-quien" }, "↩ volvió de ", el("b", { text: comoLlamada(retorno.de) }),
+            `: sigue en ${comoLlamada(pila.length ? pila[pila.length - 1].nombre : nombreDe(clave))}${linea > 0 ? `, línea ${linea}` : ""}`));
+        procedencia.classList.toggle("recien", !!animar);
+      } else if (llamador) {
+        const texto = (fragmentos[llamador.clave].split("\n")[llamador.linea - 1] || "").trim();
+        procedencia.replaceChildren(
+          el("span", { class: "llamada-desde-quien" }, "↳ llamada desde ", el("b", { text: comoLlamada(llamador.nombre) }),
+            llamador.nombre === pila[pila.length - 1].nombre ? " (ella misma)" : "", `, línea ${llamador.linea}:`),
+          el("code", { html: resaltarCpp(texto).replace(/<\/?span class="linea">/g, "") }));
+        procedencia.classList.toggle("recien", !!(animar && r.evento && r.evento.tipo === "llamada"));
+      }
+
+      // Indicaciones sobre las líneas: bucles, llamadas y de dónde viene cada función.
+      for (const viejo of preCodigo.querySelectorAll(".insignia, .corchete-bucle")) viejo.remove();
+      filaPlegada.replaceChildren();
+      const plegada = (nodo) => filaPlegada.append(nodo);
+      const pegar = (n, nodo) => {
+        if (!lineas[n - 1]) return;
+        lineas[n - 1].append(nodo);
+        if (n === linea) plegada(nodo.cloneNode(true));
+      };
+      const plural = (k) => `${k} ${k === 1 ? "vuelta" : "vueltas"}`;
+      if (r && linea > 0) {
+        for (const { bucle: b, vueltas, nueva } of r.bucles) {
+          const enCondicion = linea === b.condicion;
+          const texto = enCondicion ? (vueltas ? `↻ ${plural(vueltas)} · ¿otra?` : "↻ ¿entra al bucle?") : `↻ vuelta ${vueltas}`;
+          const ayuda = enCondicion ? "Se evalúa la condición del bucle" : `La ejecución va en la vuelta ${vueltas} del bucle ${b.tipo}`;
+          const clase = `bucle${nueva && animar && vueltas > 1 ? " nueva" : ""}`;
+          pegar(b.condicion, insignia(clase, texto, ayuda));
+          // En móvil solo se ve la línea actual: la vuelta va también en su fila.
+          if (!enCondicion) plegada(insignia(clase, `↻ ${b.tipo}: vuelta ${vueltas}`, ayuda));
+          const arriba = lineas[b.inicio - 1];
+          const abajo = lineas[b.fin - 1];
+          if (arriba && abajo) {
+            preCodigo.append(el("div", {
+              class: `corchete-bucle${nueva && animar && vueltas > 1 ? " vuelve" : ""}`,
+              "aria-hidden": "true",
+              style: `top:${arriba.offsetTop}px;height:${abajo.offsetTop + abajo.offsetHeight - arriba.offsetTop}px;--nivel:${b.nivel}`,
+            }));
+          }
+        }
+        for (const { bucle: b, vueltas } of r.terminados) {
+          const nodo = insignia("bucle termino", `✓ salió tras ${plural(vueltas)}`, "El bucle ya terminó");
+          if (b.condicion !== linea) plegada(insignia("bucle termino", `✓ ${b.tipo}: salió tras ${plural(vueltas)}`));
+          pegar(b.condicion, nodo);
+        }
+        const ls = (analisis[clave] && analisis[clave].llamadas[linea - 1]) || [];
+        if (!retorno) {
+          const nombrePropio = analisis[clave] && analisis[clave].nombre;
+          const siguiente = pasos[actual + 1];
+          const entra = siguiente && siguiente.rastro && siguiente.rastro.evento && siguiente.rastro.evento.tipo === "llamada";
+          for (const { id, metodo } of ls) {
+            if (metodo) continue;
+            if (id === nombrePropio) {
+              pegar(linea, insignia("llamada", "↻ se llama a sí misma", "Llamada recursiva: la función se llama a sí misma con otros argumentos"));
+              break;
+            }
+            if (clavePorNombre[id]) {
+              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ llama a ${id}()`, "Otra función de este tema"));
+              break;
+            }
+            if (analisis[clave].lambdas.some((x) => x.nombre === id)) {
+              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ llama a la lambda ${id}`, "El cuerpo de la lambda corre ahora, con los valores de esta llamada"));
+              break;
+            }
+          }
+        }
+        const deBiblioteca = ls.find((x) => !x.metodo && ORIGENES[x.id]);
+        if (deBiblioteca) {
+          pegar(linea, insignia("origen", `${deBiblioteca.id} ← #include ${ORIGENES[deBiblioteca.id]}`, `std::${deBiblioteca.id} es de la biblioteca estándar de C++`));
+        }
+      }
+
+      // El resaltado se desliza hasta la línea actual.
+      const cursor = preCodigo.querySelector(".cursor-linea");
+      if (cursor) {
+        cursor.hidden = !marcada;
+        if (marcada) {
+          if (!animar) cursor.style.transition = "none";
+          cursor.style.top = `${marcada.offsetTop}px`;
+          cursor.style.height = `${marcada.offsetHeight}px`;
+          if (!animar) { void cursor.offsetWidth; cursor.style.transition = ""; }
+        }
+      }
+
+      // Si el código no cabe en su panel, la línea actual se mantiene a la vista.
       if (marcada && preCodigo.scrollHeight > preCodigo.clientHeight) {
-        const arriba = marcada.offsetTop - preCodigo.offsetTop;
+        const arriba = marcada.offsetTop;
         const margen = marcada.offsetHeight * 2;
         if (arriba - margen < preCodigo.scrollTop) preCodigo.scrollTop = arriba - margen;
         else if (arriba + marcada.offsetHeight + margen > preCodigo.scrollTop + preCodigo.clientHeight) {
@@ -823,11 +1295,13 @@
     }
 
     function ir(indice) {
+      const anterior = actual;
       actual = Math.max(0, Math.min(pasos.length - 1, indice));
       const p = pasos[actual];
       if (!cfg.incremental) escenario.innerHTML = "";
       cfg.dibujar(escenario, p.estado);
-      mostrarCodigo(p.clave, p.linea);
+      // Las indicaciones se animan solo al avanzar de a un paso.
+      mostrarCodigo(p, actual === anterior + 1);
       mensaje.textContent = p.mensaje;
       mensaje.className = "mensaje" + (p.tipo ? ` ${p.tipo}` : "");
       contador.textContent = `Paso ${actual + 1} de ${pasos.length}`;
