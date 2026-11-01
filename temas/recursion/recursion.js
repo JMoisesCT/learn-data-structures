@@ -336,10 +336,12 @@
       etiqueta: "aBase(n, base)",
       usa: ["n", "base"],
       codigo: "aBase",
-      ejecutar(s, { n, base }, paso) {
+      ejecutar(s, { n, base, sinTabla }, paso) {
         const C = "aBase";
         const valida = n >= 0 && base >= 2 && base <= 16;
         nuevaLlamada(s, valida ? n.toString(base).length : 1);
+        // La cadena DIGITOS, con cada símbolo bajo su posición (en Todo junto no hay lugar).
+        if (!sinTabla) s.tabla = { base };
         const P = conNivel(s, paso);
         const comillas = (fichas) => `"${fichas.map((f) => f.v).join("")}"`;
         function rec(n) {
@@ -362,20 +364,26 @@
           }
           if (n < base) {
             m.base = true;
-            const r = ficha(s, DIGITOS[n], null, "car");
+            const c = DIGITOS[n];
+            const r = ficha(s, c, `d${n}`, "car comilla");
+            m.expr = [txt("std::string(1,", "suave"), r, txt(")", "suave")];
+            s.vis = { lee: n, activos: [r.id] };
+            P(C, 6, `n = ${n} < ${base}: cabe en un solo dígito (caso base). DIGITOS[${n}] es el char '${c}', el símbolo que vale ${n}. std::string(1, '${c}') arma un string con 1 copia de ese carácter.`);
+            r.clase = "car";
+            m.expr = [txt(`std::string(1, '${c}')`, "suave")];
             m.resultado = [r];
             s.vis = { activos: [r.id], salida: k === 1 ? comillas([r]) : null };
-            P(C, 6, `n = ${n} < ${base}: cabe en un solo dígito. Caso base: devuelve "${DIGITOS[n]}".`, k === 1 ? "exito" : "");
+            P(C, 6, `Devuelve "${c}", un std::string de largo 1. Hay que convertir el char porque aBase devuelve std::string.`, k === 1 ? "exito" : "");
             return [r];
           }
           const q = Math.floor(n / base);
           const resto = n % base;
-          const digito = ficha(s, DIGITOS[resto], null, "car");
+          const digito = ficha(s, DIGITOS[resto], `d${resto}`, "car comilla");
           const h = hueco(s, `aBase(${q}, ${base})`);
           m.expr = [h, txt("+", "suave"), digito];
           m.nota = `${n} = ${q}·${base} + ${resto}`;
-          s.vis = { activos: [digito.id] };
-          P(C, 8, `${k === 1 ? "" : "La validación pasa otra vez. "}n = ${n} ≥ ${base}: ${n} ÷ ${base} = ${q}, resto ${resto} → '${DIGITOS[resto]}'. Es el ÚLTIMO dígito: espera a que aBase(${q}, ${base}) escriba los de adelante.`);
+          s.vis = { lee: resto, activos: [digito.id] };
+          P(C, 8, `${k === 1 ? "" : "La validación pasa otra vez. "}n = ${n} ≥ ${base}: ${n} ÷ ${base} = ${q}, resto ${resto}, y DIGITOS[${resto}] = '${DIGITOS[resto]}'. Es el ÚLTIMO dígito: espera a que aBase(${q}, ${base}) escriba los de adelante.`);
           const sub = rec(q);
           volver(s);
           h.lleno = sub;
@@ -384,11 +392,12 @@
           h.lleno = null;
           h.texto = comillas(sub);
           m.expr = m.expr.map((x) => (x === digito ? txt(`'${digito.v}'`, "suave") : x));
+          digito.clase = "car";
           const r = [...sub, digito];
           m.resultado = r;
           s.vis = { activos: [digito.id], salida: k === 1 ? comillas(r) : null };
           P(C, 8, k === 1
-            ? `${comillas(sub)} + '${digito.v}' = ${comillas(r)}. ${n} en base ${base} es ${comillas(r)}: los restos salieron del último al primero y la recursión los dejó en orden.`
+            ? `${comillas(sub)} + '${digito.v}' = ${comillas(r)} (string + char pega el carácter al final). ${n} en base ${base} es ${comillas(r)}: los restos salieron del último al primero y la recursión los dejó en orden.`
             : `${comillas(sub)} + '${digito.v}' = ${comillas(r)}: el dígito de esta llamada va al final.`, k === 1 ? "exito" : "");
           return r;
         }
@@ -698,6 +707,17 @@
         el("span", { class: `rec-cifra${i < vigentes ? "" : " sacada"}`, "data-id": c.id, text: c.v }))));
   }
 
+  // DIGITOS[k] es el símbolo que vale k; los que la base no usa quedan tenues.
+  function dibujarTabla(s) {
+    const vis = s.vis || {};
+    return el("div", { class: "rec-fila" },
+      el("span", { class: "fila-titulo", text: "DIGITOS" }),
+      el("div", { class: "rec-tabla" }, DIGITOS.split("").map((c, i) =>
+        el("div", { class: "rec-letra-col" },
+          el("span", { class: `rec-tabla-celda${i >= s.tabla.base ? " sin-usar" : ""}${vis.lee === i ? " leida" : ""}`, "data-id": `d${i}`, text: c }),
+          el("span", { class: "indice", text: i })))));
+  }
+
   function dibujarPantalla(s) {
     return el("div", { class: "rec-fila" },
       el("span", { class: "fila-titulo", text: "pantalla" }),
@@ -758,6 +778,7 @@
     return el("div", { class: `rec-contenido${s.apretado ? " apretado" : ""}` },
       infoPila(s),
       s.numero ? dibujarNumero(s) : "",
+      s.tabla ? dibujarTabla(s) : "",
       s.letras ? dibujarLetras(s) : "",
       s.pantalla ? dibujarPantalla(s) : "",
       el("div", { class: "rec-marcos" }, total
@@ -1047,7 +1068,7 @@
   const conDosCampos = (id) => {
     const op = OPS[id];
     if (id === "aBase") {
-      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: "aBase(n, b)", ejecutar: (s, args, paso) => op.ejecutar(s, { n: args.n, base: args.b }, paso) });
+      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: "aBase(n, b)", ejecutar: (s, args, paso) => op.ejecutar(s, { n: args.n, base: args.b, sinTabla: true }, paso) });
     }
     if (id === "potencia") {
       return Object.assign({}, op, { usa: ["n", "b"], etiqueta: "potencia(n, b)", ejecutar: (s, args, paso) => op.ejecutar(s, { base: args.n, exponente: args.b }, paso) });

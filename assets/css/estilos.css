@@ -2418,6 +2418,28 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   white-space: nowrap;
 }
 .rec-valor.car { min-width: 22px; padding: 0 4px; border-radius: 5px; }
+/* Un char suelto se ve con comillas simples: 'A'. En el string ya no las lleva. */
+.rec-valor.comilla { display: inline-flex; align-items: center; justify-content: center; }
+.rec-valor.comilla::before, .rec-valor.comilla::after { content: "'"; color: var(--texto-suave); font-weight: 400; }
+
+/* La cadena DIGITOS: cada símbolo bajo su posición */
+.rec-tabla { display: flex; flex-wrap: wrap; gap: 3px; }
+.rec-tabla-celda {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 26px;
+  border: 2px solid var(--acento);
+  border-radius: 6px;
+  background: var(--acento-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: opacity 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.rec-tabla-celda.sin-usar { border-style: dashed; border-color: var(--borde); background: none; color: var(--texto-suave); opacity: 0.6; }
+.rec-tabla-celda.leida { border-color: var(--activo); background: var(--activo-suave); opacity: 1; animation: latido 0.6s ease; }
+
 .rec-valor.verdadero { border-color: var(--exito); background: var(--exito-suave); }
 .rec-valor.falso { border-color: var(--peligro); background: var(--peligro-suave); }
 .rec-valor.pendiente { border-style: dashed; background: none; color: var(--texto-suave); }
@@ -2493,10 +2515,12 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .rec-fila > .fila-titulo { min-width: 0; }
   .rec-letras { gap: 3px; }
   .rec-letra, .rec-cifra { width: 28px; height: 30px; }
+  .rec-tabla { gap: 2px; }
+  .rec-tabla-celda { width: 18px; height: 22px; font-size: 0.72rem; border-width: 1px; }
   .rec-info .pila-llamadas { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rec-cursor, .rec-entra, .rec-letra.mal, .rec-letra.guarda, .rec-marco.sacudir { animation: none; }
-  .rec-marco-arbol, .rec-cifra, .rec-letra, .rec-nodo { transition: none; }
+  .rec-cursor, .rec-entra, .rec-letra.mal, .rec-tabla-celda.leida, .rec-letra.guarda, .rec-marco.sacudir { animation: none; }
+  .rec-marco-arbol, .rec-cifra, .rec-letra, .rec-nodo, .rec-tabla-celda { transition: none; }
 }
