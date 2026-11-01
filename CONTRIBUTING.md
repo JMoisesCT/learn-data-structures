@@ -110,6 +110,7 @@ La animación tiene que mostrar **qué hace cada método en memoria**, no solo c
 - **Los cambios de estructura se ven:** por ejemplo, al redimensionar aparece el bloque nuevo, los valores viajan hasta él y el viejo se libera.
 - **Los errores se notan:** sacudida, marca roja en la posición inválida y el mensaje en la línea del `throw` o del `return`.
 - **Valor devuelto** visible ("devuelve 30") cuando la función retorna algo.
+- **De dónde viene cada cosa:** el panel de código lo indica solo a partir de los pasos (vueltas de cada bucle, quién llamó a la función que se ve y a dónde vuelve, llamadas a lambdas y recursivas, cabecera de cada función de la biblioteca estándar). Para que funcione, al pasar a otra función cambia al fragmento de esa función en `paso(...)` (así se ve la llamada) y muestra cada vuelta de un bucle con al menos una línea de su cuerpo. Si los pasos se saltan vueltas o la línea del bucle de afuera, da el número con `s.vis.vueltas = { 2: i + 1 }` (la línea del `for`/`while` dentro del fragmento).
 - **Mensajes cortos que expliquen el porqué** de cada paso, y la línea de C++ correcta resaltada.
 - Funciona a 390 px (el dibujo se escala o el escenario hace scroll por dentro), en modo oscuro y con `prefers-reduced-motion`. Los colores salen solo de las variables de `estilos.css`.
 

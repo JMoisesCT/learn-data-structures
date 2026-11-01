@@ -8,7 +8,7 @@ Las ideas sirven para cualquier lenguaje; por ahora el código de ejemplo está 
 Cada tema tiene:
 
 - Una explicación corta con una analogía.
-- Una animación donde ejecutas operaciones (insertar, eliminar, buscar…) y ves qué pasa en memoria, **con la línea de C++ que se está ejecutando resaltada**. Puedes pausar, avanzar y retroceder.
+- Una animación donde ejecutas operaciones (insertar, eliminar, buscar…) y ves qué pasa en memoria, **con la línea de C++ que se está ejecutando resaltada**, en qué vuelta va cada bucle y desde dónde se llamó cada función. Puedes pausar, avanzar y retroceder.
 - Una tabla de complejidad (Big-O).
 - Un programa completo en C++ listo para compilar.
 - Ejercicios para practicar.

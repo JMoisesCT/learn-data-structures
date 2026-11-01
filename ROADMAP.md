@@ -30,6 +30,7 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 - **Lecciones por pasos** en todos los temas, con preguntas de respuesta inmediata, "Todo junto", complejidad y código completo.
 - **Cada paso cabe en una pantalla** (PR #23 a #26): la barra de progreso va en el encabezado, la presentación del tema es compacta, los textos largos van en dos columnas (`.dos-columnas`, `.lista-columnas`), y Tabla hash, Montículo y Notación algorítmica se reacomodaron para no pasarse a 1280 × 800.
 - **Valor aleatorio** (PR #27): la caja del valor cambia al terminar la operación, no mientras corre la animación.
+- **Indicaciones en el código** de todos los temas, sin que cada tema haga nada: el resaltado se desliza de línea en línea; cada bucle tiene un corchete y una insignia con su vuelta ("vuelta 3", "¿otra?", "salió tras 4 vueltas", con un punto que sube por el corchete al empezar otra vuelta); la línea que llama a otra función, a una lambda o a sí misma lo dice; dentro de una llamada, el título muestra la cadena (`insertarAlFinal() › insertarEn() › nodoEn()`) y una cinta dice desde qué línea se llamó y, al terminar, a dónde volvió; las funciones de la biblioteca estándar dicen de qué cabecera vienen (`swap ← #include <utility>`).
 
 ## Ideas para el sitio
 
