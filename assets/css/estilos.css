@@ -1260,6 +1260,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .barra-comparador-detalle { grid-column: 2 / 4; font-size: 0.82rem; color: var(--texto-suave); }
 
 /* Montículo: árbol y arreglo con posición absoluta (se deslizan al intercambiar) */
+#vis-operaciones .campo input { width: 3.4rem; }
 
 .marco-heap { overflow: hidden; margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
 .lienzo-heap { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
@@ -1311,7 +1312,8 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 
 .info-heap { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
 .info-heap .variables, .info-heap .salida-valor, .info-heap .fila-titulo { margin: 0 0 0.5rem; }
-.info-heap .salida-valor .celda { width: 38px; height: 38px; }
+.info-heap .salida-valor .celda { width: 34px; height: 28px; }
+.info-heap .pila-llamadas { width: auto; }
 
 .pila-llamadas { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; width: 100%; margin: 0 0 0.5rem; font-family: var(--fuente-codigo); font-size: 0.75rem; color: var(--texto-suave); }
 .pila-llamadas .llamada { padding: 0.05rem 0.45rem; border: 1px solid var(--borde); border-radius: 999px; background: var(--superficie-2); color: var(--texto); }

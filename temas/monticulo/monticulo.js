@@ -5,11 +5,11 @@
   const { el } = DS;
   const MAXIMO = 15; // 4 niveles: lo que cabe en pantalla
   const NODO = 38;
-  const NIVEL = 60;
+  const NIVEL = 50;
   const ANCHO_ARBOL = 400;
   const PASO_CELDA = 36;
   const MARGEN = 12;
-  const Y_ARBOL = 30;
+  const Y_ARBOL = 22;
   const SVG = "http://www.w3.org/2000/svg";
   const EJEMPLO = [3, 10, 1, 8, 6, 4]; // el mismo arreglo que usa main()
 
@@ -157,11 +157,26 @@
 
   const posCelda = (i) => MARGEN + i * PASO_CELDA;
 
+  const nivelesPara = (n) => (n > 1 ? nivel(n - 1) + 1 : 1);
+
+  // Antes de cada operación se anotan los niveles que puede llegar a tener el
+  // árbol (insert agrega uno): el dibujo reserva ese alto desde el principio.
+  function tema(cfg) {
+    DS.tema(Object.assign({}, cfg, {
+      operaciones: cfg.operaciones.map((op) => Object.assign({}, op, {
+        ejecutar(s, args, paso) {
+          s.nivelesMin = nivelesPara(s.items.length + 1);
+          op.ejecutar(s, args, paso);
+        },
+      })),
+    }));
+  }
+
   // El lienzo solo es tan alto como los niveles que ocupa el árbol.
   function geometria(niveles) {
-    const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 22;
-    const yCeldas = yTitulo + 46; // deja lugar para dos líneas de marcas
-    return { yTitulo, yCeldas, alto: yCeldas + 54 };
+    const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 18;
+    const yCeldas = yTitulo + 42; // deja lugar para dos líneas de marcas
+    return { yTitulo, yCeldas, alto: yCeldas + 48 };
   }
 
   function nuevoId(s) {
@@ -337,9 +352,9 @@
   function dibujar(escenario, s) {
     const lienzo = escenario.querySelector(".lienzo-heap") || crearLienzo(escenario);
     const ancho = anchoPara(s.items.length);
-    // Los niveles nunca disminuyen: si el árbol se achica, el dibujo no salta hacia arriba.
-    const niveles = Math.max(Number(lienzo.dataset.niveles) || 1, s.items.length > 1 ? nivel(s.items.length - 1) + 1 : 1);
-    lienzo.dataset.niveles = niveles;
+    // Durante una operación los niveles no disminuyen (s.nivelesMin): si el árbol
+    // se achica, el dibujo no salta hacia arriba. Al reiniciar se vuelve a medir.
+    const niveles = Math.max(s.nivelesMin || 1, nivelesPara(s.items.length));
     const { yTitulo, yCeldas, alto } = geometria(niveles);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
@@ -513,7 +528,7 @@
     }
   }
 
-  DS.tema({
+  tema({
     contenedor: "vis-heapify",
     incremental: true,
     dibujar,
@@ -550,7 +565,7 @@
 
   function visualizadorBuild(contenedor, tipo) {
     const t = TIPOS[tipo];
-    DS.tema({
+    tema({
       contenedor,
       incremental: true,
       dibujar,
@@ -592,7 +607,7 @@
     return s;
   }
 
-  DS.tema({
+  tema({
     contenedor: "vis-operaciones",
     incremental: true,
     dibujar,
@@ -602,8 +617,9 @@
     mensajeInicial: ({ tipo }) => `El ${TIPOS[tipo].nombre} que dejó ${TIPOS[tipo].build}. Inserta valores o extrae la raíz varias veces.`,
     estadoInicial: ({ tipo }) => heapInicial(tipo),
     entradas: [
-      { id: "tipo", etiqueta: "Tipo", opciones: [["max", "Max-heap"], ["min", "Min-heap"]], valor: "max" },
-      { id: "valor", etiqueta: "Valor", min: 0, max: 99, aleatorio: true },
+      // Textos cortos para que los controles quepan en una fila (el botón ya dice "valor").
+      { id: "tipo", etiqueta: "", opciones: [["max", "max"], ["min", "min"]], valor: "max" },
+      { id: "valor", etiqueta: "", min: 0, max: 99, aleatorio: true },
     ],
     operaciones: [
       {
@@ -711,7 +727,7 @@
     return s;
   }
 
-  DS.tema({
+  tema({
     contenedor: "vis-heapsort",
     incremental: true,
     dibujar,

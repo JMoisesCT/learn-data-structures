@@ -120,12 +120,11 @@
         <h2>Heapsort: ordenar con un max-heap</h2>
         <div class="dos-columnas">
           <div>
-            <p>Sacar la raíz de un max-heap una y otra vez da los valores de mayor a menor. <code>heapSort</code> lo hace <strong>en el mismo arreglo</strong>, sin memoria extra, en dos fases.</p>
+            <p>Sacar la raíz de un max-heap una y otra vez da los valores de mayor a menor. <code>heapSort</code> lo hace <strong>en el mismo arreglo</strong>.</p>
           </div>
-          <ol>
-            <li><strong>Fase 1:</strong> <code>buildMaxHeap(v)</code>, lo que ya viste.</li>
-            <li><strong>Fase 2:</strong> cambia la raíz (el mayor) por el último del heap, que queda en su lugar final (verde); el heap se achica en uno y <code>maxHeapify(v, i, 0)</code> lo repara.</li>
-          </ol>
+          <div>
+            <p><strong>Fase 1:</strong> <code>buildMaxHeap(v)</code>. <strong>Fase 2:</strong> la raíz va al final del heap, donde queda fija (verde), y <code>maxHeapify</code> repara.</p>
+          </div>
         </div>
         <div id="vis-heapsort"></div>
         <div class="pregunta">
