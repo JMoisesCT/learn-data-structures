@@ -79,6 +79,13 @@
       archivo: "cola.cpp",
     },
     {
+      slug: "ordenamiento-elemental",
+      titulo: "Ordenamientos elementales",
+      resumen: "Exchange, bubble, selection, insertion y shell sort: comparar pares y moverlos. Cuánto trabaja cada uno, cuál es estable y cuándo conviene.",
+      etiquetas: ["O(n²)", "estabilidad"],
+      archivo: "ordenamiento_elemental.cpp",
+    },
+    {
       slug: "monticulo",
       titulo: "Montículo (heap)",
       resumen: "Min-heap y max-heap: un árbol guardado en un arreglo con el mínimo (o el máximo) siempre en la raíz. Incluye heapsort.",

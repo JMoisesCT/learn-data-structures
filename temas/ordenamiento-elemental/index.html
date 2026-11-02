@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordenamientos elementales · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: exchange sort, bubble sort, selection sort, insertion sort y shell sort con animaciones de barras que se comparan, se intercambian y se desplazan; estabilidad, una carrera con arreglos grandes y la complejidad de cada uno. Ejemplos en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="ordenamiento-elemental">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Ordenamientos elementales</div>
+      <h1>Ordenamientos elementales</h1>
+      <p class="resumen">Cinco formas de <strong>ordenar un arreglo en su lugar</strong>, sin otro arreglo: comparando pares de valores y moviéndolos. Son cortas y fáciles de escribir; vas a ver cuánto trabajo hace cada una y en qué casos conviene.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="¿Qué es ordenar?">
+        <h2>Ordenado = cada vecino en orden</h2>
+        <div class="dos-columnas">
+          <p>Cada barra es un valor de <code>v</code>: su altura es el número. Un arreglo está <strong>ordenado</strong> si cada par de vecinos está en orden (<code>v[i − 1] ≤ v[i]</code>); <code>estaOrdenado</code> lo revisa con <code>n − 1</code> comparaciones.</p>
+          <p>Todos los algoritmos de esta lección hacen solo dos cosas: <strong>comparar</strong> dos valores y <strong>moverlos</strong> (con <code>swap</code> o corriéndolos). Contar comparaciones y movimientos es como mediremos cuánto trabajan.</p>
+        </div>
+        <div id="vis-idea"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántos <code>swap</code> necesitas, como mínimo, para ordenar <code>{ 4, 7, 1, 9, 5 }</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Con un solo swap no alcanza: hay que poner el 1 al principio y además acomodar el 4, el 7 y el 5.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Ningún valor está en su lugar y cada swap deja uno bien puesto (el último, dos): swap(v[0], v[2]) → { 1, 7, 4, 9, 5 }, swap(v[1], v[2]) → { 1, 4, 7, 9, 5 }, swap(v[2], v[4]) → { 1, 4, 5, 9, 7 } y swap(v[3], v[4]) → { 1, 4, 5, 7, 9 }.">4</button>
+            <button type="button" class="opcion" data-explicacion="Sobran: con n elementos nunca hacen falta más de n − 1 = 4 swaps (selection sort lo garantiza).">10</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="exchange" data-titulo="Exchange sort">
+        <h2><code>exchangeSort</code>: comparar con todos los que siguen</h2>
+        <p>El más directo: para cada posición <code>i</code>, compara <code>v[i]</code> con <strong>cada</strong> <code>v[j]</code> que viene después y, si <code>v[j]</code> es menor, los intercambia. Al terminar la vuelta, <code>v[i]</code> tiene el menor de lo que faltaba y queda <strong>en su lugar</strong> (verde).</p>
+        <div id="vis-exchange"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con <code>n = 6</code>, ¿cuántas comparaciones hace <code>exchangeSort</code> si el arreglo <strong>ya está ordenado</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="No se da cuenta de que ya está ordenado: los dos for corren completos igual.">5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="5 + 4 + 3 + 2 + 1 = 15 = n(n − 1)/2. Compara todos los pares siempre: es O(n²) en el mejor, el promedio y el peor caso.">15</button>
+            <button type="button" class="opcion" data-explicacion="Eso sería comparar cada par dos veces (n · n). Cada par i &lt; j se compara una sola vez.">36</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="bubble" data-titulo="Bubble sort">
+        <h2><code>bubbleSort</code>: los vecinos al revés se cambian</h2>
+        <p>Compara solo <strong>vecinos</strong> (<code>v[j]</code> y <code>v[j + 1]</code>). En cada pasada el mayor va avanzando como una burbuja hasta el final, donde queda fijo. Si una pasada entera no intercambia nada, <code>huboIntercambio</code> sigue en <code>false</code> y el <code>break</code> termina antes.</p>
+        <div id="vis-bubble"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Si el arreglo ya está ordenado, ¿cuánto trabaja <code>bubbleSort</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Una sola pasada de n − 1 comparaciones, sin intercambios, y el break termina. Su mejor caso es O(n), gracias a huboIntercambio.">Una pasada: O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Eso pasaría sin huboIntercambio: haría todas las pasadas aunque no moviera nada.">Todas las pasadas: O(n²)</button>
+            <button type="button" class="opcion" data-explicacion="Necesita al menos una pasada para comprobar que todos los vecinos están en orden.">Nada: O(1)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="selection" data-titulo="Selection sort">
+        <h2><code>selectionSort</code>: buscar el mínimo y ponerlo al principio</h2>
+        <p>En cada vuelta, el puntero <code>minimo</code> recorre lo que falta ordenar y <strong>solo anota</strong> dónde está el menor. Recién al final de la vuelta hace <strong>un único</strong> <code>swap</code> para llevarlo a <code>v[i]</code>. Compara tanto como exchange sort, pero mueve mucho menos.</p>
+        <div id="vis-selection"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cuántos intercambios hace, como máximo, con <code>n</code> elementos?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Esas son sus comparaciones. Intercambios hay a lo más uno por vuelta.">n(n − 1)/2</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Uno por vuelta del for de afuera, y hay n − 1 vueltas. Por eso conviene cuando escribir es caro (por ejemplo, en memoria flash).">n − 1</button>
+            <button type="button" class="opcion" data-explicacion="Si el menor ya está en v[i] no se intercambia, pero en general sí hay intercambios: hasta uno por vuelta.">Ninguno</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertion" data-titulo="Insertion sort">
+        <h2><code>insertionSort</code>: meter cada carta en su lugar</h2>
+        <p>Como al ordenar cartas en la mano. La parte izquierda (<code>v[0..i − 1]</code>) ya está ordenada entre sí; <code>v[i]</code> sube como <code>clave</code>, los mayores que ella se <strong>corren a la derecha</strong> (una escritura cada uno, no un <code>swap</code>) y la clave cae en el hueco.</p>
+        <div id="vis-insertion"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué es tan rápido con un arreglo <strong>casi ordenado</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada clave se compara con su vecino, ve que ya está bien y el while termina enseguida. Con pocos valores fuera de lugar es casi O(n).">Porque casi ninguna clave tiene que correr a otras</button>
+            <button type="button" class="opcion" data-explicacion="El for de afuera sí recorre todo el arreglo; lo que se acorta es el while de adentro.">Porque se salta la mitad del arreglo</button>
+            <button type="button" class="opcion" data-explicacion="Insertion sort no tiene un break como bubble sort: simplemente el while casi no da vueltas.">Porque se detiene al detectar que está ordenado</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="estabilidad" data-titulo="Estabilidad">
+        <h2>Estabilidad: ¿los iguales conservan su orden?</h2>
+        <div class="dos-columnas">
+          <p>Un ordenamiento es <strong>estable</strong> si dos valores iguales terminan en el mismo orden en que estaban. Con números solos no se nota, pero sí al ordenar <strong>registros</strong>: si ordenas alumnos por nota, los que empatan siguen, por ejemplo, en orden alfabético.</p>
+          <p>Los dos 4 están marcados <span class="ord-letra a">a</span> y <span class="ord-letra b">b</span>. Los que intercambian valores <strong>lejanos</strong> pueden pasar uno por encima del otro; los que solo mueven <strong>vecinos</strong> nunca cruzan dos iguales.</p>
+        </div>
+        <div id="vis-estable"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué algoritmos de esta lección son estables?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Solo mueven un valor por encima de su vecino cuando es estrictamente mayor (v[j] > v[j + 1], v[j] > clave): dos iguales nunca se cruzan.">Bubble e insertion</button>
+            <button type="button" class="opcion" data-explicacion="Selection sort no es estable: su swap lleva v[i] lejos y puede saltar por encima de un igual. Pruébalo con el arreglo de este paso.">Bubble, insertion y selection</button>
+            <button type="button" class="opcion" data-explicacion="Exchange sort y shell sort intercambian o mueven valores lejanos y pueden invertir dos iguales.">Todos</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="shell" data-titulo="Shell sort">
+        <h2><code>shellSort</code>: insertion sort con saltos</h2>
+        <p>En insertion sort, un valor chico al final viaja de a <strong>una casilla</strong>. Shell sort primero ordena los valores a distancia <code>salto</code> (cada color es un grupo), que viajan lejos de un paso, y termina con <code>salto = 1</code> sobre un arreglo casi ordenado.</p>
+        <div id="vis-shell"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con <code>n = 8</code>, ¿qué saltos usa este <code>shellSort</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Empieza en n / 2, no en n: con salto 8 no habría ningún par a comparar.">8, 4, 2, 1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="salto = n / 2 = 4 y después salto /= 2 da 2 y 1. Con salto 0 el for termina. Otras secuencias (1, 4, 13, 40… o la de Ciura) son más rápidas.">4, 2, 1</button>
+            <button type="button" class="opcion" data-explicacion="Termina siempre con salto = 1: es lo que garantiza que el resultado quede ordenado.">4, 2</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="carrera" data-titulo="Carrera">
+        <h2>Carrera: ¿cuánto trabaja cada uno con arreglos grandes?</h2>
+        <p>Las mismas cinco funciones, contando sus comparaciones y escrituras en <code>v</code>. Cambia <code>n</code> y el tipo de arreglo: fíjate en el mejor caso (ya ordenado) y en cómo crece el trabajo al multiplicar <code>n</code> por 10.</p>
+        <div class="dos-columnas ord-carrera-columnas">
+          <div id="vis-carrera"></div>
+
+          <div class="pregunta">
+            <p class="pregunta-enunciado">Al pasar de <code>n = 100</code> a <code>n = 1000</code> al azar, ¿cuánto aumentan las comparaciones de insertion sort?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-explicacion="Eso sería O(n). Insertion sort es O(n²) en promedio: cada clave se compara con la mitad de las anteriores.">Unas 10 veces</button>
+              <button type="button" class="opcion" data-correcta data-explicacion="n se multiplica por 10 y n² por 100: de unas 2 500 a unas 250 000. Shell sort crece mucho más lento.">Unas 100 veces</button>
+              <button type="button" class="opcion" data-explicacion="1000 veces sería O(n³). Ningún algoritmo de esta lección es tan lento.">Unas 1000 veces</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalos todos</h2>
+        <p>Elige un algoritmo y un arreglo. Ordena dos veces seguidas: la segunda vez el arreglo ya está ordenado, y ahí se ve quién se da cuenta (bubble e insertion) y quién trabaja igual.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usar cada uno</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Algoritmo</th><th>Mejor caso</th><th>Promedio</th><th>Peor caso</th><th>Memoria extra</th><th>Estable</th></tr></thead>
+            <tbody>
+              <tr><td><code>exchangeSort</code></td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+              <tr><td><code>bubbleSort</code></td><td class="o-grande bueno">O(n)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>Sí</td></tr>
+              <tr><td><code>selectionSort</code></td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+              <tr><td><code>insertionSort</code></td><td class="o-grande bueno">O(n)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>Sí</td></tr>
+              <tr><td><code>shellSort</code> (saltos n/2, n/4…)</td><td class="o-grande bueno">O(n log n)</td><td>depende de los saltos</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Insertion sort</strong> es el mejor de los cuadráticos: rapidísimo con arreglos chicos o casi ordenados. Por eso <code>std::sort</code> lo usa para los pedazos chicos.</li>
+          <li><strong>Selection sort</strong> hace a lo más <code>n − 1</code> intercambios: útil si escribir es mucho más caro que comparar.</li>
+          <li><strong>Bubble</strong> y <strong>exchange</strong> sort son sobre todo didácticos: casi nunca son la mejor opción.</li>
+          <li><strong>Shell sort</strong> no usa memoria extra y es fácil de escribir; con buenos saltos (1, 4, 10, 23, 57… de Ciura) compite con los rápidos en arreglos medianos.</li>
+          <li>En C++ usa <code>std::sort</code> (rápido, no estable) o <code>std::stable_sort</code> (estable), de <code>&lt;algorithm&gt;</code>.</li>
+          <li>Para arreglos grandes hace falta bajar de O(n²) a O(n log n): <strong>heapsort</strong> (en Montículo), y <strong>merge sort</strong> y <strong>quicksort</strong>.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra ordenamiento_elemental.cpp -o ordenamiento_elemental &amp;&amp; ./ordenamiento_elemental</span></pre>
+        <div data-codigo-completo="ordenamiento_elemental.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Agrega contadores de comparaciones e intercambios a cada función y compara los números con los de la carrera.</li>
+          <li>Haz que <code>bubbleSort</code> recuerde la posición del <strong>último</strong> intercambio de cada pasada: de ahí en adelante ya está ordenado, así que la siguiente pasada puede terminar antes.</li>
+          <li>Escribe <code>cocktailSort</code>: un bubble sort que recorre de ida (lleva el mayor al final) y de vuelta (lleva el menor al principio).</li>
+          <li>Cambia los saltos de <code>shellSort</code> por la secuencia 1, 4, 13, 40… (<code>salto = 3 · salto + 1</code>) y compara las comparaciones con <code>n = 1000</code>.</li>
+          <li>¿Qué pasa si en <code>insertionSort</code> cambias <code>v[j] &gt; clave</code> por <code>v[j] &gt;= clave</code>? Ordena todavía, pero ¿sigue siendo estable?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="ordenamiento-elemental.js"></script>
+</body>
+</html>
