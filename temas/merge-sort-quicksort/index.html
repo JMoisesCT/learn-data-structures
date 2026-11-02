@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merge sort y quicksort · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos de divide y vencerás: mezclar y merge sort (recursivo e iterativo), particionar y quicksort, el peor caso y el pivote al azar, quickselect y una carrera contra insertion sort y heapsort. Animaciones y ejemplos en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="merge-sort-quicksort">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Merge sort y quicksort</div>
+      <h1>Merge sort y quicksort</h1>
+      <p class="resumen">Dos algoritmos de <strong>divide y vencerás</strong>: parten el arreglo, ordenan cada parte con una llamada recursiva y combinan. Así bajan de O(n²) a <strong>O(n log n)</strong>, y por eso ordenan un millón de valores en un instante.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Divide y vencerás">
+        <h2>La pieza clave: mezclar dos mitades ordenadas</h2>
+        <div class="dos-columnas">
+          <p><strong>Divide y vencerás</strong>: partir, resolver cada parte con la misma función y combinar. Merge sort trabaja al <strong>combinar</strong>, con <code>mezclar</code>.</p>
+          <p>Con las mitades ordenadas, el menor es uno de los dos <strong>frentes</strong> (<code>v[i]</code> o <code>v[j]</code>): baja a <code>aux</code> y se avanza. Una pasada: <strong>O(n)</strong>.</p>
+        </div>
+        <div id="vis-mezclar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Para mezclar dos mitades de 4 y 3 elementos, ¿cuántas comparaciones hacen falta como máximo?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso sería comparar cada uno con cada uno. Como las mitades están ordenadas, basta comparar los dos frentes.">12</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada comparación manda un valor a aux, y el último nunca se compara (cuando una mitad se acaba, el resto baja tal cual): a lo más 4 + 3 − 1 = 6.">6</button>
+            <button type="button" class="opcion" data-explicacion="Puede pasar si una mitad es toda menor que la otra (prueba &quot;Una mitad toda menor&quot;), pero es el mejor caso, no el máximo.">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="merge" data-titulo="mergeSort">
+        <h2><code>mergeSort</code>: partir hasta que sea trivial, mezclar al volver</h2>
+        <p>Parte el rango a la mitad <strong>sin mirar los valores</strong>, ordena cada mitad con una llamada recursiva y las mezcla. Abajo, cada llamada: amarilla la que corre, punteadas las que esperan, verdes las que terminaron.</p>
+        <div id="vis-merge"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con <code>n = 8</code>, ¿cuántos niveles de divisiones hay, y cuánto se trabaja en cada uno?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="8 → 4 → 2 → 1: log₂ 8 = 3 niveles, y en cada nivel las mezclas suman n elementos. En total, O(n log n), sin importar cómo venga el arreglo.">3 niveles, O(n) cada uno</button>
+            <button type="button" class="opcion" data-explicacion="Se parte a la mitad, no de a uno: los niveles son log₂ n, no n.">8 niveles, O(n) cada uno</button>
+            <button type="button" class="opcion" data-explicacion="En cada nivel hay varias mezclas chicas, pero juntas tocan los n elementos: O(n) por nivel, no O(1).">3 niveles, O(1) cada uno</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="iterativo" data-titulo="Sin recursión">
+        <h2><code>mergeSortIterativo</code>: de abajo hacia arriba</h2>
+        <p>El mismo trabajo, sin recursión: mezcla bloques de <strong>1</strong> en bloques de 2, después de 2 en 4, de 4 en 8… Abajo hay una fila por cada <code>ancho</code>; un bloque sin pareja pasa tal cual a la fila siguiente.</p>
+        <div id="vis-iterativo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Para qué sirve el <code>min</code> en <code>der = min(izq + 2 * ancho - 1, n - 1)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Si n no es potencia de 2, el último bloque de la derecha es más corto: sin el min, der apuntaría fuera del arreglo.">Para no pasarse del final cuando el último bloque es más corto</button>
+            <button type="button" class="opcion" data-explicacion="medio sale de izq + ancho − 1; el min solo recorta der.">Para calcular el medio</button>
+            <button type="button" class="opcion" data-explicacion="Que el resultado sea estable lo decide el &lt;= de mezclar, no el min.">Para que sea estable</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="particionar" data-titulo="particionar">
+        <h2><code>particionar</code>: los menores a un lado, los mayores al otro</h2>
+        <p>Quicksort trabaja al <strong>dividir</strong>. Con un <strong>pivote</strong> (aquí, el último), <code>j</code> recorre el rango y cada valor ≤ pivote pasa con un <code>swap</code> al final de la zona de los menores, que termina en <code>i</code>. Después, el pivote va justo detrás: <strong>queda en su lugar definitivo</strong>.</p>
+        <div id="vis-particion"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Después de <code>particionar</code>, ¿qué se sabe con seguridad?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Cada lado sigue desordenado: solo se sabe que todo lo de la izquierda es ≤ pivote.">Que la mitad izquierda está ordenada</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Todos los de su izquierda son ≤ y todos los de su derecha son mayores: el pivote ya no se moverá nunca más.">Que el pivote está en su posición final</button>
+            <button type="button" class="opcion" data-explicacion="Solo si el pivote resultó ser la mediana. Con el último como pivote, puede quedar en cualquier posición.">Que el pivote quedó en el medio</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="quick" data-titulo="quickSort">
+        <h2><code>quickSort</code>: particionar y ordenar cada lado</h2>
+        <p>Tras <code>particionar</code>, el pivote ya no se mueve: falta ordenar los menores y los mayores con dos llamadas recursivas, y al volver no hay nada que combinar. Cada pivote queda verde, y marcado en morado bajo su llamada.</p>
+        <div id="vis-quick"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Dónde hace el trabajo cada uno?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Merge sort divide en O(1) (solo calcula medio) y mezcla en O(n). Quicksort particiona en O(n) y no tiene nada que combinar.">Merge sort al combinar; quicksort al dividir</button>
+            <button type="button" class="opcion" data-explicacion="Es al revés: merge sort parte sin mirar los valores.">Merge sort al dividir; quicksort al combinar</button>
+            <button type="button" class="opcion" data-explicacion="Quicksort no tiene paso de combinar: después de las dos llamadas recursivas, el rango ya está ordenado.">Los dos al combinar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="peor" data-titulo="Peor caso y pivote al azar">
+        <h2>El peor caso de quicksort, y cómo evitarlo</h2>
+        <p>Si el pivote siempre es el mayor (o el menor), cada partición separa <strong>un solo</strong> elemento: <code>n</code> niveles y <strong>O(n²)</strong>. Con el último como pivote, pasa justo con un arreglo <strong>ya ordenado</strong>; con un pivote al azar, ningún arreglo es siempre el peor.</p>
+        <div id="vis-peor"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué tiene de peligroso la escalera con <code>n = 1 000 000</code> en C++?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Además de ser O(n²): ¿qué pasa con un millón de llamadas una dentro de otra?">Solo que tarda más</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Serían un millón de marcos en la pila de llamadas: se desborda (stack overflow) y el programa termina. Por eso std::sort cambia a heapsort si la recursión se hace demasiado profunda.">Desborda la pila de llamadas</button>
+            <button type="button" class="opcion" data-explicacion="El resultado queda bien ordenado; el problema es el tiempo y la memoria de la pila.">Queda mal ordenado</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="quickselect" data-titulo="quickselect">
+        <h2><code>quickselect</code>: el k-ésimo menor sin ordenar todo</h2>
+        <p>Para saber qué valor quedaría en <code>v[k]</code> (como la mediana) no hace falta ordenar. Tras <code>particionar</code>, si <code>p == k</code> ya está; si no, se sigue <strong>solo por el lado de k</strong> y el otro se descarta. En promedio, n + n/2 + n/4 + … = <strong>O(n)</strong>.</p>
+        <div id="vis-select"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué quickselect es O(n) en promedio y quicksort O(n log n)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Usan el mismo particionar, con el mismo costo.">Porque particiona más rápido</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Quicksort sigue por los dos lados (n por nivel, log n niveles); quickselect por uno solo, y los rangos se achican: n + n/2 + n/4 + … ≤ 2n.">Porque después de particionar sigue por un solo lado</button>
+            <button type="button" class="opcion" data-explicacion="Tiene caso base, como quicksort; la diferencia está en cuántas llamadas hace después de particionar.">Porque no tiene caso base</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="carrera" data-titulo="Carrera">
+        <h2>Carrera: O(n log n) contra O(n²)</h2>
+        <p>Las mismas funciones con arreglos grandes, contando comparaciones, junto a insertion sort y heapsort (del tema Montículo). Prueba <code>n = 10 000</code>, el arreglo ya ordenado y el de valores repetidos.</p>
+        <div class="dos-columnas ord-carrera-columnas">
+          <div id="vis-carrera"></div>
+
+          <div class="pregunta">
+            <p class="pregunta-enunciado">Con &quot;Solo 1, 2 y 3&quot; (muchos repetidos), ¿por qué <code>quickSort</code> se vuelve lento?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-correcta data-explicacion="Con v[j] &lt;= pivote, todos los iguales al pivote van a la izquierda y la partición queda muy despareja. La partición de Hoare o la de tres vías (&lt;, =, &gt;) lo evitan.">Porque los iguales al pivote van todos al mismo lado</button>
+              <button type="button" class="opcion" data-explicacion="El pivote al azar no ayuda aquí: con tan pocos valores distintos, casi cualquier pivote tiene muchos iguales.">Porque el pivote es el último</button>
+              <button type="button" class="opcion" data-explicacion="Tener pocos valores distintos debería hacerlo más fácil, no más difícil: el problema está en cómo particiona los iguales.">Porque hay pocos valores distintos para comparar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalos todos</h2>
+        <p>Elige algoritmo y arreglo; &quot;Paso a paso&quot; muestra cada comparación de <code>mezclar</code> o <code>particionar</code>.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usar cada uno</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Algoritmo</th><th>Mejor</th><th>Promedio</th><th>Peor</th><th>Memoria extra</th><th>Estable</th></tr></thead>
+            <tbody>
+              <tr><td><code>mergeSort</code></td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande malo">O(n) (aux)</td><td>Sí</td></tr>
+              <tr><td><code>quickSort</code> (pivote último)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande malo">O(n²)</td><td>O(log n) de pila; O(n) en el peor</td><td>No</td></tr>
+              <tr><td><code>quickSortAleatorio</code></td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n) esperado</td><td>O(n²), muy improbable</td><td>O(log n) esperado</td><td>No</td></tr>
+              <tr><td><code>heapSort</code> (Montículo)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(n log n)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+              <tr><td><code>quickselect</code></td><td class="o-grande bueno">O(n)</td><td class="o-grande bueno">O(n)</td><td class="o-grande malo">O(n²)</td><td>O(log n) de pila</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Límite inferior:</strong> ningún ordenamiento que solo compare puede hacer menos de unas <code>log₂(n!) ≈ n log n</code> comparaciones en el peor caso. Merge sort y heapsort ya están en ese límite.</li>
+          <li><strong>Quicksort</strong> suele ser el más rápido en la práctica: recorre la memoria en orden y no copia a otro arreglo.</li>
+          <li><code>std::sort</code> es <strong>introsort</strong>: quicksort que cambia a heapsort si la recursión se hace muy profunda e insertion sort para los pedazos chicos. O(n log n) garantizado.</li>
+          <li><code>std::stable_sort</code> es merge sort: úsalo cuando los iguales deban conservar su orden. Python y Java usan <strong>Timsort</strong>, un merge sort que aprovecha los tramos ya ordenados.</li>
+          <li>Merge sort sirve también para <strong>listas enlazadas</strong> (se mezclan moviendo punteros, sin aux) y para ordenar archivos que no caben en memoria.</li>
+          <li><code>std::nth_element</code> hace lo de quickselect. Para ganarle a n log n hay que no comparar: lo verás en el siguiente tema.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra merge_sort_quicksort.cpp -o merge_sort_quicksort &amp;&amp; ./merge_sort_quicksort</span></pre>
+        <div data-codigo-completo="merge_sort_quicksort.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Cambia el <code>&lt;=</code> de <code>mezclar</code> por <code>&lt;</code>. ¿Sigue ordenando? ¿Sigue siendo estable?</li>
+          <li>Haz que <code>mezclar</code> reserve <code>aux</code> una sola vez (con <code>aux.reserve</code> o un vector que se pase por referencia) y mide la diferencia.</li>
+          <li>Escribe la partición de <strong>Hoare</strong>: dos índices que avanzan desde los extremos y se intercambian cuando los dos encuentran un valor del lado equivocado.</li>
+          <li>Haz que quickSort llame a <code>insertionSort</code> cuando el rango tenga menos de 16 elementos (es lo que hace <code>std::sort</code>).</li>
+          <li>Para no desbordar la pila: haz la llamada recursiva solo con el lado más chico y repite con el más grande en un <code>while</code>. ¿Cuánta pila usa en el peor caso?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="merge-sort-quicksort.js"></script>
+</body>
+</html>

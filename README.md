@@ -27,6 +27,7 @@ Cada tema tiene:
 | Pila (stack) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/pila/) | [`pila.cpp`](ejemplos/cpp/pila.cpp) |
 | Cola (queue) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/cola/) | [`cola.cpp`](ejemplos/cpp/cola.cpp) |
 | Ordenamientos elementales (exchange, bubble, selection, insertion y shell sort; estabilidad) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/ordenamiento-elemental/) | [`ordenamiento_elemental.cpp`](ejemplos/cpp/ordenamiento_elemental.cpp) |
+| Merge sort y quicksort (mezclar, mergeSort recursivo e iterativo, particionar, quickSort, peor caso y pivote al azar, quickselect) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/merge-sort-quicksort/) | [`merge_sort_quicksort.cpp`](ejemplos/cpp/merge_sort_quicksort.cpp) |
 | Montículo (min-heap, max-heap) y heapsort | [ver](https://jmoisesct.github.io/learn-data-structures/temas/monticulo/) | [`monticulo.cpp`](ejemplos/cpp/monticulo.cpp) |
 | Tabla hash (funciones hash, encadenamiento, sondeo y rehash) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/tabla-hash/) | [`tabla_hash.cpp`](ejemplos/cpp/tabla_hash.cpp) |
 | Árbol binario de búsqueda (buscar, insertar, recorridos, eliminar en sus 3 casos) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-binario-busqueda/) | [`arbol_binario_busqueda.cpp`](ejemplos/cpp/arbol_binario_busqueda.cpp) |

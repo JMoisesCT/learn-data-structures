@@ -86,6 +86,13 @@
       archivo: "ordenamiento_elemental.cpp",
     },
     {
+      slug: "merge-sort-quicksort",
+      titulo: "Merge sort y quicksort",
+      resumen: "Divide y vencerás: mezclar mitades ordenadas o particionar alrededor de un pivote. O(n log n), el peor caso de quicksort, el pivote al azar y quickselect.",
+      etiquetas: ["O(n log n)", "recursión"],
+      archivo: "merge_sort_quicksort.cpp",
+    },
+    {
       slug: "monticulo",
       titulo: "Montículo (heap)",
       resumen: "Min-heap y max-heap: un árbol guardado en un arreglo con el mínimo (o el máximo) siempre en la raíz. Incluye heapsort.",
