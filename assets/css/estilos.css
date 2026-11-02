@@ -2524,3 +2524,149 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .rec-cursor, .rec-entra, .rec-letra.mal, .rec-tabla-celda.leida, .rec-letra.guarda, .rec-marco.sacudir { animation: none; }
   .rec-marco-arbol, .rec-cifra, .rec-letra, .rec-nodo, .rec-tabla-celda { transition: none; }
 }
+
+/* ---------- Ordenamientos: barras que se comparan, se intercambian y se desplazan ---------- */
+
+.ord-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 1.25rem; min-height: 2.6rem; margin-bottom: 0.4rem; }
+.ord-info .variables, .ord-info .salida-valor { margin: 0; }
+.ord-info .salida-valor .celda { width: auto; min-width: 38px; height: 34px; padding: 0 0.4rem; }
+.ord-cuenta { padding-left: 1rem; border-left: 2px solid var(--borde); }
+
+.ord-veredicto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 2px solid var(--activo);
+  border-radius: 999px;
+  background: var(--activo-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.8rem;
+  animation: pop 0.3s ease;
+}
+.ord-veredicto code { background: none; border: 0; padding: 0; font-size: 1em; }
+.ord-veredicto.si b { color: var(--exito); }
+.ord-veredicto.no b { color: var(--texto-suave); }
+
+.ord-marco { margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
+.ord-lienzo { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.ord-lienzo.sacudir { animation: sacudir 0.36s ease; }
+.ord-capa > * { position: absolute; margin: 0; }
+
+.ord-carril { border: 2px dashed var(--borde); border-radius: var(--radio); background: var(--superficie-2); }
+.ord-carril-nombre { position: absolute; left: 8px; top: 4px; font-family: var(--fuente-codigo); font-size: 0.7rem; color: var(--texto-suave); }
+
+.ord-zona { border-radius: 8px; transition: left 0.45s ease, width 0.45s ease, background-color 0.3s ease; }
+.ord-zona.final { background: var(--exito-suave); }
+.ord-zona.parcial { background: var(--acento-suave); }
+.ord-zona-texto { position: absolute; left: 6px; top: 1px; font-family: var(--fuente-codigo); font-size: 0.66rem; font-weight: 700; white-space: nowrap; }
+.ord-zona.final .ord-zona-texto { color: var(--exito); }
+.ord-zona.parcial .ord-zona-texto { color: var(--acento); }
+
+.ord-indice { text-align: center; }
+.ord-grupo { height: 4px; border-radius: 2px; }
+
+.ord-barra {
+  position: absolute;
+  z-index: 1;
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  padding-top: 3px;
+  border: 2px solid var(--acento);
+  border-radius: 7px 7px 3px 3px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.1;
+  transition: left 0.45s ease, top 0.45s ease, height 0.45s ease, background-color 0.25s ease, border-color 0.25s ease, opacity 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+.ord-barra.aparece { animation: aparece 0.4s ease; }
+.ord-barra.moviendo { z-index: 3; box-shadow: var(--sombra); }
+.ord-barra.fija { border-color: var(--exito); background: var(--exito-suave); }
+.ord-barra.comparando { border-color: var(--activo); background: var(--activo-suave); transform: translateY(-5px); }
+.ord-barra.intercambio { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 3px var(--activo-suave); z-index: 3; }
+.ord-barra.salta { animation: ord-salta 0.45s ease; z-index: 4; }
+.ord-barra.escrita { border-color: var(--activo); background: var(--activo-suave); }
+.ord-barra.minimo { border-color: var(--lambda); box-shadow: 0 0 0 3px var(--lambda-suave); }
+.ord-barra.mala { border-color: var(--peligro); background: var(--peligro-suave); }
+.ord-barra.copia { opacity: 0.4; border-style: dashed; background: var(--superficie); }
+.ord-barra.atenuada { opacity: 0.3; }
+.ord-barra.copia.atenuada { opacity: 0.15; }
+.ord-barra.flotante { z-index: 4; border-color: var(--activo); background: var(--activo-suave); box-shadow: var(--sombra); }
+.ord-barra.flotante.comparando { transform: none; box-shadow: 0 0 0 3px var(--activo-suave), var(--sombra); }
+.ord-barra.saliendo { opacity: 0; transform: translateY(-24px) scale(0.85); }
+
+/* Grupos de shell sort: el borde de cada barra dice a qué grupo pertenece. */
+.ord-barra.g1, .ord-grupo.g1 { border-color: var(--serie-1); }
+.ord-barra.g2, .ord-grupo.g2 { border-color: var(--serie-2); }
+.ord-barra.g3, .ord-grupo.g3 { border-color: var(--serie-3); }
+.ord-barra.g4, .ord-grupo.g4 { border-color: var(--serie-4); }
+.ord-barra.g5, .ord-grupo.g5 { border-color: var(--serie-5); }
+.ord-barra.g6, .ord-grupo.g6 { border-color: var(--serie-6); }
+.ord-grupo.g1 { background: var(--serie-1); }
+.ord-grupo.g2 { background: var(--serie-2); }
+.ord-grupo.g3 { background: var(--serie-3); }
+.ord-grupo.g4 { background: var(--serie-4); }
+.ord-grupo.g5 { background: var(--serie-5); }
+.ord-grupo.g6 { background: var(--serie-6); }
+.ord-barra.comparando[class*=" g"], .ord-barra.escrita[class*=" g"] { border-color: var(--activo); }
+
+/* Dos valores iguales, marcados a y b (paso de estabilidad). */
+.ord-letra {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-family: var(--fuente-codigo);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.ord-letra.a { background: var(--acento); color: var(--acento-texto); }
+.ord-letra.b { background: var(--lambda); color: var(--superficie); }
+
+.ord-punteros > .ord-puntero {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--fuente-codigo);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+  color: var(--activo);
+  transition: left 0.45s ease, top 0.3s ease;
+}
+.ord-puntero.acento { color: var(--lambda); }
+.ord-puntero.fuera { color: var(--peligro); }
+
+@keyframes ord-salta { 50% { transform: translateY(-26px); } }
+
+/* Carrera: comparaciones y escrituras de cada algoritmo con arreglos grandes */
+
+.ord-carrera .controles { border-bottom: 1px solid var(--borde); }
+@media (min-width: 861px) { .ord-carrera-columnas { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); } }
+.ord-carrera-cuerpo { padding: 0.75rem 0.9rem 0.6rem; }
+.ord-carrera-fila { display: grid; grid-template-columns: 7.6rem minmax(0, 1fr) minmax(0, 1fr); gap: 0.6rem; align-items: center; padding: 0.3rem 0; }
+.ord-carrera-titulos { font-size: 0.74rem; color: var(--texto-suave); padding-top: 0; }
+.ord-carrera-nombre { font-size: 0.8rem; }
+.ord-carrera-pista { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+.ord-carrera-carril { position: relative; flex: 1 1 auto; height: 20px; border-radius: 5px; background: var(--superficie-2); overflow: hidden; }
+.ord-carrera-barra { position: absolute; left: 0; top: 0; bottom: 0; min-width: 2px; border-radius: 5px; transition: width 0.6s ease; }
+.ord-carrera-barra.comparaciones { background: var(--serie-1); }
+.ord-carrera-barra.escrituras { background: var(--serie-2); }
+.ord-carrera-num { flex: none; min-width: 3.4rem; text-align: right; font-family: var(--fuente-codigo); font-size: 0.74rem; font-weight: 600; color: var(--texto); }
+.ord-carrera-fila.nueva .ord-carrera-num { animation: aparece-suave 0.4s ease; }
+.ord-carrera-referencia { margin: 0.5rem 0 0; font-size: 0.82rem; color: var(--texto-suave); }
+
+@media (max-width: 600px) {
+  .ord-carrera-fila { grid-template-columns: 6.4rem minmax(0, 1fr) minmax(0, 1fr); gap: 0.35rem; }
+  .ord-carrera-nombre { font-size: 0.7rem; }
+  .ord-cuenta { padding-left: 0; border-left: 0; }
+}
