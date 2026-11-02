@@ -4,7 +4,7 @@
 // (scripts/verificar-fragmentos.mjs lo revisa).
 (function () {
   const { el } = DS;
-  const MAXIMO = 6; // límite solo para que la animación quepa en pantalla
+  const MAXIMO = 5; // límite solo para que la animación quepa en pantalla
   const SVG = "http://www.w3.org/2000/svg";
 
   // Medidas del vaso (std::stack) y de la fila de nodos (PilaEnlazada).
@@ -142,7 +142,7 @@
   const lleno = (s, n, clave, paso, linea) => {
     if (n < MAXIMO) return false;
     s.vis = { error: true };
-    paso(clave, linea, `Para que la animación quepa en pantalla, la pila llega hasta ${MAXIMO} elementos. Saca alguno o pulsa Reiniciar.`, "error");
+    paso(clave, linea, `Hasta ${MAXIMO} elementos, para que quepa en pantalla: saca alguno o pulsa Reiniciar.`, "error");
     return true;
   };
 
@@ -408,8 +408,9 @@
 
   // El vaso de un std::stack: los valores se apilan de abajo hacia arriba.
   // Devuelve dónde quedó cada celda.
-  function vaso(lienzo, { x, base, cap, ids, vals, vis, nombre, vivos, desde, etiquetaCima }) {
-    const alto = cap * PASO_Y + 10;
+  // paso y altoCelda permiten un vaso más bajo (el del primer paso, que crece con cada push).
+  function vaso(lienzo, { x, base, cap, ids, vals, vis, nombre, vivos, desde, etiquetaCima, paso = PASO_Y, altoCelda = ALTO }) {
+    const alto = cap * paso + 10;
     const { p: marco } = pieza(lienzo, "vaso", () => el("div", { class: "vaso" }, el("span", { class: "vaso-nombre" })), x, base - alto);
     marco.style.width = `${ANCHO + 20}px`;
     marco.style.height = `${alto}px`;
@@ -418,10 +419,11 @@
     const lugar = {};
     ids.forEach((id, k) => {
       const cx = x + 10;
-      const cy = base - 6 - ALTO - k * PASO_Y;
-      const origen = vis.entrando === id ? (desde || { x: cx, y: base - alto - ALTO - 14 }) : null;
+      const cy = base - 6 - altoCelda - k * paso;
+      const origen = vis.entrando === id ? (desde || { x: cx, y: base - alto - altoCelda - (paso < PASO_Y ? 6 : 14) }) : null;
       const { p } = pieza(lienzo, id, () => el("div", { class: "celda vcelda" }), cx, cy, origen);
       p.textContent = vals[id];
+      p.style.height = `${altoCelda}px`;
       let clase = "celda vcelda ocupada";
       if (vis.entrando === id) clase += " escrita";
       if (vis.leida === id) clase += " leida";
@@ -433,7 +435,7 @@
     });
     if (ids.length && etiquetaCima) {
       const arriba = lugar[ids[ids.length - 1]];
-      marca(lienzo, "marca-cima", `← ${etiquetaCima}`, x + ANCHO + 28, arriba.y + 11, "acento");
+      marca(lienzo, "marca-cima", `← ${etiquetaCima}`, x + ANCHO + 28, arriba.y + altoCelda / 2 - 8, "acento");
       vivos.add("marca-cima");
     }
     return lugar;
@@ -449,11 +451,13 @@
   function dibujarStl(lienzo, s, vis) {
     const vivos = new Set();
     const cap = Math.max(4, s.pila.length);
-    const base = 8 + ALTO + 16 + cap * PASO_Y + 10;
+    const paso = 36;
+    const altoCelda = 32;
+    const base = 8 + altoCelda + 8 + cap * paso + 10;
     // El nombre va centrado debajo del vaso: x deja lugar para que no se corte.
-    vaso(lienzo, { x: 60, base, cap, ids: s.pila, vals: s.vals, vis, nombre: "std::stack<int> pila", vivos, etiquetaCima: "top()" });
+    vaso(lienzo, { x: 60, base, cap, ids: s.pila, vals: s.vals, vis, nombre: "std::stack<int> pila", vivos, etiquetaCima: "top()", paso, altoCelda });
     limpiar(lienzo, vivos);
-    return { ancho: 60 + ANCHO + 20 + 90, alto: base + 30 };
+    return { ancho: 60 + ANCHO + 20 + 90, alto: base + 24 };
   }
 
   // El texto arriba; debajo, el vaso de abiertos: cada apertura cae desde su letra.
