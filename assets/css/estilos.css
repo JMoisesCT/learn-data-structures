@@ -721,6 +721,7 @@ body.con-leccion.leccion-final > .pie { display: block; }
 .contador-pasos { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .reproduccion .boton { padding: 0.3rem 0.5rem; min-width: 2.1rem; }
+.reproduccion .boton-play { width: 2.1rem; padding-left: 0; padding-right: 0; }
 .reproduccion label { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
 .reproduccion label[hidden] { display: none; }
 
