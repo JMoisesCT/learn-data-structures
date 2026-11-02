@@ -754,7 +754,9 @@
 
     const bInicio = el("button", { class: "boton", type: "button", title: "Primer paso", "aria-label": "Primer paso", text: "«", onclick: () => ir(0) });
     const bAtras = el("button", { class: "boton", type: "button", title: "Paso anterior", "aria-label": "Paso anterior", text: "‹", onclick: () => ir(actual - 1) });
-    const bPlay = el("button", { class: "boton", type: "button", title: "Reproducir / pausar", "aria-label": "Reproducir o pausar", onclick: alternar });
+    // Ancho fijo: si ▶ y ❚❚ midieran distinto, la fila podría partirse en dos al empezar a
+    // reproducir, después de que ajustarEscala midió el alto disponible.
+    const bPlay = el("button", { class: "boton boton-play", type: "button", title: "Reproducir / pausar", "aria-label": "Reproducir o pausar", onclick: alternar });
     const bAdelante = el("button", { class: "boton", type: "button", title: "Paso siguiente", "aria-label": "Paso siguiente", text: "›", onclick: () => ir(actual + 1) });
     const bFin = el("button", { class: "boton", type: "button", title: "Último paso", "aria-label": "Último paso", text: "»", onclick: () => ir(pasos.length - 1) });
     const contador = el("span", { class: "contador-pasos" });
@@ -870,7 +872,8 @@
         escenario.style.minHeight = "";
         escenario.style.flexBasis = "";
         if (window.scrollY !== scroll) window.scrollTo(window.scrollX, scroll);
-        if (disponible < natural) k = Math.max(ESCALA_MINIMA, (disponible - relleno) / (natural - relleno));
+        // 1 px de margen: el alto final se redondea hacia arriba.
+        if (disponible < natural) k = Math.max(ESCALA_MINIMA, (disponible - relleno - 1) / (natural - relleno));
       }
       altoMinimo = k < 1 ? Math.ceil(relleno + (natural - relleno) * k) : natural;
       if (k < 1) {
