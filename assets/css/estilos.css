@@ -683,6 +683,12 @@ body.con-leccion.leccion-final > .pie { display: block; }
 
 .separador { flex: 1 0 0; }
 
+/* Visualizadores con muchas operaciones: botones y cajas más angostos para que los controles ocupen menos filas. */
+.controles-compactos .controles { gap: 0.4rem; }
+.controles-compactos .controles .boton { padding: 0.4rem 0.45rem; }
+.controles-compactos .controles .boton code { font-size: 0.72em; }
+.controles-compactos .campo input { width: 3.6rem; }
+
 .escenario {
   position: relative;
   min-height: max(300px, var(--alto-reservado, 0px));
@@ -1103,6 +1109,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .info-lista { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
 .info-lista .variables, .info-lista .salida-valor { margin: 0 0 0.5rem; }
 .info-lista .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+.info-lista .pila-llamadas { width: auto; }
 
 .desliza-lista { overflow-x: auto; overflow-y: hidden; }
 .marco-lista { transition: width 0.45s ease, height 0.45s ease; }
