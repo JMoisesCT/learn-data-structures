@@ -52,7 +52,7 @@
       <section class="paso-leccion" id="funciones" data-titulo="Funciones hash para números">
         <h2>Funciones hash para números</h2>
         <p>Una buena función hash es <strong>rápida</strong>, <strong>da siempre lo mismo para la misma clave</strong> y <strong>reparte parejo</strong>. Elige una de las cuatro clásicas. <strong>Pruébalo:</strong> <em>División</em>, <code>m = 10</code> y <em>Agregar 10, 20, …, 100</em>; luego con <code>m = 11</code>.</p>
-        <div id="vis-funciones"></div>
+        <div id="vis-funciones" class="controles-compactos"></div>
 
         <div class="pregunta">
           <p class="pregunta-enunciado">Con el método de la división y <code>m = 10</code>, ¿por qué 10, 20, …, 100 caen casi todas en la misma cubeta?</p>
@@ -75,7 +75,7 @@
       <section class="paso-leccion" id="texto" data-titulo="Funciones hash para texto">
         <h2>Funciones hash para texto</h2>
         <p>Un texto primero se convierte en un número. La <strong>suma de letras</strong> ignora el orden; la <strong>polinomial</strong> multiplica cada letra por una potencia distinta de 31, así que <strong>el orden importa</strong>.</p>
-        <div id="vis-palabras"></div>
+        <div id="vis-palabras" class="controles-compactos"></div>
       </section>
 
       <section class="paso-leccion" id="encadenamiento" data-titulo="Colisiones: encadenamiento">
@@ -125,10 +125,10 @@
         <h2>Factor de carga y rehash</h2>
         <div class="dos-columnas">
           <div>
-            <p>El número que manda es el <strong>factor de carga</strong> <code>α = n / m</code>. Con encadenamiento es el <strong>largo promedio de las listas</strong>: buscar cuesta O(1 + α). Con direccionamiento abierto no pasa de 1, y cerca de 1 los intentos se disparan (unos 50 con α = 0.9 y sondeo lineal).</p>
+            <p>Lo que manda es el <strong>factor de carga</strong> <code>α = n / m</code>. Con encadenamiento es el <strong>largo promedio de las listas</strong>: buscar cuesta O(1 + α). Con direccionamiento abierto no pasa de 1, y cerca de 1 los intentos se disparan.</p>
           </div>
           <div>
-            <p>Cuando <code>α</code> supera un límite (1.0 en <code>std::unordered_map</code>), se hace <strong>rehash</strong>: una tabla con unas el doble de cubetas (aquí, el siguiente primo de <code>2 · m</code>) donde se reubica cada clave. <strong>Todas cambian de cubeta</strong>, porque <code>clave % m</code> depende de <code>m</code>.</p>
+            <p>Si <code>α</code> pasa un límite (1.0 en <code>std::unordered_map</code>), se hace <strong>rehash</strong> a una tabla de unas el doble de cubetas (el primo siguiente a <code>2 · m</code>). <strong>Todas cambian de cubeta</strong>: <code>clave % m</code> depende de <code>m</code>.</p>
           </div>
         </div>
         <div id="vis-carga"></div>

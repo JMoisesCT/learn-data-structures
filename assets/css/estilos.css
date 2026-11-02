@@ -687,7 +687,7 @@ body.con-leccion.leccion-final > .pie { display: block; }
 .controles-compactos .controles { gap: 0.4rem; }
 .controles-compactos .controles .boton { padding: 0.4rem 0.45rem; }
 .controles-compactos .controles .boton code { font-size: 0.72em; }
-.controles-compactos .campo input { width: 3.6rem; }
+.controles-compactos .campo input { width: 4.2rem; }
 
 .escenario {
   position: relative;
@@ -1445,6 +1445,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .lienzo-hash .nodo { height: 32px; border-radius: 7px; font-size: 0.85rem; }
 .lienzo-hash .nodo .valor { width: 34px; }
 .lienzo-hash .nodo .sig { width: 22px; }
+.lienzo-hash .nodo.compacta, .cubeta.compacta { height: 24px; font-size: 0.75rem; }
 .lienzo-hash .nodo.anterior { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
 
 .cubeta {

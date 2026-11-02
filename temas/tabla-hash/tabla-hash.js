@@ -258,7 +258,7 @@
     },
     polinomial: {
       clave: "hashPolinomial",
-      idea: "Polinomial (Horner): h = h · 31 + c en cada letra, así el orden importa (es el String.hashCode() de Java). El % m de cada vuelta evita desbordar el int.",
+      idea: "Polinomial (Horner): h = h · 31 + c en cada letra, así el orden importa. El % m de cada vuelta evita desbordar el int.",
       calcular: (t, m) => [...t].reduce((h, c) => (h * 31 + codigo(c)) % m, 0),
       pasos(t, m, paso) {
         let h = 0;
@@ -404,8 +404,8 @@
     mensajeInicial: ({ funcion }) => `${TEXTO[funcion].idea} Prueba los anagramas con las dos funciones.`,
     estadoInicial: ({ funcion }) => ({ funcion, cubetas: cubetasVacias(M_TEXTO), vis: {} }),
     entradas: [
-      { id: "funcion", etiqueta: "Función", opciones: [["suma", "Suma de letras"], ["polinomial", "Polinomial"]], valor: "suma" },
-      { id: "palabra", etiqueta: "Palabra", opciones: PALABRAS.map((p) => [p, p]), valor: "amor", reinicia: false },
+      { id: "funcion", etiqueta: "", opciones: [["suma", "Suma de letras"], ["polinomial", "Polinomial"]], valor: "suma" },
+      { id: "palabra", etiqueta: "", opciones: PALABRAS.map((p) => [p, p]), valor: "amor", reinicia: false },
     ],
     operaciones: [
       {
@@ -427,7 +427,7 @@
       },
       {
         id: "anagramas",
-        etiqueta: "Agregar los 4 anagramas",
+        etiqueta: "+ los 4 anagramas",
         secundaria: true,
         ejecutar(s, args, paso) {
           const f = TEXTO[s.funcion];
@@ -444,7 +444,7 @@
           s.vis = { vars: { m: M_TEXTO } };
           paso(f.clave, 0, s.funcion === "suma"
             ? "Las cuatro palabras tienen las mismas letras, así que la suma es la misma: todas caen en la misma cubeta, sin importar m."
-            : "Con el hash polinomial el orden cambia el resultado y los anagramas se reparten. Aún pueden chocar dos (solo hay 7 cubetas), pero ya no por tener las mismas letras.", "exito");
+            : "Con el hash polinomial el orden cuenta y los anagramas se reparten. Dos aún pueden chocar (hay 7 cubetas), pero no por tener las mismas letras.", "exito");
         },
       },
     ],
@@ -464,6 +464,7 @@
   // ------------------------------------------------------------------
 
   const FILA = 44;
+  const FILA_COMPACTA = 28;
   const ALTO_NODO = 32;
   const ANCHO_NODO = 62;
   const PASO_X = 84;
@@ -499,7 +500,9 @@
     for (const b of lista) {
       const largo = Math.max(2, ...b.cubetas.map((c, i) => c.length + (b.pendiente && b.pendiente.cubeta === i ? 1 : 0)));
       b.ancho = X_NODO + (largo - 1) * PASO_X + ANCHO_NODO;
-      b.alto = TITULO + b.m * FILA;
+      // Con muchas cubetas (después de un rehash), filas más bajas para que la tabla quepa.
+      b.fila = b.m > 7 ? FILA_COMPACTA : FILA;
+      b.alto = TITULO + b.m * b.fila;
     }
     const enFila = lista.length > 1 && lista[0].ancho + SEPARACION + lista[1].ancho <= disponible;
     for (const b of lista) {
@@ -560,9 +563,9 @@
       if (!origen || !destino) continue;
       const esNodo = de.startsWith("n:");
       const x1 = origen.offsetLeft + (esNodo ? ANCHO_NODO - 12 : 15);
-      const y1 = origen.offsetTop + ALTO_NODO / 2;
+      const y1 = origen.offsetTop + (origen.offsetHeight || ALTO_NODO) / 2;
       const x2 = destino.offsetLeft - 3;
-      const y2 = destino.offsetTop + ALTO_NODO / 2;
+      const y2 = destino.offsetTop + (destino.offsetHeight || ALTO_NODO) / 2;
       const d = arco
         ? `M ${x1} ${y1} C ${x1 + 24} ${y1 - 34}, ${x2 - 30} ${y2 - 34}, ${x2} ${y2}`
         : `M ${x1} ${y1} L ${x2} ${y2}`;
@@ -607,8 +610,9 @@
       piezas.push(el("span", { class: "fila-titulo", style: `left:${b.x}px;top:${b.y}px`, text: b.titulo }));
       const resaltada = b.id === "t" ? vis.cubeta : vis.cubetaNueva;
       b.cubetas.forEach((cadena, i) => {
-        const y = b.y + TITULO + i * FILA;
-        piezas.push(el("span", { class: "indice indice-cubeta", style: `left:${b.x}px;top:${y + 8}px`, text: `[${i}]` }));
+        const y = b.y + TITULO + i * b.fila;
+        const compacta = b.fila < FILA;
+        piezas.push(el("span", { class: "indice indice-cubeta", style: `left:${b.x}px;top:${y + (compacta ? 4 : 8)}px`, text: `[${i}]` }));
 
         const k = `${b.id}-${i}`;
         vivos.add(`c:${k}`);
@@ -618,6 +622,7 @@
           lienzo.append(cubeta);
         }
         ubicar(cubeta, b.x + X_CUBETA, y);
+        cubeta.classList.toggle("compacta", compacta);
         cubeta.classList.toggle("activa", resaltada === i);
         cubeta.classList.toggle("nula", !conSalida.has(`c:${k}`));
 
@@ -634,6 +639,7 @@
           nodo.querySelector(".valor").textContent = s.nodos[id];
           nodo.querySelector(".sig").classList.toggle("nulo", !conSalida.has(`n:${id}`));
           ubicar(nodo, x, y);
+          nodo.classList.toggle("compacta", compacta);
           nodo.classList.toggle("suelto", !!(s.pendiente && s.pendiente.id === id));
           nodo.classList.toggle("activo", vis.activo === id);
           nodo.classList.toggle("anterior", vis.anterior === id);
