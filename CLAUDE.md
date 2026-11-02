@@ -16,7 +16,7 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
   - **montículos (min-heap y max-heap) y heapsort** (hecho en `temas/monticulo/`);
   - **árbol binario de búsqueda** (hecho en `temas/arbol-binario-busqueda/`);
   - **listas doblemente enlazadas y circulares**, como temas propios **después de Lista enlazada y antes de Pila** en `DS.TEMAS`;
-  - **ordenamientos** en tres temas, como bloque **antes de Montículo** en `DS.TEMAS`: elementales (exchange, bubble, selection, insertion y shell sort; hecho en `temas/ordenamiento-elemental/`), **merge sort y quicksort juntos** en un tema (hecho en `temas/merge-sort-quicksort/`), y ordenamientos sin comparaciones (counting, radix y bucket sort);
+  - **ordenamientos** en tres temas, como bloque **antes de Montículo** en `DS.TEMAS`: elementales (exchange, bubble, selection, insertion y shell sort; hecho en `temas/ordenamiento-elemental/`), **merge sort y quicksort juntos** en un tema (hecho en `temas/merge-sort-quicksort/`), y ordenamientos sin comparaciones (counting, radix y bucket sort; hecho en `temas/ordenamiento-sin-comparaciones/`);
   - **recursión**, **antes de Lambdas** en `DS.TEMAS`, con varios ejemplos que sacan dígitos, cambio de base y otros interesantes (sin Hanói) (hecho en `temas/recursion/`).
 - Los avances se anotan en ROADMAP.md: los temas hechos en "Hechos" y las mejoras del sitio en "Mejoras hechas".
 

@@ -2715,3 +2715,68 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .dyv-carrera-fila { grid-template-columns: 7.4rem minmax(0, 1fr) 4.6rem; }
   .dyv-carrera-dato { font-size: 0.66rem; }
 }
+
+/* Ordenamientos sin comparaciones: casillas de conteo, fichas que vuelan y cubetas */
+
+.snc-sin-comparar { font-family: var(--fuente-codigo); font-size: 0.78rem; font-weight: 700; color: var(--exito); }
+.ord-capa > .snc-titulo { margin: 0; font-size: 0.7rem; white-space: nowrap; }
+
+.snc-conteo > .snc-casilla {
+  position: absolute;
+  width: 40px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--acento);
+  border-radius: 7px;
+  background: var(--superficie);
+  font-family: var(--fuente-codigo);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--texto);
+  transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.3s ease;
+}
+.snc-casilla.sin-reservar { border-style: dashed; border-color: var(--borde); opacity: 0.6; }
+.snc-casilla.nueva { animation: aparece 0.35s ease; }
+.snc-casilla.leida { border-color: var(--lambda); background: var(--lambda-suave); }
+.snc-casilla.escrita { border-color: var(--activo); background: var(--activo-suave); }
+.snc-casilla.pop { animation: pop 0.35s ease 0.25s; }
+
+.snc-vuelo {
+  position: absolute;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--activo);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 16px;
+  pointer-events: none;
+  animation: snc-vuelo 0.6s ease both;
+}
+@keyframes snc-vuelo {
+  0% { transform: translate(calc(-50% + var(--dx)), var(--dy)); opacity: 0; }
+  15% { opacity: 1; }
+  80% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, 0); opacity: 0; }
+}
+
+.ord-barra.vuela { animation: snc-llega 0.5s ease both; z-index: 4; }
+@keyframes snc-llega { from { transform: translate(var(--dx), var(--dy)); opacity: 0.4; } }
+
+.snc-digito { color: var(--activo); background: var(--activo-suave); border-radius: 3px; }
+.snc-cero { opacity: 0.35; }
+.ord-barra .ord-num { white-space: nowrap; letter-spacing: -0.02em; }
+
+.snc-hueco { height: 10px; border: 2px dashed var(--borde); border-top: 0; border-radius: 0 0 6px 6px; }
+.snc-hueco.sin-reservar { opacity: 0.35; }
+
+.snc-cubeta { border: 2px dashed var(--borde); border-top: 0; border-radius: 0 0 10px 10px; background: var(--superficie-2); transition: border-color 0.25s ease, background-color 0.25s ease; }
+.snc-cubeta.vacia { opacity: 0.6; }
+.snc-cubeta.activa { border-color: var(--activo); }
+.snc-cubeta.ordenada { background: var(--activo-suave); }
+.ord-capa > .snc-tramo { text-align: center; font-size: 0.66rem; }
+.ord-barra.snc-ficha { padding-top: 2px; border-radius: 6px; }

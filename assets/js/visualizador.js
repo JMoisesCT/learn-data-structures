@@ -93,6 +93,13 @@
       archivo: "merge_sort_quicksort.cpp",
     },
     {
+      slug: "ordenamiento-sin-comparaciones",
+      titulo: "Ordenamientos sin comparaciones",
+      resumen: "Counting, radix y bucket sort: usar el valor como índice en lugar de compararlo. O(n + k), dígito por dígito, cubetas, y cuándo le ganan a O(n log n).",
+      etiquetas: ["O(n + k)", "sin comparar"],
+      archivo: "ordenamiento_sin_comparaciones.cpp",
+    },
+    {
       slug: "monticulo",
       titulo: "Montículo (heap)",
       resumen: "Min-heap y max-heap: un árbol guardado en un arreglo con el mínimo (o el máximo) siempre en la raíz. Incluye heapsort.",
