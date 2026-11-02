@@ -14,7 +14,7 @@
     <div class="tema-cabecera">
       <div class="miga"><a href="../../">Inicio</a> / Lambdas en C++</div>
       <h1>Lambdas en C++</h1>
-      <p class="resumen">Una lambda es una <strong>función sin nombre que se escribe justo donde se usa</strong>. No es una estructura de datos, pero la vas a ver en todos los temas que siguen: así se le dice a <code>std::sort</code> cómo ordenar, a <code>std::count_if</code> qué contar o a <code>std::priority_queue</code> quién tiene más prioridad.</p>
+      <p class="resumen">Una <strong>función sin nombre que se escribe justo donde se usa</strong>. No es una estructura de datos, pero así se le dice a <code>std::sort</code> cómo ordenar o a <code>std::count_if</code> qué contar.</p>
     </div>
 
     <div class="leccion">
@@ -24,7 +24,7 @@
         <div class="dos-columnas">
           <div>
             <p class="anatomia-lambda" aria-label="Partes de una lambda"><code><span class="parte-captura">[capturas]</span><span class="parte-parametros">(parámetros)</span> <span class="parte-tipo">-&gt; tipo</span> <span class="parte-cuerpo">{ cuerpo }</span></code></p>
-            <p>Los <strong>corchetes</strong> dicen qué variables de afuera puede usar, los <strong>paréntesis</strong> qué recibe en cada llamada y el <strong>cuerpo</strong> qué hace. El tipo de retorno casi nunca se escribe: el compilador lo deduce del <code>return</code>.</p>
+            <p><strong>Corchetes</strong>: qué variables de afuera usa. <strong>Paréntesis</strong>: qué recibe. <strong>Cuerpo</strong>: qué hace. El tipo de retorno casi nunca se escribe: se deduce del <code>return</code>.</p>
           </div>
           <div>
             <p>Escribir la lambda <strong>crea un objeto función</strong> (por eso se guarda en una variable con <code>auto</code>), pero el cuerpo todavía no corre. Se ejecuta recién al llamarla, como cualquier función: con su propio marco en la pila.</p>
