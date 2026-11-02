@@ -3,7 +3,7 @@
 // (scripts/verificar-fragmentos.mjs lo revisa).
 (function () {
   const { el } = DS;
-  const MAXIMO = 15; // límite solo para que la animación quepa en pantalla
+  const MAXIMO = 9; // límite solo para que la animación quepa en pantalla (dos filas)
   const MARGEN = 14;
   const X_LISTA = 100; // x del primer nodo: a la izquierda va la variable cabeza
   const ALTO_NODO = 46;
@@ -572,7 +572,7 @@
   // id para que se deslice con transiciones CSS.
   // ------------------------------------------------------------------
 
-  const pasoX = (s) => (s.direcciones ? 136 : 108);
+  const pasoX = (s) => (s.direcciones ? 136 : 100);
   const anchoNodo = (s) => (s.direcciones ? 94 : 78);
   const bajada = (s) => ALTO_NODO + (s.direcciones ? 62 : 48); // de una fila a sus nodos sueltos
   // Entre dos filas: el carril de la flecha que salta de fila y las marcas de los punteros.
