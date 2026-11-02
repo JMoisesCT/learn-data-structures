@@ -1634,10 +1634,10 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 
 .muestra-serie { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
 
-.info-na { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.5rem 1.5rem; min-height: 3.2rem; }
+.info-na { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.5rem 1.5rem; min-height: 3rem; }
 .info-na-datos { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; flex: 1 1 200px; }
 .info-na .variables, .info-na .salida-valor { margin: 0 0 0.5rem; }
-.info-na .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+.info-na .salida-valor .celda { width: auto; min-width: 34px; height: 30px; padding: 0 6px; }
 
 .contador-na {
   display: flex;
@@ -1652,7 +1652,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   line-height: 1.1;
 }
 .contador-na span { font-size: 0.68rem; color: var(--texto-suave); }
-.contador-na b { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.contador-na b { font-size: 1.3rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .contador-na.sube b { animation: pop 0.3s ease; }
 
 .marco-na { transition: width 0.45s ease, height 0.45s ease; }
@@ -1675,6 +1675,8 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.35s ease, transform 0.35s ease;
 }
 .varias-filas .na-celda { border-radius: 6px; font-size: 0.78rem; }
+.muy-chicas .na-celda { border-width: 1.5px; border-radius: 4px; font-size: 0.56rem; }
+.muy-chicas .indice { font-size: 0.5rem; }
 .varias-filas .indice { font-size: 0.62rem; }
 .varias-filas .na-punto { width: 5px; height: 5px; }
 .na-celda.revisada { opacity: 0.5; }
@@ -1709,6 +1711,9 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 
 .abajo-na { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-start; }
 .grafica-na { flex: 1 1 260px; max-width: 460px; min-width: 0; }
+/* Junto a la tabla de pares (hayRepetidos con n grande), la gráfica no pasa del alto de la tabla. */
+.cuerpo-na:not(.al-lado) .grafica-na { max-width: 440px; }
+.leyenda-grafica { line-height: 1.3; }
 
 /* Escenario ancho (y clase al-lado, ver notacion-algoritmica.js): la gráfica va
    al lado del arreglo en lugar de debajo, para que el paso quepa a lo alto. */
@@ -1730,6 +1735,9 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .al-lado .grafica-na { grid-area: grafica; max-width: none; }
 }
 .svg-na, .svg-carrera { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--fuente-codigo); }
+/* Alto fijo como máximo: si no, con el zoom del motor la gráfica sería más ancha y más alta, y el dibujo no achicaría. */
+.svg-na { max-height: 150px; }
+.cuerpo-na:not(.al-lado) .svg-na { max-height: 136px; }
 .svg-na text, .svg-carrera text { fill: var(--texto-suave); font-size: 9.5px; }
 .svg-carrera text { font-size: 11px; }
 .svg-na .titulo-eje, .svg-carrera .titulo-eje { font-size: 9px; font-weight: 600; }
@@ -1752,7 +1760,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .pares-na[hidden] { display: none; }
 .rejilla-pares { display: grid; gap: 2px; }
 .canvas-pares { display: block; }
-.eje-pares { display: grid; place-items: center; font-family: var(--fuente-codigo); font-size: 0.58rem; color: var(--texto-suave); }
+.eje-pares { display: grid; place-items: center; font-family: var(--fuente-codigo); font-size: 0.58rem; line-height: 1; color: var(--texto-suave); }
 .par { border-radius: 3px; border: 1px solid var(--borde); background: var(--superficie); transition: background-color 0.25s ease, border-color 0.25s ease; }
 .par.nulo { border: 0; background: transparent; }
 .par.comparado { background: var(--serie-5); border-color: var(--serie-5); animation: pop 0.3s ease; }
