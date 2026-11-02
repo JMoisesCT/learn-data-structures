@@ -853,7 +853,11 @@
     // para que no salte entre pasos).
     function centrar() {
       escenario.style.removeProperty("--hueco");
-      const sobra = escenario.offsetHeight - altoMinimo;
+      // Con el alto que midió ajustarEscala (sin depender del dibujo): si el
+      // dibujo anterior todavía se está achicando con una transición, el
+      // escenario mide de más y el hueco quedaría grande hasta el paso siguiente.
+      const alto = altoDisponible != null ? altoDisponible : escenario.offsetHeight;
+      const sobra = alto - altoMinimo;
       if (sobra > 1) escenario.style.setProperty("--hueco", `${Math.floor(sobra / 2)}px`);
     }
 
@@ -863,8 +867,10 @@
     // mide con el escenario vacío de reservas, así no depende del dibujo.
     const enLeccion = !!contenedor.closest(".leccion");
     let altoMinimo = 0;
+    let altoDisponible = null;
     function ajustarEscala() {
       if (!escenario.clientWidth) return; // paso de lección oculto: se ajusta al mostrarlo
+      altoDisponible = null;
       const natural = altos.get(escenario) || 0;
       const relleno = 32; // padding de arriba y abajo del escenario, sin el hueco
       let k = 1;
@@ -876,6 +882,7 @@
         escenario.style.minHeight = "0px";
         escenario.style.flexBasis = "0px";
         const disponible = escenario.clientHeight;
+        altoDisponible = disponible;
         escenario.style.minHeight = "";
         escenario.style.flexBasis = "";
         if (window.scrollY !== scroll) window.scrollTo(window.scrollX, scroll);
