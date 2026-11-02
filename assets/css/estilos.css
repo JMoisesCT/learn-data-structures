@@ -2670,3 +2670,47 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .ord-carrera-nombre { font-size: 0.7rem; }
   .ord-cuenta { padding-left: 0; border-left: 0; }
 }
+
+/* Merge sort y quicksort: árbol de llamadas, zonas de la partición y pivote */
+
+.dyv-llamada { font-size: 0.8rem; font-weight: 700; color: var(--acento); }
+.ord-zona.menores { background: var(--acento-suave); }
+.ord-zona.mayores { background: var(--activo-suave); }
+.ord-zona.izquierda { background: var(--acento-suave); }
+.ord-zona.derecha { background: var(--lambda-suave); }
+.ord-zona.menores .ord-zona-texto, .ord-zona.izquierda .ord-zona-texto { color: var(--acento); }
+.ord-zona.mayores .ord-zona-texto { color: var(--texto-suave); }
+.ord-zona.derecha .ord-zona-texto { color: var(--lambda); }
+.ord-barra.pivote { border-color: var(--lambda); background: var(--lambda-suave); }
+.ord-barra.pivote.fija { box-shadow: 0 0 0 3px var(--lambda-suave); }
+.ord-barra.encontrada { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.35s ease; }
+.dyv-buscado { height: 16px; border-radius: 4px; border: 2px dashed var(--exito); }
+
+.dyv-arbol-titulo { font-family: var(--fuente-codigo); font-size: 0.68rem; color: var(--texto-suave); white-space: nowrap; }
+.dyv-arbol > .dyv-nodo {
+  position: absolute;
+  height: 13px;
+  border-radius: 4px;
+  border: 1.5px solid var(--borde);
+  background: var(--superficie-2);
+  font-family: var(--fuente-codigo);
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 11px;
+  text-align: center;
+  color: var(--texto-suave);
+  white-space: nowrap;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.dyv-nodo.nuevo { animation: aparece 0.35s ease; }
+.dyv-nodo.activa { border-color: var(--activo); background: var(--activo-suave); color: var(--texto); }
+.dyv-nodo.espera { border-color: var(--acento); border-style: dashed; color: var(--acento); }
+.dyv-nodo.lista { border-color: var(--exito); background: var(--exito-suave); color: var(--exito); }
+.dyv-pivote-nodo { position: absolute; top: 10px; width: 10px; height: 4px; border-radius: 0 0 5px 5px; background: var(--lambda); }
+
+.dyv-carrera-fila { grid-template-columns: 9.6rem minmax(0, 1fr) 7rem; }
+.dyv-carrera-dato { font-family: var(--fuente-codigo); font-size: 0.74rem; color: var(--texto-suave); text-align: right; }
+@media (max-width: 600px) {
+  .dyv-carrera-fila { grid-template-columns: 7.4rem minmax(0, 1fr) 4.6rem; }
+  .dyv-carrera-dato { font-size: 0.66rem; }
+}
