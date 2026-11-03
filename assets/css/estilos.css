@@ -2253,6 +2253,137 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .anodo.avl .alt.cambia, .avl-fb.resaltado, .avl-fb.cambia { animation: none; }
 }
 
+/* Grafos: vértices, aristas que se trazan, la lista de adyacencia y las
+   estructuras del recorrido (cola, pila, visitado, dist y orden) con fichas
+   que viajan de una a otra */
+
+.info-grafo { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; min-height: 2.6rem; }
+.info-grafo .variables, .info-grafo .salida-valor { margin: 0 0 0.5rem; }
+.info-grafo .salida-valor .celda { width: auto; min-width: 38px; height: 38px; padding: 0 6px; }
+.info-grafo .pila-llamadas { width: auto; flex: 1 1 100%; }
+
+.marco-grafo { margin: 0 auto; transition: width 0.45s ease, height 0.45s ease; }
+.lienzo-grafo { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.lienzo-grafo.sacudir { animation: sacudir 0.36s ease; }
+.lienzo-grafo svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.lienzo-grafo svg path { fill: none; stroke: var(--texto-suave); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; transition: stroke 0.25s ease, stroke-width 0.25s ease, opacity 0.3s ease; }
+.lienzo-grafo svg path.traza { animation: trazar 0.5s ease both; }
+.lienzo-grafo svg path.media { opacity: 0.45; stroke-dasharray: 0.04 0.03; animation: none; }
+.lienzo-grafo svg path.arbol { stroke: var(--acento); stroke-width: 4.5; }
+.lienzo-grafo svg path.mirando { stroke: var(--activo); stroke-width: 5; }
+.lienzo-grafo svg path.tenue { opacity: 0.3; }
+
+.gvertice {
+  --c: var(--acento);
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2.5px solid var(--borde);
+  border-radius: 50%;
+  background: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.gvertice.descubierto { border-color: var(--activo); background: var(--activo-suave); }
+.gvertice.hecho { border-color: var(--exito); background: var(--exito-suave); }
+.gvertice.en-llamada { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 4px var(--activo-suave); }
+.gvertice.capa { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, var(--superficie)); }
+.gvertice.isla { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, var(--superficie)); animation: pop 0.4s ease both; animation-delay: var(--retraso, 0ms); }
+.capa-0, .isla-0 { --c: var(--serie-1); }
+.capa-1, .isla-1 { --c: var(--serie-2); }
+.capa-2, .isla-2 { --c: var(--serie-3); }
+.capa-3, .isla-3 { --c: var(--serie-4); }
+.capa-4, .isla-4 { --c: var(--serie-5); }
+.isla-5 { --c: var(--serie-6); }
+.gvertice.actual { transform: scale(1.12); box-shadow: 0 0 0 4px var(--activo); }
+.gvertice.mirado { border-style: dashed; border-color: var(--activo); }
+.gvertice.marcado { animation: pop 0.4s ease both; animation-delay: var(--retraso, 0ms); }
+.gvertice.repetido { border-color: var(--peligro); background: var(--peligro-suave); box-shadow: 0 0 0 4px var(--peligro-suave); }
+.gvertice-dist {
+  position: absolute;
+  right: -12px;
+  bottom: -9px;
+  min-width: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--c);
+  color: var(--superficie);
+  font-size: 0.66rem;
+  line-height: 16px;
+  text-align: center;
+}
+.gvertice-dist:empty { display: none; }
+
+.gady-indice {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--superficie-2);
+  font-family: var(--fuente-codigo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.gady-indice::after { content: "→"; position: absolute; left: 100%; margin-left: 1px; font-weight: 400; }
+.gady-indice.leyendo { background: var(--activo-suave); color: var(--texto); }
+
+.gtitulo { position: absolute; font-family: var(--fuente-codigo); font-size: 0.7rem; font-weight: 700; color: var(--acento); white-space: nowrap; animation: aparece-suave 0.3s ease; }
+
+.gficha {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--acento);
+  border-radius: 6px;
+  background: var(--acento-suave);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: left 0.5s ease, top 0.5s ease, opacity 0.35s ease, transform 0.35s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.gficha.cola, .gficha.pila { border-color: var(--activo); background: var(--activo-suave); }
+.gficha.orden { border-color: var(--exito); background: var(--exito-suave); }
+.gficha.ady.leyendo { border-color: var(--activo); background: var(--activo-suave); box-shadow: 0 0 0 3px var(--activo-suave); transform: translateY(-2px); }
+.gficha.ady.buscada { border-style: dashed; }
+.gficha.ady.mala { border-color: var(--peligro); background: var(--peligro-suave); }
+.gficha.reciente { box-shadow: 0 0 0 3px var(--exito-suave); }
+.gficha.aparece { animation: pop 0.35s ease; }
+.gficha.saliendo { opacity: 0; transform: translateY(-14px) scale(0.75); }
+
+.gcelda {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 24px 12px;
+  width: 24px;
+  text-align: center;
+  font-family: var(--fuente-codigo);
+  animation: aparece-suave 0.3s ease;
+}
+.gcelda-valor { display: grid; place-items: center; border: 1.5px solid var(--borde); border-radius: 5px; background: var(--superficie-2); font-size: 0.72rem; font-weight: 700; color: var(--texto-suave); transition: background-color 0.25s ease, border-color 0.25s ease; }
+.gcelda.si .gcelda-valor { border-color: var(--exito); background: var(--exito-suave); color: var(--texto); }
+.gcelda.mirada .gcelda-valor { box-shadow: 0 0 0 2px var(--activo); }
+.gcelda.cambia .gcelda-valor { animation: latido 0.6s ease; }
+.gcelda-indice { font-size: 0.6rem; line-height: 12px; color: var(--texto-suave); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gvertice, .gficha, .lienzo-grafo, .marco-grafo { transition: none; }
+  .lienzo-grafo svg path.traza, .gvertice.isla, .gvertice.marcado, .gficha.aparece, .gcelda.cambia .gcelda-valor { animation: none; }
+}
+
 /* Lista doblemente enlazada: nodos [anterior | valor | siguiente]; las flechas
    hacia adelante van arriba y las de vuelta, abajo */
 

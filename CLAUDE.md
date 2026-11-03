@@ -19,7 +19,7 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
   - **ordenamientos** en tres temas, como bloque **antes de Montículo** en `DS.TEMAS`: elementales (exchange, bubble, selection, insertion y shell sort; hecho en `temas/ordenamiento-elemental/`), **merge sort y quicksort juntos** en un tema (hecho en `temas/merge-sort-quicksort/`), y ordenamientos sin comparaciones (counting, radix y bucket sort; hecho en `temas/ordenamiento-sin-comparaciones/`);
   - **recursión**, **antes de Lambdas** en `DS.TEMAS`, con varios ejemplos que sacan dígitos, cambio de base y otros interesantes (sin Hanói) (hecho en `temas/recursion/`);
   - **árbol AVL** (balanceo con rotaciones), **después de Árbol binario de búsqueda y antes de Grafos** en `DS.TEMAS` (hecho en `temas/arbol-avl/`);
-  - **grafos** (lista de adyacencia, BFS y DFS), el siguiente en ROADMAP.md.
+  - **grafos** (lista de adyacencia, BFS y DFS), **después de Árbol AVL** en `DS.TEMAS` (hecho en `temas/grafos/`).
 - Los avances se anotan en ROADMAP.md: los temas hechos en "Hechos" y las mejoras del sitio en "Mejoras hechas".
 
 ## Reglas
