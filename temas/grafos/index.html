@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grafos · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: qué es un grafo y cómo se guarda en una lista de adyacencia, el recorrido en anchura (BFS) con una cola, las distancias en aristas, el recorrido en profundidad (DFS) con una pila y con recursión, y las componentes conexas. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="grafos">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Grafos</div>
+      <h1>Grafos</h1>
+      <p class="resumen">Puntos (<strong>vértices</strong>) unidos por líneas (<strong>aristas</strong>): ciudades y rutas, personas y amistades, páginas y enlaces. Se recorren con <strong>BFS</strong> y <strong>DFS</strong>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Lista de adyacencia">
+        <h2>Vértices, aristas y la lista de adyacencia</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>A diferencia de un árbol, un grafo no tiene raíz y puede tener <strong>ciclos</strong>: al recorrerlo hay que <strong>recordar qué ya se visitó</strong>.</p>
+          </div>
+          <div>
+            <p>Se guarda en una <strong>lista de adyacencia</strong> (<code>vector&lt;vector&lt;int&gt;&gt;</code>): los vecinos de cada vértice. Sin dirección, cada arista va en <strong>dos</strong> listas.</p>
+          </div>
+        </div>
+        <div id="vis-aristas"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">El grafo tiene 10 aristas. ¿Cuántos números hay en total en las listas?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Cada arista u–v se anota en la lista de u y también en la de v.">10</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada arista aparece dos veces, una en cada extremo: 2 · 10 = 20. Por eso la lista ocupa O(V + E) de memoria.">20</button>
+            <button type="button" class="opcion" data-explicacion="Eso ocuparía una matriz de 8 × 8, con un casillero por cada par de vértices, haya arista o no.">64</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="bfs" data-titulo="BFS con una cola">
+        <h2>BFS: recorrer por capas con una cola</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>El recorrido en <strong>anchura</strong> (<em>breadth-first search</em>) empieza en el origen, sigue con todos sus vecinos, después con los vecinos de esos, y así: como una onda en el agua.</p>
+          </div>
+          <div>
+            <p>La <a href="../cola/">cola</a> garantiza ese orden: los que se descubren después esperan detrás. Cada vértice se marca <code>visitado</code> al <strong>entrar</strong>, así nunca entra dos veces.</p>
+          </div>
+        </div>
+        <div id="vis-bfs"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué se marca <code>visitado[v] = true</code> al encolar y no al sacar?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Si se marcara al sacar, el 4 entraría dos veces: lo descubren el 1 y el 2 antes de que salga. Marcando al entrar, cada vértice pasa por la cola una sola vez.">Para que nadie entre dos veces a la cola</button>
+            <button type="button" class="opcion" data-explicacion="El orden no cambia: lo que cambia es que habría repetidos en la cola, trabajo de más.">Para que salgan en otro orden</button>
+            <button type="button" class="opcion" data-explicacion="Es al revés: el código funciona (con repetidos), pero marcar antes ahorra trabajo.">Si no, el programa no compila</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="distancias" data-titulo="Distancias">
+        <h2>Distancias: el camino más corto en aristas</h2>
+        <p>Como BFS avanza por capas, la primera vez que llega a un vértice lo hace por el camino <strong>más corto</strong> (contando aristas). Basta anotar <code>dist[v] = dist[u] + 1</code> al descubrirlo; <code>dist</code> en −1 hace de «no visitado». Así funcionan los «a cuántos saltos» de una red.</p>
+        <div id="vis-distancias"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Sirve este BFS para el camino más corto en kilómetros, si cada ruta mide distinto?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="BFS cuenta aristas: una ruta de 300 km y una de 2 km valen lo mismo.">Sí, igual que con aristas</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Con pesos distintos hace falta otro algoritmo, como Dijkstra, que usa una cola de prioridad (un montículo) en lugar de una cola común.">No: con pesos hace falta Dijkstra</button>
+            <button type="button" class="opcion" data-explicacion="Un DFS ni siquiera encuentra el camino más corto en aristas: se va lejos por el primer camino que encuentra.">Sí, pero con DFS</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="dfs" data-titulo="DFS con una pila">
+        <h2>DFS: ir hasta el fondo con una pila</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>El recorrido en <strong>profundidad</strong> (<em>depth-first search</em>) cambia la cola por una <a href="../pila/">pila</a>: el último vecino que entra es el primero que sale, así que sigue por un camino hasta que no puede más y recién ahí retrocede.</p>
+          </div>
+          <div>
+            <p>Aquí se marca al <strong>sacar</strong>: un vértice puede quedar dos veces en la pila (el <code>continue</code> descarta la copia). Los vecinos se apilan <strong>al revés</strong> para que el primero de la lista salga primero.</p>
+          </div>
+        </div>
+        <div id="vis-dfs"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Desde el 0, BFS da 0 1 2 3 4 5 6 7 y DFS da 0 1 3 6 4 2 5 7. ¿Por qué el 2 sale tan tarde en DFS?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El 2 es vecino directo del 0, igual que el 1: está a la misma distancia.">Porque está lejos del 0</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El 2 queda abajo en la pila mientras DFS sigue el camino 1 → 3 → 6 → 4; cuando el 4 lo descubre, el 2 sale enseguida.">Porque DFS se fue primero por el camino del 1</button>
+            <button type="button" class="opcion" data-explicacion="Se apila enseguida, cuando sale el 0, pero esa copia queda abajo de todo. La que sale es la que apila el 4, mucho después.">Porque se apiló tarde</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="recursivo" data-titulo="DFS recursivo">
+        <h2>DFS recursivo: la pila es la de llamadas</h2>
+        <p>DFS se escribe más corto con <a href="../recursion/">recursión</a>: <code>visitar(u)</code> marca a <code>u</code> y llama a <code>visitar</code> con cada vecino sin visitar. Cada llamada <strong>espera</strong> a que la de su vecino termine: cuando a un vértice no le quedan vecinos nuevos, su llamada termina y el recorrido <strong>retrocede</strong> (<em>backtracking</em>).</p>
+        <div id="vis-recursivo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué puede pasar con un grafo de un millón de vértices en fila (un camino largo)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Es O(V + E) igual que la versión con pila: el tiempo no es el problema.">Tarda O(n²)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Habría un millón de llamadas esperando a la vez y la pila del programa (unos pocos MB) se desbordaría. La versión con std::stack guarda todo en el heap y no tiene ese límite.">Se desborda la pila de llamadas</button>
+            <button type="button" class="opcion" data-explicacion="Visita lo mismo que el DFS con pila, en el mismo orden.">Visita los vértices en otro orden</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="componentes" data-titulo="Islas">
+        <h2>Componentes conexas: contar las islas</h2>
+        <p>Un recorrido visita todo lo que se alcanza desde su origen, y nada más. Si se arranca un recorrido desde cada vértice que quedó sin visitar, cada arranque descubre una <strong>componente</strong> nueva: un grupo de vértices conectados entre sí y no con el resto. Todo junto sigue siendo O(V + E).</p>
+        <div id="vis-componentes"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Al agregar la arista 2–3, ¿cuántas componentes quedan?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Une dos islas, pero la del 5, 6 y 7 sigue aparte.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El triángulo 0-1-2 y la arista 3-4 se vuelven una sola isla; la del 5, 6 y 7 sigue sola: 2.">2</button>
+            <button type="button" class="opcion" data-explicacion="Una arista entre dos islas distintas las une en una: baja de 3 a 2.">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto: arma un grafo y recórrelo</h2>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y dónde se usa</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>Lista de adyacencia</th><th>Matriz de adyacencia</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td>Memoria</td><td class="o-grande bueno">O(V + E)</td><td class="o-grande malo">O(V²)</td><td>La matriz guarda un casillero por cada par, haya arista o no.</td></tr>
+              <tr><td>¿Hay arista u–v?</td><td class="o-grande">O(grado)</td><td class="o-grande bueno">O(1)</td><td>La lista hay que recorrerla; la matriz se consulta directo.</td></tr>
+              <tr><td>Recorrer los vecinos de u</td><td class="o-grande bueno">O(grado)</td><td class="o-grande malo">O(V)</td><td>La matriz revisa la fila entera, incluidos los ceros.</td></tr>
+              <tr><td>BFS, DFS, componentes</td><td class="o-grande bueno">O(V + E)</td><td class="o-grande malo">O(V²)</td><td>Cada vértice se visita una vez y cada lista se lee una vez.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota"><strong>BFS</strong> sirve cuando importa la cercanía: el camino más corto en aristas, los «amigos de amigos», un laberinto con la menor cantidad de pasos. <strong>DFS</strong> sirve para explorar a fondo: detectar ciclos, ordenar tareas con dependencias (orden topológico), resolver laberintos o rompecabezas con retroceso.</div>
+        <ul class="lista-columnas">
+          <li>Mapas y GPS: las calles son aristas con peso; el camino más corto se busca con Dijkstra o A*, primos de BFS.</li>
+          <li>Redes sociales: «personas que quizás conozcas» son vértices a distancia 2.</li>
+          <li>Compiladores y gestores de paquetes: el orden en que se compila o instala depende de un DFS sobre las dependencias.</li>
+          <li>Si las aristas tienen dirección (seguir a alguien, un enlace web), se agrega solo <code>adyacentes[u].push_back(v)</code>: un grafo <strong>dirigido</strong>.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra grafos.cpp -o grafos &amp;&amp; ./grafos</span></pre>
+        <div data-codigo-completo="grafos.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Agrega a <code>distancias</code> un vector <code>padre</code> y escribe <code>camino(origen, destino)</code>, que devuelva los vértices del camino más corto.</li>
+          <li>Escribe <code>bool hayCiclo() const</code> con un DFS: hay ciclo si se encuentra un vecino ya visitado que no es el padre.</li>
+          <li>Haz una versión dirigida (<code>agregarArco</code>) y escribe el orden topológico con DFS: cada vértice se anota al terminar su llamada.</li>
+          <li>Escribe <code>bool esBipartito() const</code>: colorea con BFS alternando dos colores y revisa que ningún vecino tenga el mismo.</li>
+          <li>Representa el grafo con una matriz <code>vector&lt;vector&lt;bool&gt;&gt;</code> y compara el tiempo de <code>bfs</code> con 5000 vértices y pocas aristas.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="grafos.js"></script>
+</body>
+</html>

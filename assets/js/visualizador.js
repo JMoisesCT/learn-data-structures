@@ -127,7 +127,13 @@
       etiquetas: ["rotaciones O(1)", "altura O(log n)"],
       archivo: "arbol_avl.cpp",
     },
-    { slug: "grafos", titulo: "Grafos", resumen: "Representación, BFS y DFS.", etiquetas: ["próximamente"], proximamente: true },
+    {
+      slug: "grafos",
+      titulo: "Grafos",
+      resumen: "Vértices y aristas guardados en una lista de adyacencia. Recorrer por capas con BFS y una cola, al fondo con DFS y una pila o con recursión, distancias y componentes conexas.",
+      etiquetas: ["BFS y DFS", "O(V + E)"],
+      archivo: "grafos.cpp",
+    },
   ];
 
   const raiz = document.body.dataset.raiz || "./";
