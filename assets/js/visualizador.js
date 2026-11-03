@@ -120,6 +120,13 @@
       etiquetas: ["buscar O(h)", "inorden ordenado"],
       archivo: "arbol_binario_busqueda.cpp",
     },
+    {
+      slug: "arbol-avl",
+      titulo: "Árbol AVL",
+      resumen: "Un árbol binario de búsqueda que se rebalancea solo: altura y factor de balance en cada nodo, rotaciones simples y dobles, e insertar y eliminar en O(log n) aunque los datos lleguen ordenados.",
+      etiquetas: ["rotaciones O(1)", "altura O(log n)"],
+      archivo: "arbol_avl.cpp",
+    },
     { slug: "grafos", titulo: "Grafos", resumen: "Representación, BFS y DFS.", etiquetas: ["próximamente"], proximamente: true },
   ];
 
