@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Árbol AVL · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: el árbol AVL, un árbol binario de búsqueda que se rebalancea solo. La altura guardada en cada nodo y el factor de balance, las rotaciones a la derecha y a la izquierda, los cuatro casos de rebalancear (con las rotaciones dobles), insertar y eliminar recursivos que rebalancean al volver, y por qué la altura queda en O(log n). Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="arbol-avl">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Árbol AVL</div>
+      <h1>Árbol AVL</h1>
+      <p class="resumen">Un <a href="../arbol-binario-busqueda/">árbol binario de búsqueda</a> que <strong>se rebalancea solo</strong> con rotaciones: la altura queda en O(log n) aunque los valores lleguen ordenados.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Balance en cada nodo">
+        <h2>La regla: ningún lado más alto que el otro por más de 1</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>El AVL es un ABB con una regla más: en <strong>cada</strong> nodo, las alturas de sus dos subárboles difieren en <strong>1 como mucho</strong>. Así h nunca llega a n.</p>
+          </div>
+          <div>
+            <p>Cada nodo <strong>guarda su altura</strong> (h). El <strong>factor de balance</strong> es <code>altura(izq) − altura(der)</code> y tiene que ser −1, 0 o +1.</p>
+          </div>
+        </div>
+        <div id="vis-balance"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En este árbol, ¿qué nodo tiene factor de balance +2?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Su izquierdo (el 20) mide 2 y su derecho (el 40) mide 1: +1, todavía cumple.">El 30</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Su izquierdo (el 30) mide 3 y su derecho (el 70) mide 1: 3 − 1 = +2. Este árbol no es AVL.">El 50</button>
+            <button type="button" class="opcion" data-explicacion="El 10 es una hoja: sus dos lados miden 0, así que su balance es 0.">El 10</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="rotar" data-titulo="Rotaciones">
+        <h2>Rotar: subir un hijo sin romper el orden</h2>
+        <div class="dos-columnas">
+          <div>
+            <p><code>rotarDerecha(y)</code> sube a su hijo izquierdo <code>x</code> y deja a <code>y</code> como hijo derecho de <code>x</code>. El subárbol del medio, <code>t2</code>, cambia de padre: era el derecho de <code>x</code> y pasa a ser el izquierdo de <code>y</code>.</p>
+          </div>
+          <div>
+            <p>Solo cambian <strong>3 punteros</strong>: es O(1). Y nadie se mueve a los lados, así que el <strong>inorden no cambia</strong>: sigue siendo un ABB. <code>rotarIzquierda</code> es el espejo y deshace la otra.</p>
+          </div>
+        </div>
+        <div id="vis-rotar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Al rotar a la derecha el 50, ¿por qué el 40 puede colgar a la izquierda del 50?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Estaba a la derecha del 30 (es mayor) y en el subárbol izquierdo del 50 (es menor): entre 30 y 50, justo lo que exige su nuevo lugar.">Porque está entre el 30 y el 50</button>
+            <button type="button" class="opcion" data-explicacion="El 40 podría tener hijos y aun así se movería con todo su subárbol: lo que importa es su valor.">Porque es una hoja</button>
+            <button type="button" class="opcion" data-explicacion="Si se reordenara habría que comparar valores; la rotación no compara nada, solo cambia punteros.">Porque la rotación reordena el árbol</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="rebalancear" data-titulo="Los cuatro casos">
+        <h2><code>rebalancear</code>: una o dos rotaciones</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Si un nodo queda en <strong>+2</strong>, sobra altura a la izquierda: se rota a la derecha. Si el hijo izquierdo está cargado al revés (zigzag, <strong>izquierda-derecha</strong>), antes se rota ese hijo a la izquierda para dejarlo en línea recta.</p>
+          </div>
+          <div>
+            <p>Con <strong>−2</strong> es el espejo. Así quedan cuatro casos: izquierda-izquierda y derecha-derecha con una rotación, izquierda-derecha y derecha-izquierda con dos. Elige un caso en la lista.</p>
+          </div>
+        </div>
+        <div id="vis-rebalancear"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En el caso izquierda-derecha, ¿qué nodo termina en la raíz?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El 30 es el hijo izquierdo, pero en zigzag: si subiera él, el 40 y el 45 quedarían desbalanceados del otro lado.">El 30, el hijo izquierdo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="La primera rotación lo sube por encima del 30 y la segunda por encima del 50: el nieto del medio queda arriba, con el 30 y el 50 como hijos.">El 40, el nieto del medio</button>
+            <button type="button" class="opcion" data-explicacion="El 50 era la raíz desbalanceada: termina como hijo derecho.">El 50, que se queda</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar" data-titulo="insertar">
+        <h2><code>insertar</code>: bajar como en un ABB y rebalancear al volver</h2>
+        <p><code>insertarEn</code> es recursiva: baja hasta un <code>nullptr</code> y crea la hoja. Al <strong>volver</strong> de cada llamada, ese nodo actualiza su altura y llama a <code>rebalancear</code>, y devuelve la raíz (quizás nueva) de su subárbol; por eso el padre hace <code>nodo->izq = insertarEn(…)</code>. Al insertar, basta <strong>una</strong> rotación.</p>
+        <div id="vis-insertar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Qué nodos pueden quedar desbalanceados al insertar?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Un nodo fuera del camino no ganó ni perdió nada debajo: su altura y su balance siguen igual.">Cualquiera del árbol</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Solo cambió la altura de los subárboles por donde bajamos: por eso se revisan al volver de la recursión, de abajo hacia arriba.">Solo los del camino de la raíz a la hoja nueva</button>
+            <button type="button" class="opcion" data-explicacion="La raíz puede desbalancearse, pero también cualquier otro nodo del camino: si después del 5 insertas el 3, el que queda en +2 es el 10.">Solo la raíz</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="revancha" data-titulo="La revancha">
+        <h2>La revancha: 1, 2, 3… en orden</h2>
+        <p>Con los valores ordenados, el ABB se volvía una lista de n niveles. El AVL rota cada vez que un lado se pasa, y la altura se queda <strong>cerca de log₂ n</strong>: nunca más de 1,44 · log₂ n. Con 1000 valores ordenados la altura es 10, no 1000.</p>
+        <div id="vis-revancha"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Insertas 1…15 en orden. ¿Qué altura queda?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso pasaría en un ABB sin rebalanceo: cada valor a la derecha del anterior.">15</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Queda perfecto: 1 + 2 + 4 + 8 = 15 nodos en 4 niveles, con el 8 en la raíz. Pruébalo con el botón.">4</button>
+            <button type="button" class="opcion" data-explicacion="En 2 niveles caben como mucho 3 nodos (1 + 2).">2</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="eliminar">
+        <h2><code>eliminar</code>: puede rotar en varios niveles</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Se borra como en un ABB (hoja, un hijo, o dos hijos con el sucesor) y, al volver, cada nodo del camino llama a <code>rebalancear</code>. El nodo borrado devuelve a su hijo, y así el padre deja de apuntar a memoria liberada.</p>
+          </div>
+          <div>
+            <p>A diferencia de insertar, una rotación puede <strong>bajar</strong> la altura del subárbol y desbalancear a un ancestro: puede haber una rotación por nivel, O(log n) en total.</p>
+          </div>
+        </div>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Después de rotar en el 30, ¿por qué la raíz también se desbalancea?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="El subárbol izquierdo pasó de altura 3 a 2 (borrar el 45 y rotar lo achicó), y el derecho mide 4: 2 − 4 = −2.">Porque su subárbol izquierdo quedó más bajo</button>
+            <button type="button" class="opcion" data-explicacion="La rotación no toca a la raíz: solo a los nodos del subárbol que rotó.">Porque la rotación movió la raíz</button>
+            <button type="button" class="opcion" data-explicacion="Al revés: rotar sirve justamente para que no haya errores. El problema es que la altura de la izquierda bajó.">Porque la rotación fue un error</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto: inserta, elimina y busca</h2>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y dónde se usa</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>AVL</th><th>ABB (peor caso)</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td><code>buscar</code></td><td class="o-grande bueno">O(log n)</td><td class="o-grande malo">O(n)</td><td>Un nivel por comparación, y la altura es ≤ 1,44 · log₂ n.</td></tr>
+              <tr><td><code>insertar</code></td><td class="o-grande bueno">O(log n)</td><td class="o-grande malo">O(n)</td><td>Baja y vuelve por un camino; como mucho una rotación (O(1)).</td></tr>
+              <tr><td><code>eliminar</code></td><td class="o-grande bueno">O(log n)</td><td class="o-grande malo">O(n)</td><td>Baja y vuelve por un camino; una rotación por nivel como mucho.</td></tr>
+              <tr><td>Rotar, <code>rebalancear</code></td><td class="o-grande bueno">O(1)</td><td class="o-grande">—</td><td>Cambia 3 punteros y 2 alturas.</td></tr>
+              <tr><td>Recorrer en orden</td><td class="o-grande">O(n)</td><td class="o-grande">O(n)</td><td>Inorden, igual que en un ABB.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">El precio es <strong>un entero por nodo</strong> (la altura) y algo de trabajo al volver. <code>std::set</code> y <code>std::map</code> usan otro árbol balanceado, el <strong>rojo-negro</strong>: su regla es más floja (la altura llega a 2 · log₂ n), así que rota menos al insertar y borrar, pero busca un poco más lento.</div>
+        <ul class="lista-columnas">
+          <li>Conviene cuando se busca mucho más de lo que se inserta: diccionarios, índices en memoria, tablas de rutas.</li>
+          <li>En C++ casi nunca se escribe a mano: <code>std::set</code>, <code>std::map</code> y <code>std::multimap</code> ya son árboles balanceados.</li>
+          <li>Guarda el orden: mínimo, máximo, <code>lower_bound</code> y rangos en O(log n), cosa que la <a href="../tabla-hash/">tabla hash</a> no puede.</li>
+          <li>La idea de rotar se reusa en otros árboles: rojo-negro, splay, treaps y los árboles B de las bases de datos.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra arbol_avl.cpp -o arbol_avl &amp;&amp; ./arbol_avl</span></pre>
+        <div data-codigo-completo="arbol_avl.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>bool esAVL() const</code>, que recorra el árbol y verifique en cada nodo la altura guardada, el balance y el orden.</li>
+          <li>Inserta 1…n en orden para n = 10, 100 y 1000 e imprime la altura. Compárala con <code>log₂ n</code>.</li>
+          <li>Agrega un contador de rotaciones. ¿Cuántas hace insertar 1…1000 en orden? ¿Y en un orden al azar?</li>
+          <li>Cambia <code>insertarEn</code> para que deje de rebalancear hacia arriba en cuanto la altura de un nodo no cambie.</li>
+          <li>Agrega a cada nodo el tamaño de su subárbol y escribe <code>int kesimo(int k)</code>, que devuelva el k-ésimo menor en O(log n).</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="arbol-avl.js"></script>
+</body>
+</html>

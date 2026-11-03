@@ -32,6 +32,7 @@ Cada tema tiene:
 | Montículo (min-heap, max-heap) y heapsort | [ver](https://jmoisesct.github.io/learn-data-structures/temas/monticulo/) | [`monticulo.cpp`](ejemplos/cpp/monticulo.cpp) |
 | Tabla hash (funciones hash, encadenamiento, sondeo y rehash) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/tabla-hash/) | [`tabla_hash.cpp`](ejemplos/cpp/tabla_hash.cpp) |
 | Árbol binario de búsqueda (buscar, insertar, recorridos, eliminar en sus 3 casos) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-binario-busqueda/) | [`arbol_binario_busqueda.cpp`](ejemplos/cpp/arbol_binario_busqueda.cpp) |
+| Árbol AVL (altura y factor de balance, rotaciones simples y dobles, insertar y eliminar con rebalanceo) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-avl/) | [`arbol_avl.cpp`](ejemplos/cpp/arbol_avl.cpp) |
 
 Los próximos temas están en [ROADMAP.md](ROADMAP.md).
 
