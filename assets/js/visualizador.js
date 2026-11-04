@@ -114,6 +114,13 @@
       archivo: "tabla_hash.cpp",
     },
     {
+      slug: "busqueda-binaria",
+      titulo: "Búsqueda binaria",
+      resumen: "En un arreglo ordenado, mirar el del medio descarta la mitad de golpe. Versión iterativa y recursiva, el medio que se desborda, lower_bound y upper_bound con repetidos, y buscar la respuesta sin arreglo.",
+      etiquetas: ["buscar O(log n)", "requiere orden"],
+      archivo: "busqueda_binaria.cpp",
+    },
+    {
       slug: "arbol-binario-busqueda",
       titulo: "Árbol binario de búsqueda",
       resumen: "Menores a la izquierda, mayores a la derecha. Buscar, insertar, recorridos y eliminar en sus tres casos; la idea detrás de std::set.",

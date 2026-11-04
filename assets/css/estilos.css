@@ -3020,3 +3020,290 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .snc-cubeta.ordenada { background: var(--activo-suave); }
 .ord-capa > .snc-tramo { text-align: center; font-size: 0.66rem; }
 .ord-barra.snc-ficha { padding-top: 2px; border-radius: 6px; }
+
+/* Búsqueda binaria: el recuadro de candidatos que se encoge, las marcas izq,
+   medio y der que se deslizan, la pila de busquedaRecursiva, la recta de
+   raizEntera, el juego de las cartas y la recta de los int que se desborda */
+
+.bb-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.25rem; min-height: 2.4rem; margin: 0 0 0.35rem; }
+.bb-info .variables { margin: 0; }
+.bb-info .salida-valor { margin: 0; }
+.bb-info .salida-valor .celda { width: auto; min-width: 34px; height: 32px; padding: 0 8px; }
+
+.bb-cmp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.15rem 0.3rem 0.15rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--superficie);
+  font-size: 0.82rem;
+}
+.bb-cmp code { padding: 0; border: 0; background: none; font-size: 0.82rem; font-weight: 600; }
+.bb-cmp b { font-family: var(--fuente-codigo); color: var(--activo); }
+.bb-cmp-r { padding: 0 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.bb-cmp.si .bb-cmp-r { background: var(--exito-suave); color: var(--exito); }
+.bb-cmp.no .bb-cmp-r { background: var(--peligro-suave); color: var(--peligro); }
+.bb-cmp.entra { animation: pop 0.35s ease; }
+
+.bb-marco-lienzo { transition: width 0.45s ease, height 0.45s ease; }
+.bb-lienzo { position: relative; transform-origin: 0 0; transition: transform 0.45s ease; }
+.bb-lienzo.sacudir { animation: sacudir 0.36s ease; }
+.bb-fondo, .bb-fichas, .bb-marcas { position: absolute; inset: 0; }
+.bb-fichas { z-index: 1; }
+.bb-marcas { z-index: 2; pointer-events: none; }
+.bb-fondo > *, .bb-fichas > *, .bb-marcas > * { position: absolute; margin: 0; }
+
+.bb-rango {
+  top: 23px;
+  height: 51px;
+  border: 2px dashed var(--acento);
+  border-radius: 12px;
+  background: var(--acento-suave);
+  transition: left 0.45s ease, width 0.45s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.bb-rango, .bb-tramo { z-index: 0; }
+.bb-fantasma, .bb-indice { z-index: 1; }
+.bb-rango.unico { border-style: solid; border-color: var(--activo); background: var(--activo-suave); }
+.bb-rango.vacio { border-color: var(--peligro); background: var(--peligro); }
+
+.bb-tramo { top: 23px; height: 51px; border: 2px solid var(--exito); border-radius: 12px; background: var(--exito-suave); animation: pop 0.35s ease; transition: left 0.45s ease, width 0.45s ease; }
+
+.bb-indice { top: 75px; line-height: 1.1; width: 38px; text-align: center; transition: opacity 0.3s ease; }
+.bb-indice.fuera { font-style: italic; opacity: 0.7; }
+
+.bb-fantasma {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--borde);
+  border-radius: 8px;
+  color: var(--texto-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.66rem;
+  animation: pop 0.35s ease;
+  transition: opacity 0.3s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.bb-fantasma.elegida { border-color: var(--exito); background: var(--exito-suave); color: var(--exito); }
+.bb-fantasma.condenada { border-color: var(--peligro); background: var(--peligro-suave); }
+.bb-fantasma.descartada { opacity: 0.35; }
+.bb-fantasma.saliendo, .bb-indice.saliendo { opacity: 0; }
+
+.bb-ficha {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 0.92rem;
+  transition: left 0.45s ease, top 0.45s ease, transform 0.35s ease, opacity 0.45s ease, filter 0.45s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.bb-ficha.leida { border-color: var(--activo); background: var(--activo-suave); transform: translateY(-7px) scale(1.08); box-shadow: var(--sombra); }
+.bb-ficha.condenada { border-color: var(--peligro); background: var(--peligro-suave); }
+.bb-ficha.condenada.leida { border-color: var(--activo); }
+.bb-ficha.descartada { opacity: 0.3; filter: grayscale(1); transform: translateY(6px) scale(0.88); }
+.bb-ficha.encontrada { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.4s ease; }
+.bb-ficha.perdida { border-color: var(--peligro); background: var(--peligro-suave); animation: latido 0.6s ease 2; }
+.bb-ficha.en-tramo { border-color: var(--exito); background: var(--exito-suave); }
+.bb-ficha.saliendo { opacity: 0; }
+
+.bb-marca {
+  transform: translateX(-50%);
+  font-family: var(--fuente-codigo);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 12px;
+  white-space: pre;
+  text-align: center;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease;
+}
+.bb-marca.medio { color: var(--activo); }
+.bb-marca.izq { color: var(--acento); }
+.bb-marca.der { color: var(--lambda); }
+.bb-marca.fija { padding: 0 0.35rem; border-radius: 999px; background: var(--exito-suave); color: var(--exito); line-height: 16px; animation: pop 0.35s ease; }
+.bb-marca.perdida { color: var(--peligro); animation: pop 0.35s ease; }
+.bb-marca.resp { padding: 0 0.4rem; border-radius: 999px; background: var(--exito-suave); color: var(--exito); line-height: 18px; }
+.bb-marca.resp.nueva { animation: pop 0.4s ease; }
+.bb-marca.saliendo { opacity: 0; }
+
+/* Pila de busquedaRecursiva */
+
+.bb-marcos { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin-top: 0.3rem; }
+.bb-marcos[hidden] { display: none; }
+.bb-pila-marco {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 0.55rem;
+  min-height: 24px;
+  max-width: calc(100% - var(--prof) * 14px);
+  margin-left: calc(var(--prof) * 14px);
+  padding: 0 10px 0 3px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--acento);
+  border-radius: 8px;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  transition: border-color 0.25s ease, opacity 0.35s ease, transform 0.35s ease;
+}
+.bb-pila-marco:not(.actual) { opacity: 0.8; }
+.bb-pila-marco.actual { border-color: var(--activo); border-left-color: var(--activo); }
+.bb-pila-marco.devuelve { border-left-color: var(--exito); }
+.bb-pila-marco.entra { animation: aparece 0.4s ease; }
+.bb-pila-marco.saliendo { opacity: 0; transform: translateY(-8px) scale(0.96); }
+.bb-prof {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--superficie-2);
+  color: var(--texto-suave);
+  font-family: var(--fuente-codigo);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+.bb-pila-marco.actual .bb-prof { background: var(--activo); color: var(--acento-texto); }
+.bb-pila-marco code.bb-llamada { padding: 0; border: 0; background: none; font-size: 0.76rem; font-weight: 700; white-space: nowrap; }
+.bb-mini { position: relative; width: 84px; height: 8px; border-radius: 4px; background: var(--superficie-2); overflow: hidden; }
+.bb-mini i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--acento); transition: left 0.45s ease, width 0.45s ease; }
+.bb-estado { font-family: var(--fuente-codigo); font-size: 0.72rem; color: var(--texto-suave); }
+.bb-pila-marco.devuelve .bb-estado { color: var(--exito); font-weight: 700; }
+.bb-estado.cambia { animation: pop 0.35s ease; }
+
+/* raizEntera: la recta de candidatos 0…n */
+
+.bb-recta-lienzo { position: relative; height: 162px; max-width: 100%; margin: 0 auto; }
+.bb-recta-lienzo.sacudir { animation: sacudir 0.36s ease; }
+.bb-recta-lienzo .bb-marcas { left: 24px; right: 24px; }
+.bb-pista { position: absolute; left: 24px; right: 24px; top: 32px; height: 26px; border-radius: 6px; background: var(--superficie-2); }
+.bb-pista > div { position: absolute; top: 0; bottom: 0; transition: left 0.45s ease, width 0.45s ease, opacity 0.3s ease; }
+.bb-si { background: var(--exito-suave); border: 2px solid var(--exito); border-radius: 6px 0 0 6px; }
+.bb-no { background: var(--peligro-suave); border: 2px solid var(--peligro); border-radius: 0 6px 6px 0; }
+.bb-cand { border: 2px dashed var(--acento); background: var(--acento-suave); }
+.bb-cand.vacio { opacity: 0; }
+.bb-recta-lienzo.invalida .bb-cand { border-color: var(--peligro); background: var(--peligro-suave); }
+.bb-si[style*="width: 0%"], .bb-no[style*="width: 0%"] { border-width: 0; }
+.bb-previa { opacity: 0; pointer-events: none; }
+.bb-previa.si, .bb-previa.no { opacity: 0.75; animation: latido 0.6s ease; }
+.bb-previa.si { background: var(--exito); }
+.bb-previa.no { background: var(--peligro); }
+.bb-tope { top: 62px; transform: translateX(-50%); white-space: nowrap; }
+.bb-pista.recortada-izq { -webkit-mask-image: linear-gradient(to right, transparent, black 28px); mask-image: linear-gradient(to right, transparent, black 28px); }
+.bb-pista.recortada-der { -webkit-mask-image: linear-gradient(to left, transparent, black 28px); mask-image: linear-gradient(to left, transparent, black 28px); }
+.bb-pista.recortada-izq.recortada-der {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent);
+}
+.bb-zoom { font-family: var(--fuente-codigo); font-weight: 700; color: var(--acento); }
+.bb-zoom:empty { display: none; }
+.bb-zoom.cambia { animation: pop 0.35s ease; }
+.bb-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 1.2rem; font-size: 0.8rem; color: var(--texto-suave); }
+.bb-leyenda span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.bb-muestra { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.bb-muestra.si { background: var(--exito-suave); border: 2px solid var(--exito); }
+.bb-muestra.cand { background: var(--acento-suave); border: 2px dashed var(--acento); }
+.bb-muestra.no { background: var(--peligro-suave); border: 2px solid var(--peligro); }
+
+/* Paso 1: el juego de las cartas boca abajo */
+
+.bb-juego { margin-top: 1rem; }
+.bb-juego .controles .variables { margin: 0; }
+.bb-pide { font-weight: 600; }
+.bb-buscado { display: inline-grid; place-items: center; min-width: 2.2rem; padding: 0 0.4rem; border-radius: 8px; background: var(--activo-suave); color: var(--texto); font-family: var(--fuente-codigo); font-size: 1.05rem; }
+.bb-mesa { padding: 1rem 1rem 1.7rem; overflow: hidden; }
+.bb-cartas { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 6px; max-width: 840px; margin: 0 auto; }
+.bb-carta {
+  position: relative;
+  height: 56px;
+  padding: 0;
+  border: 2px solid var(--acento);
+  border-radius: 8px;
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-family: var(--fuente-codigo);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.35s ease, opacity 0.4s ease, filter 0.4s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.bb-carta:hover:not(:disabled) { transform: translateY(-4px); }
+.bb-carta:disabled { cursor: default; }
+.bb-carta.revelada { background: var(--superficie); color: var(--texto); border-color: var(--activo); animation: bb-voltear 0.4s ease; }
+.bb-carta.descartada { opacity: 0.25; filter: grayscale(1); transform: translateY(8px) scale(0.9); }
+.bb-carta.encontrada { border-color: var(--exito); background: var(--exito-suave); animation: bb-voltear 0.4s ease, pop 0.4s ease 0.4s; }
+.bb-carta-indice { position: absolute; left: 0; right: 0; bottom: -1.35rem; font-size: 0.66rem; font-weight: 400; color: var(--texto-suave); }
+@keyframes bb-voltear { 0% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
+
+.bb-juego-mensaje { margin: 0; padding: 0.7rem 1rem; min-height: 3.4rem; border-top: 1px solid var(--borde); background: var(--superficie-2); font-size: 0.95rem; }
+.bb-juego-mensaje.bien { background: var(--exito-suave); }
+.bb-juego-mensaje.mal { background: var(--peligro-suave); }
+
+@media (max-width: 640px) {
+  .bb-cartas { grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 1.6rem; }
+  .bb-carta { height: 48px; font-size: 0.9rem; }
+}
+
+/* Paso 5: (izq + der) / 2 se desborda */
+
+.bb-desborde { margin-top: 1rem; }
+.bb-desborde .campo input { width: 9rem; }
+.bb-desborde-cuerpo { padding: 0.6rem 1.25rem 0.9rem; }
+.bb-int { position: relative; height: 66px; margin: 0 0.5rem 0.4rem; }
+.bb-int-pista { position: absolute; left: 0; right: 0; top: 28px; height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--peligro-suave) 50%, var(--acento-suave) 50%); border: 1px solid var(--borde); }
+.bb-tick { position: absolute; top: 42px; transform: translateX(-50%); font-family: var(--fuente-codigo); font-size: 0.66rem; color: var(--texto-suave); white-space: nowrap; }
+.bb-tick.izquierdo { transform: none; }
+.bb-tick.derecho { transform: translateX(-100%); }
+.bb-tick.arriba { top: 6px; font-weight: 700; }
+.bb-tick.arriba.izq { color: var(--acento); }
+.bb-tick.arriba.der { color: var(--lambda); }
+.bb-punto { position: absolute; top: 24px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--activo); box-shadow: var(--sombra); left: var(--hasta); animation: bb-avanza 1s ease both; }
+.bb-punto.vuelta { animation: bb-vuelta 1.8s ease both; }
+@keyframes bb-avanza { from { left: var(--desde); } }
+@keyframes bb-vuelta {
+  0% { left: var(--desde); opacity: 1; }
+  45% { left: 100%; opacity: 1; }
+  48% { left: 100%; opacity: 0; }
+  50% { left: 0%; opacity: 0; }
+  53% { left: 0%; opacity: 1; }
+  100% { left: var(--hasta); opacity: 1; }
+}
+.bb-resultado { position: absolute; top: 20px; width: 4px; height: 24px; margin-left: -2px; border-radius: 2px; animation: salir 0.35s ease 1.4s both; }
+.bb-resultado.bien { background: var(--exito); }
+.bb-resultado.mal { background: var(--peligro); animation: salir 0.35s ease 1.8s both, sacudir 0.36s ease 2.15s; }
+.bb-int-leyenda { justify-content: flex-start; margin: 0 0 0.6rem; }
+.bb-muestra.punto { border-radius: 50%; background: var(--activo); }
+.bb-muestra.barra { width: 4px; height: 14px; border-radius: 2px; }
+.bb-muestra.barra.mal { background: var(--peligro); }
+.bb-muestra.barra.bien { background: var(--exito); }
+.bb-formulas { display: grid; gap: 0.5rem; }
+.bb-formula { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.75rem; }
+.bb-formula-codigo { min-width: 12.5rem; }
+.bb-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.bb-chip { padding: 0.1rem 0.55rem; border: 1px solid var(--borde); border-radius: 999px; background: var(--superficie); font-family: var(--fuente-codigo); font-size: 0.74rem; animation: salir 0.35s ease both; }
+.bb-chip.aviso { border-color: var(--activo); background: var(--activo-suave); }
+.bb-chip.mal { border-color: var(--peligro); background: var(--peligro-suave); }
+.bb-chip.bien { border-color: var(--exito); background: var(--exito-suave); }
+.bb-chip.final { font-weight: 700; }
+
+@media (max-width: 640px) {
+  .bb-mini { display: none; }
+  .bb-pila-marco code.bb-llamada { font-size: 0.72rem; }
+  .bb-formula-codigo { min-width: 0; }
+  .bb-desborde .campo { flex: 1 1 40%; min-width: 0; }
+  .bb-desborde .campo input { width: 100%; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-ficha, .bb-rango, .bb-tramo, .bb-marca, .bb-lienzo, .bb-marco-lienzo, .bb-mini i, .bb-pista > div, .bb-carta, .bb-pila-marco { transition: none; }
+  .bb-cmp.entra, .bb-tramo, .bb-fantasma, .bb-ficha.encontrada, .bb-ficha.perdida, .bb-marca.fija, .bb-marca.perdida, .bb-marca.resp.nueva,
+  .bb-pila-marco.entra, .bb-estado.cambia, .bb-zoom.cambia, .bb-previa.si, .bb-previa.no, .bb-carta.revelada, .bb-carta.encontrada,
+  .bb-punto, .bb-punto.vuelta, .bb-resultado, .bb-resultado.mal, .bb-chip, .bb-lienzo.sacudir, .bb-recta-lienzo.sacudir { animation: none; }
+}

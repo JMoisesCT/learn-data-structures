@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Búsqueda binaria · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: búsqueda binaria en un arreglo ordenado. Versión iterativa y recursiva con la pila de llamadas, qué pasa si no está ordenado, el medio que se desborda, lower_bound, upper_bound, contar repetidos y búsqueda sobre la respuesta. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="busqueda-binaria">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Búsqueda binaria</div>
+      <h1>Búsqueda binaria</h1>
+      <p class="resumen">Si los datos están <strong>ordenados</strong>, mirar el del medio basta para descartar <strong>la mitad</strong> de golpe. Con un millón de elementos alcanzan 20 vueltas. Vas a ver la versión iterativa y la recursiva, sus trampas, <code>lower_bound</code> y <code>upper_bound</code>, y cómo buscar una respuesta aunque no haya arreglo.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Partir a la mitad">
+        <h2>Adivina partiendo a la mitad</h2>
+        <div class="dos-columnas">
+          <p>Hay 16 cartas <strong>ordenadas</strong> de menor a mayor, boca abajo, y tienes que encontrar un número. Cada carta que das vuelta te dice si el número está a su izquierda o a su derecha: <strong>todas las del otro lado sobran</strong>, sin mirarlas.</p>
+          <p>Juega una vez a tu manera y después deja que juegue la estrategia del medio. Elegir siempre la del centro <strong>parte las candidatas a la mitad</strong>: 16 → 8 → 4 → 2 → 1.</p>
+        </div>
+        <div id="juego"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con la estrategia del medio, ¿cuántas cartas hay que dar vuelta, como mucho, si fueran 1024?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso es mirar una por una, en el peor caso. Partiendo a la mitad, cada carta descarta cientos.">1024</button>
+            <button type="button" class="opcion" data-explicacion="512 sería partir a la mitad una sola vez y después mirar una por una. Partir otra vez, y otra, es mucho más rápido.">512</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="1024 → 512 → … → 2 → 1 son 10 mitades, más la carta que queda: 11. Es ⌊log₂ n⌋ + 1. El doble de cartas, una sola vuelta más.">11</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="iterativa" data-titulo="busquedaBinaria">
+        <h2><code>busquedaBinaria</code>: un recuadro que se encoge</h2>
+        <p>Los candidatos están entre <code>izq</code> y <code>der</code>. En cada vuelta se mira <code>v[medio]</code>: si es el objetivo, listo; si es más chico, el objetivo solo puede estar a la derecha (<code>izq = medio + 1</code>); si es más grande, a la izquierda (<code>der = medio - 1</code>). Si <code>izq</code> pasa a <code>der</code>, no está: <strong>O(log n)</strong>.</p>
+        <div id="vis-iterativa"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué la condición es <code>izq &lt;= der</code> y no <code>izq &lt; der</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="El número de vueltas casi no cambia; el problema es otro: con &lt; se saltaría un candidato.">Para hacer una vuelta menos</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cuando izq == der queda exactamente un candidato y todavía hay que mirarlo. Con &lt;, buscar el 63 cuando solo queda la posición 12 devolvería -1.">Si son iguales, queda un candidato por mirar</button>
+            <button type="button" class="opcion" data-explicacion="Sí importa: prueba buscar el 3 o el 88 y fíjate en la última vuelta, cuando izq y der coinciden.">Da lo mismo</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="recursiva" data-titulo="Versión recursiva">
+        <h2>La misma idea, recursiva</h2>
+        <p>En lugar de mover <code>izq</code> y <code>der</code>, la función <strong>se llama a sí misma</strong> con la mitad que queda. Hay dos casos base: no queda nadie (<code>izq &gt; der</code>) o el del medio es el objetivo. Cada llamada espera en la pila a que la de abajo le devuelva el resultado, y lo devuelve tal cual.</p>
+        <div id="vis-recursiva"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Con n = 1 000 000, ¿cuánta memoria extra usa cada versión?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Ninguna copia el arreglo: las dos lo reciben por referencia (const std::vector&lt;int&gt;&amp;).">Las dos, O(n): copian el arreglo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="La iterativa solo tiene izq, der y medio. La recursiva apila hasta ~20 marcos (log₂ de un millón), cada uno con su izq y der.">Iterativa O(1), recursiva O(log n)</button>
+            <button type="button" class="opcion" data-explicacion="La pila crece una llamada por cada mitad, no una por elemento: con un millón son unas 20.">Recursiva O(n): una llamada por elemento</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desordenado" data-titulo="Sin orden no sirve">
+        <h2>¿Y si el arreglo no está ordenado?</h2>
+        <p>Descartar una mitad <strong>sin mirarla</strong> solo es válido porque el orden garantiza que ahí no está el objetivo. Sin orden, la búsqueda binaria no da error: <strong>contesta mal</strong>, y devuelve -1 aunque el valor esté. Antes hay que ordenar (O(n log n)) o buscar uno por uno (O(n)).</p>
+        <div id="vis-desordenado"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Tienes un arreglo sin ordenar y vas a buscar <strong>un solo</strong> valor. ¿Qué conviene?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Ordenar cuesta O(n log n), más que mirar los n uno por uno. Vale la pena si vas a buscar muchas veces.">Ordenar y luego búsqueda binaria</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Para una sola búsqueda, O(n) le gana a O(n log n) + O(log n). Si fueran k búsquedas, ordenar una vez y hacer k binarias sale más barato cuando k es grande.">Buscar uno por uno, O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Ya lo viste: descarta mitades que sí tenían el valor y contesta -1.">Búsqueda binaria directamente</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="medio" data-titulo="El medio que se desborda">
+        <h2>El medio que se desborda</h2>
+        <div class="dos-columnas">
+          <p>¿Por qué <code>izq + (der - izq) / 2</code> y no <code>(izq + der) / 2</code>? Son iguales en matemáticas, pero un <code>int</code> llega hasta 2 147 483 647. Con un arreglo enorme, <code>izq + der</code> <strong>se pasa</strong> y da la vuelta a los negativos. Este error estuvo años en la búsqueda binaria de la biblioteca de Java.</p>
+          <div class="pregunta">
+            <p class="pregunta-enunciado">¿Por qué <code>izq + (der - izq) / 2</code> nunca se desborda?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-correcta data-explicacion="der − izq cabe porque los dos están entre 0 y der; la mitad de eso sumada a izq queda entre izq y der, que también caben.">Ningún paso supera a <code>der</code></button>
+              <button type="button" class="opcion" data-explicacion="La división entera no evita el desborde: en (izq + der) / 2 la suma se desborda antes de dividir.">Porque divide antes de sumar todo</button>
+              <button type="button" class="opcion" data-explicacion="No: usa los mismos int. La diferencia es el orden de las cuentas.">Porque usa <code>long long</code></button>
+            </div>
+          </div>
+        </div>
+        <div id="desborde"></div>
+      </section>
+
+      <section class="paso-leccion" id="limites" data-titulo="lowerBound y upperBound">
+        <h2><code>lowerBound</code> y <code>upperBound</code>: con repetidos</h2>
+        <div class="dos-columnas">
+          <p><code>lowerBound(v, x)</code> busca la <strong>primera posición con v[i] ≥ x</strong>: la primera copia de <code>x</code>, o donde iría. <code>upperBound</code> busca la primera con v[i] <strong>&gt;</strong> x. No se detienen al ver <code>x</code>: la respuesta está entre <code>izq</code> y <code>der</code> (incluido el final, <code>v.size()</code>) y siguen hasta que queda una.</p>
+          <p>Entre los dos encierran todas las copias de <code>x</code>: <code>contarApariciones</code> las cuenta con una resta, sin recorrerlas. En la STL son <code>std::lower_bound</code>, <code>std::upper_bound</code> y <code>std::equal_range</code>.</p>
+        </div>
+        <div id="vis-limites"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">En <code>{2, 4, 4, 4, 7}</code>, ¿qué devuelve <code>lowerBound(v, 5)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="-1 es lo que devuelve busquedaBinaria si no lo encuentra. lowerBound siempre devuelve una posición, entre 0 y v.size().">-1, porque no está</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="v[4] = 7 es el primero ≥ 5: ahí iría el 5 para que v siga ordenado. upperBound(v, 5) también da 4, así que contarApariciones da 0.">4</button>
+            <button type="button" class="opcion" data-explicacion="v[3] = 4 es el último menor que 5. lowerBound da el primero que no es menor.">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="respuesta" data-titulo="Buscar la respuesta">
+        <h2>Buscar la respuesta, no un elemento</h2>
+        <p>La búsqueda binaria funciona con cualquier pregunta que responda <strong>sí, sí, …, sí, no, …, no</strong>. Para la raíz entera de <code>n</code>, los candidatos son 0, 1, …, n y la pregunta es "¿r · r ≤ n?". Cada "sí" corre <code>izq</code> y cada "no" corre <code>der</code>: el último sí es la respuesta.</p>
+        <div id="vis-raiz"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Por qué <code>medio</code> es <code>long long</code> si <code>n</code> es <code>int</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="medio nunca pasa de n, así que cabe en un int. Lo que no cabe es otra cuenta.">Porque medio puede ser mayor que n</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Con n = 2 147 483 647, el primer medio es ~1 073 741 823 y su cuadrado es ~10¹⁸: no cabe en un int, sí en un long long. El mismo problema del paso anterior.">Porque <code>medio * medio</code> no cabe en un <code>int</code></button>
+            <button type="button" class="opcion" data-explicacion="La búsqueda es igual de rápida con int; el long long evita un desbordamiento.">Para que sea más rápido</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Pruébalo todo junto</h2>
+        <p>Todas las funciones sobre el mismo arreglo. Con repetidos, compara <code>busquedaBinaria</code> (devuelve <strong>alguna</strong> copia) con <code>lowerBound</code> (la <strong>primera</strong>). Con el arreglo sin ordenar, mira cuál se equivoca.</p>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y usos">
+        <h2>Complejidad y cuándo usarla</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Función</th><th>En la STL (<code>&lt;algorithm&gt;</code>)</th><th>Tiempo</th><th>Memoria extra</th></tr></thead>
+            <tbody>
+              <tr><td><code>busquedaBinaria</code></td><td><code>std::binary_search</code> (solo dice si está)</td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>busquedaRecursiva</code></td><td>—</td><td class="o-grande bueno">O(log n)</td><td>O(log n): la pila</td></tr>
+              <tr><td><code>lowerBound</code> / <code>upperBound</code></td><td><code>std::lower_bound</code> / <code>std::upper_bound</code></td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>contarApariciones</code></td><td><code>std::equal_range</code></td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>raizEntera</code></td><td><code>std::partition_point</code> (sobre un rango)</td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td>Búsqueda lineal</td><td><code>std::find</code> (no necesita orden)</td><td class="o-grande malo">O(n)</td><td>O(1)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Úsala</strong> cuando los datos ya están ordenados y se consultan mucho más de lo que cambian: un <code>std::vector</code> ordenado es compacto y muy rápido de recorrer.</li>
+          <li>Necesita <strong>acceso por índice en O(1)</strong>: sirve en un arreglo o vector, no en una <a href="../lista-enlazada/">lista enlazada</a>.</li>
+          <li>Si insertas y borras seguido, mantener el vector ordenado cuesta O(n) por operación: un <a href="../arbol-binario-busqueda/">árbol binario de búsqueda</a> (<code>std::set</code>) hace lo mismo en O(log n). Cada nodo hace de "medio".</li>
+          <li>Si solo preguntas "¿está?" y el orden no importa, una <a href="../tabla-hash/">tabla hash</a> responde en O(1) promedio.</li>
+          <li><strong>Sobre la respuesta</strong>: raíces, el tamaño mínimo que alcanza, la primera versión que rompió algo (<code>git bisect</code>).</li>
+          <li>Ojo con los límites: <code>izq &lt;= der</code> o <code>izq &lt; der</code>, <code>medio - 1</code> o <code>medio</code>. Cada versión es coherente consigo misma; mezclarlas da bucles infinitos.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra busqueda_binaria.cpp -o busqueda_binaria &amp;&amp; ./busqueda_binaria</span></pre>
+        <div data-codigo-completo="busqueda_binaria.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>int ultimaAparicion(const std::vector&lt;int&gt;&amp; v, int x)</code>, que devuelva la última posición de <code>x</code> o -1, usando <code>upperBound</code>.</li>
+          <li>Cambia <code>der = medio - 1</code> por <code>der = medio</code> en <code>busquedaBinaria</code> y busca un valor que no está. ¿Qué pasa y por qué?</li>
+          <li>Busca en un arreglo ordenado que fue <strong>rotado</strong>, como <code>{27, 30, 34, 3, 8, 12, 15}</code>, en O(log n). Pista: una de las dos mitades siempre está ordenada.</li>
+          <li>Búsqueda sobre la respuesta: dados los pesos de unos paquetes en orden y <code>d</code> días, encuentra la capacidad mínima de un camión que los reparte todos en <code>d</code> viajes.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="busqueda-binaria.js"></script>
+</body>
+</html>
