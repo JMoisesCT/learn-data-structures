@@ -14,6 +14,7 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
 - **Cada paso cabe en una pantalla** (desde 1280 × 800) sin scroll, salvo el del código completo; también mientras corre una animación. Ver CONTRIBUTING.md ("Cada paso cabe en una pantalla").
 - Temas pedidos explícitamente:
   - **montículos (min-heap y max-heap) y heapsort** (hecho en `temas/monticulo/`);
+  - **búsqueda binaria**, **antes de Árbol binario de búsqueda** en `DS.TEMAS` (hecho en `temas/busqueda-binaria/`);
   - **árbol binario de búsqueda** (hecho en `temas/arbol-binario-busqueda/`);
   - **listas doblemente enlazadas y circulares**, como temas propios **después de Lista enlazada y antes de Pila** en `DS.TEMAS`;
   - **ordenamientos** en tres temas, como bloque **antes de Montículo** en `DS.TEMAS`: elementales (exchange, bubble, selection, insertion y shell sort; hecho en `temas/ordenamiento-elemental/`), **merge sort y quicksort juntos** en un tema (hecho en `temas/merge-sort-quicksort/`), y ordenamientos sin comparaciones (counting, radix y bucket sort; hecho en `temas/ordenamiento-sin-comparaciones/`);
