@@ -560,7 +560,10 @@
         const x2 = tx + 20;
         const arriba = destino.offsetTop < origen.offsetTop;
         const y2 = arriba ? destino.offsetTop + destino.offsetHeight + 3 : destino.offsetTop - 3;
-        path.setAttribute("d", `M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${x2} ${arriba ? y2 + 40 : y2 - 40}, ${x2} ${y2}`);
+        // La de ultimo sube enseguida: así pasa entre la fila y el nodo que
+        // bajó al desencolar (temp), en vez de atravesarlo.
+        const c1 = de === "ultimo" && arriba ? `${x1 + 60} ${y1 - 45}` : `${(x1 + x2) / 2} ${y1}`;
+        path.setAttribute("d", `M ${x1} ${y1} C ${c1}, ${x2} ${arriba ? y2 + 40 : y2 - 40}, ${x2} ${y2}`);
       }
     }
   }
