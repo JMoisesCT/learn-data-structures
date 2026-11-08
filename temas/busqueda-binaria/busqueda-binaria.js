@@ -581,7 +581,7 @@
   function crearArreglo(escenario) {
     const lienzo = el("div", { class: "bb-lienzo" },
       el("div", { class: "bb-fondo" }), el("div", { class: "bb-fichas" }), el("div", { class: "bb-marcas" }));
-    escenario.append(el("div", { class: "bb-info" }), el("div", { class: "bb-marco-lienzo" }, lienzo), el("div", { class: "bb-marcos" }));
+    escenario.append(el("div", { class: "bb-info", "data-alto-estable": true }), el("div", { class: "bb-marco-lienzo" }, lienzo), el("div", { class: "bb-marcos" }));
     return lienzo;
   }
 
@@ -733,7 +733,7 @@
       lienzo = el("div", { class: "bb-recta-lienzo" },
         el("div", { class: "bb-pista" }, el("div", { class: "bb-si" }), el("div", { class: "bb-cand" }), el("div", { class: "bb-no" }), el("div", { class: "bb-previa" })),
         el("div", { class: "bb-marcas" }));
-      escena.append(el("div", { class: "bb-info" }), lienzo,
+      escena.append(el("div", { class: "bb-info", "data-alto-estable": true }), lienzo,
         el("div", { class: "bb-leyenda" },
           el("span", {}, el("i", { class: "bb-muestra si" }), "sí: r · r ≤ n"),
           el("span", {}, el("i", { class: "bb-muestra cand" }), "sin revisar"),

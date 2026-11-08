@@ -644,7 +644,7 @@
     const nulo = el("div", { class: "lnulo", text: "nullptr" });
     const lienzo = el("div", { class: "lienzo-enlazada", "data-n": n }, svg, cabeza, nulo);
     // Las variables quedan fijas; si el dibujo no cabe, solo él hace scroll.
-    escenario.append(el("div", { class: "info-lista" }), el("div", { class: "desliza-lista" }, el("div", { class: "marco-lista" }, lienzo)));
+    escenario.append(el("div", { class: "info-lista", "data-alto-estable": true }), el("div", { class: "desliza-lista" }, el("div", { class: "marco-lista" }, lienzo)));
     return lienzo;
   }
 

@@ -524,7 +524,7 @@
       lienzo.append(fila);
     }
     lienzo.append(el("span", { class: "gtitulo gtitulo-ady", text: "adyacentes" }));
-    escenario.append(el("div", { class: "info-grafo" }), el("div", { class: "marco-grafo" }, lienzo));
+    escenario.append(el("div", { class: "info-grafo", "data-alto-estable": true }), el("div", { class: "marco-grafo" }, lienzo));
     return lienzo;
   }
 

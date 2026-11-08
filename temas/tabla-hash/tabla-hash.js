@@ -547,7 +547,7 @@
       `<marker id="punta-hash-activa-${n}" class="activa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       "</defs>";
     const lienzo = el("div", { class: "lienzo-lista lienzo-hash", "data-n": n }, svg, el("div", { class: "capa-fija" }));
-    escenario.append(el("div", { class: "info-hash" }), lienzo);
+    escenario.append(el("div", { class: "info-hash", "data-alto-estable": true }), lienzo);
     return lienzo;
   }
 

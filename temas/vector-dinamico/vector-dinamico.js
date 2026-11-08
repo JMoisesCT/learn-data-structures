@@ -318,7 +318,7 @@
   function crearLienzo(escenario) {
     const svg = document.createElementNS(SVG, "svg");
     const lienzo = el("div", { class: "lienzo-vector" }, svg);
-    escenario.append(el("div", { class: "info-vector" }), el("div", { class: "marco-vector" }, lienzo));
+    escenario.append(el("div", { class: "info-vector", "data-alto-estable": true }), el("div", { class: "marco-vector" }, lienzo));
     return lienzo;
   }
 

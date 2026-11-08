@@ -687,6 +687,8 @@
   //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
   //                  etiqueta puede ser (valores) => texto si depende de una lista
   //   dibujar(escenario, estado)                      // pinta un estado en el escenario
+  //                                                   // una fila con data-alto-estable (variables, pila de
+  //                                                   // llamadas…) reserva su alto más grande de la operación
   //   incremental:   true                             // opcional: no vaciar el escenario entre pasos
   //                                                   // (para animar movimientos con transiciones CSS)
   //   mensajeInicial                                  // texto o (valores) => texto
@@ -919,6 +921,20 @@
       }
     }
 
+    // Filas de información (variables, pila de llamadas, "devuelve"…) que el
+    // tema marca con data-alto-estable: si en algún paso de la operación
+    // ocupan dos renglones, reservan ese alto desde el primero, así el dibujo
+    // de abajo no salta. Se guarda el alto más grande de cada una (por el
+    // valor del atributo).
+    const altosFilas = new Map();
+    const filasEstables = (nodo) => nodo.querySelectorAll("[data-alto-estable]");
+    function fijarFilas() {
+      for (const f of filasEstables(escenario)) {
+        const h = altosFilas.get(f.dataset.altoEstable);
+        f.style.minHeight = h ? `${h}px` : "";
+      }
+    }
+
     // Dibuja cada paso en copias invisibles del escenario y del mensaje para medirlos.
     function reservarEspacio() {
       if (!escenario.clientWidth) return; // paso de lección oculto
@@ -928,21 +944,40 @@
       escenario.parentElement.append(copiaEscenario, copiaMensaje);
       let altoEscenario = 0;
       let altoMensaje = 0;
+      // Por cada paso: su alto sin las filas estables y qué filas tiene (al
+      // final se les suma el alto reservado de cada una). Las filas se miden
+      // de nuevo en cada operación: basta con que no salten dentro de ella.
+      altosFilas.clear();
+      const medidas = [];
       for (const p of pasos) {
         copiaEscenario.replaceChildren();
         cfg.dibujar(copiaEscenario, p.estado);
-        altoEscenario = Math.max(altoEscenario, copiaEscenario.offsetHeight);
+        let resto = copiaEscenario.offsetHeight;
+        const claves = [];
+        for (const f of filasEstables(copiaEscenario)) {
+          const clave = f.dataset.altoEstable;
+          resto -= f.offsetHeight;
+          claves.push(clave);
+          altosFilas.set(clave, Math.max(altosFilas.get(clave) || 0, f.offsetHeight));
+        }
+        medidas.push([resto, claves]);
         copiaMensaje.textContent = p.mensaje;
         altoMensaje = Math.max(altoMensaje, copiaMensaje.offsetHeight);
+      }
+      for (const [resto, claves] of medidas) {
+        altoEscenario = Math.max(altoEscenario, claves.reduce((h, clave) => h + altosFilas.get(clave), resto));
       }
       copiaEscenario.remove();
       copiaMensaje.remove();
       reservar(escenario, altoEscenario);
       reservar(mensaje, altoMensaje);
+      fijarFilas();
     }
     function liberarAlturas() {
       for (const nodo of altos.keys()) nodo.style.removeProperty("--alto-reservado");
       altos.clear();
+      altosFilas.clear();
+      fijarFilas();
     }
     let anchoVentana = window.innerWidth;
     window.addEventListener("resize", () => {
@@ -1381,6 +1416,7 @@
       const p = pasos[actual];
       if (!cfg.incremental) escenario.innerHTML = "";
       cfg.dibujar(escenario, p.estado);
+      fijarFilas();
       // Las indicaciones se animan solo al avanzar de a un paso.
       mostrarCodigo(p, actual === anterior + 1);
       mensaje.textContent = p.mensaje;

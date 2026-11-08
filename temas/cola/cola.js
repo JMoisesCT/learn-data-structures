@@ -359,7 +359,7 @@
       const variable = (nombre) => el("div", { class: "lcabeza", "data-ptr": nombre }, el("span", { class: "lcabeza-nombre", text: nombre }), el("span", { class: "sig" }));
       lienzo.append(svg, variable("primero"), variable("ultimo"));
     }
-    escenario.replaceChildren(el("div", { class: "info-pila" }), el("div", { class: "desliza-pila" }, el("div", { class: "marco-pila" }, lienzo)));
+    escenario.replaceChildren(el("div", { class: "info-pila", "data-alto-estable": true }), el("div", { class: "desliza-pila" }, el("div", { class: "marco-pila" }, lienzo)));
     return lienzo;
   }
 
