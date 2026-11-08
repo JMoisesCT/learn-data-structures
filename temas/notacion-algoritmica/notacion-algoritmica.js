@@ -338,7 +338,7 @@
       if (!o.detallado) {
         const descartados = derecha ? medio - izq + 1 : der - medio + 1;
         if (derecha) izq = medio + 1; else der = medio - 1;
-        s.vis = vis({ vars: Object.assign({}, base, { izq, der, medio }), marcas: marcasConsulta.concat([["izq", "d", Math.min(izq, n - 1)], ["der", "d", Math.max(der, 0)]]), leidas: [medio], descartadas: fuera(izq, der) });
+        s.vis = vis({ vars: Object.assign({}, base, { izq, der, medio }), marcas: marcasConsulta.concat(marcasLimites(izq, der, n)), leidas: [medio], descartadas: fuera(izq, der) });
         paso("busquedaBinaria", derecha ? 11 : 13, `pasos++ → ${s.pasos}. datos[${medio}] = ${v} ${derecha ? "<" : ">"} ${objetivo}: descartamos ${descartados} de golpe.`);
         continue;
       }
@@ -347,7 +347,7 @@
       if (derecha) izq = medio + 1; else der = medio - 1;
       s.vis = vis({
         vars: Object.assign({}, base, { izq, der, medio }), cambio: [derecha ? "izq" : "der"],
-        marcas: [["izq", "d", Math.min(izq, n - 1)], ["der", "d", Math.max(der, 0)]], descartadas: fuera(izq, der),
+        marcas: marcasLimites(izq, der, n), descartadas: fuera(izq, der),
       });
       paso("busquedaBinaria", derecha ? 11 : 13, `${v} ${derecha ? "<" : ">"} ${objetivo}: el objetivo solo puede estar a la ${derecha ? "derecha" : "izquierda"}. `
         + `${derecha ? `izq = ${izq}` : `der = ${der}`}: descartamos ${descartados} de golpe` + (der >= izq ? `; quedan ${der - izq + 1}.` : "."));
@@ -396,6 +396,13 @@
   }
 
   const ORDEN_MARCAS = ["i", "j", "izq", "medio", "der"];
+
+  // izq y der sobre su casilla. Cuando se cruzan y uno sale del arreglo
+  // (izq = n o der = -1), la marca queda en el borde pero dice su valor.
+  function marcasLimites(izq, der, n) {
+    const marca = (nombre, j) => (j >= 0 && j < n ? [nombre, "d", j] : [nombre, "d", Math.min(Math.max(j, 0), n - 1), `${nombre} = ${j}`]);
+    return [marca("izq", izq), marca("der", der)];
+  }
 
   // Hasta 12 casillas van en una fila grande (que se reduce en pantallas
   // angostas). Con más, las casillas se acomodan en varias filas para que los
@@ -572,17 +579,18 @@
 
     // Marcas (i, j, izq, medio, der) sobre su casilla; se apilan si coinciden.
     const grupos = {};
-    for (const [nombre, fila, j] of vis.marcas || []) {
+    for (const [nombre, fila, j, texto] of vis.marcas || []) {
       if (j < 0 || j > (n <= 12 ? n + 3 : n - 1)) continue;
-      (grupos[`${fila}-${j}`] = grupos[`${fila}-${j}`] || []).push(nombre);
+      (grupos[`${fila}-${j}`] = grupos[`${fila}-${j}`] || []).push([nombre, texto || nombre]);
     }
     for (const [clave, nombres] of Object.entries(grupos)) {
       const [fila, j] = clave.split("-");
       const f = filas.find((ff) => ff.id === fila);
       if (!f) continue;
-      nombres.sort((a, b) => ORDEN_MARCAS.indexOf(a) - ORDEN_MARCAS.indexOf(b));
-      nombres.forEach((nombre, k) => {
-        const marca = p.pieza(`m-${fila}-${nombre}`, () => el("span", { class: "marcador na-marca", text: nombre }));
+      nombres.sort(([a], [b]) => ORDEN_MARCAS.indexOf(a) - ORDEN_MARCAS.indexOf(b));
+      nombres.forEach(([nombre, texto], k) => {
+        const marca = p.pieza(`m-${fila}-${nombre}`, () => el("span", { class: "marcador na-marca" }));
+        marca.textContent = texto;
         const mala = !!vis.error && nombre === "i";
         marca.classList.toggle("mala", mala);
         marca.style.left = `${x(Number(j)) + celda / 2 - 30}px`;
@@ -612,7 +620,7 @@
       const lado = n <= 8 ? 12 : n <= 12 ? 8 : 7;
       let rejilla = caja.querySelector(".rejilla-pares");
       if (!rejilla || rejilla.dataset.corrida !== String(s.corrida)) {
-        rejilla = el("div", { class: "rejilla-pares", "data-corrida": s.corrida, style: `grid-template-columns:repeat(${n + 1}, ${lado}px);grid-auto-rows:${lado}px` });
+        rejilla = el("div", { class: "rejilla-pares", "data-corrida": s.corrida, style: `grid-template-columns:max-content repeat(${n}, ${lado}px);grid-auto-rows:${lado}px` });
         rejilla.append(el("span", { class: "eje-pares", text: "i\\j" }));
         const eje = (k) => (lado >= 10 || k % 5 === 0 ? k : "");
         for (let j = 0; j < n; j++) rejilla.append(el("span", { class: "eje-pares", text: eje(j) }));
