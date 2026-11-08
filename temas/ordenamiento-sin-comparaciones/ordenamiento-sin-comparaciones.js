@@ -463,7 +463,7 @@
 
   function crearLienzo(escenario) {
     const lienzo = el("div", { class: "ord-lienzo" }, el("div", { class: "ord-capa" }), el("div", { class: "ord-punteros" }));
-    escenario.append(el("div", { class: "ord-info" }), el("div", { class: "ord-marco" }, lienzo));
+    escenario.append(el("div", { class: "ord-info", "data-alto-estable": true }), el("div", { class: "ord-marco" }, lienzo));
     return lienzo;
   }
 

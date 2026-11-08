@@ -479,7 +479,7 @@
       "</defs>";
     const vacia = el("div", { class: "doble-vacia", text: "nullptr" });
     const lienzo = el("div", { class: "lienzo-doble", "data-n": n }, svg, vacia);
-    escenario.append(el("div", { class: "info-doble" }), el("div", { class: "desliza-doble" }, el("div", { class: "marco-doble" }, lienzo)));
+    escenario.append(el("div", { class: "info-doble", "data-alto-estable": true }), el("div", { class: "desliza-doble" }, el("div", { class: "marco-doble" }, lienzo)));
     return lienzo;
   }
 

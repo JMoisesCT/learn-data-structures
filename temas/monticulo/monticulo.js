@@ -326,7 +326,7 @@
     const svg = document.createElementNS(SVG, "svg");
     const fija = el("div", { class: "capa-fija" });
     const lienzo = el("div", { class: "lienzo-heap" }, svg, fija);
-    escenario.append(el("div", { class: "info-heap" }), el("div", { class: "marco-heap" }, lienzo));
+    escenario.append(el("div", { class: "info-heap", "data-alto-estable": true }), el("div", { class: "marco-heap" }, lienzo));
     return lienzo;
   }
 

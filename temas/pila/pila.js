@@ -367,7 +367,7 @@
         "</defs>";
       lienzo.append(svg, el("div", { class: "lcabeza" }, el("span", { class: "lcabeza-nombre", text: "tope" }), el("span", { class: "sig" })));
     }
-    escenario.replaceChildren(el("div", { class: "info-pila" }), el("div", { class: "desliza-pila" }, el("div", { class: "marco-pila" }, lienzo)));
+    escenario.replaceChildren(el("div", { class: "info-pila", "data-alto-estable": true }), el("div", { class: "desliza-pila" }, el("div", { class: "marco-pila" }, lienzo)));
     return lienzo;
   }
   let lienzos = 0;

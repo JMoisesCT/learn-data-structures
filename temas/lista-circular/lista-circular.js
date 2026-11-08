@@ -356,7 +356,7 @@
       "</defs>";
     const vacia = el("div", { class: "circ-vacia", text: "ultimo = nullptr" });
     const lienzo = el("div", { class: "lienzo-circ", "data-n": n }, svg, vacia);
-    escenario.append(el("div", { class: "info-circ" }), el("div", { class: "marco-circ" }, lienzo));
+    escenario.append(el("div", { class: "info-circ", "data-alto-estable": true }), el("div", { class: "marco-circ" }, lienzo));
     return lienzo;
   }
 

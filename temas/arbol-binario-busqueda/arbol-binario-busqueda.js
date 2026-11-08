@@ -552,7 +552,7 @@
     const hueco = el("div", { class: "abb-hueco", text: "∅" });
     const tituloSalida = el("span", { class: "abb-titulo-salida", text: "salida" });
     const lienzo = el("div", { class: "lienzo-abb", "data-n": n }, svg, raiz, hueco, tituloSalida);
-    escenario.append(el("div", { class: "info-abb" }), el("div", { class: "marco-abb" }, lienzo));
+    escenario.append(el("div", { class: "info-abb", "data-alto-estable": true }), el("div", { class: "marco-abb" }, lienzo));
     return lienzo;
   }
 

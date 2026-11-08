@@ -841,7 +841,7 @@
     const raiz = el("div", { class: "abb-raiz" }, el("span", { class: "abb-raiz-nombre", text: "raiz" }), el("span", { class: "ptr" }));
     const hueco = el("div", { class: "abb-hueco", text: "∅" });
     const lienzo = el("div", { class: "lienzo-abb lienzo-avl", "data-n": n }, svg, raiz, hueco);
-    escenario.append(el("div", { class: "info-abb" }), el("div", { class: "marco-abb" }, lienzo));
+    escenario.append(el("div", { class: "info-abb", "data-alto-estable": true }), el("div", { class: "marco-abb" }, lienzo));
     return lienzo;
   }
 
