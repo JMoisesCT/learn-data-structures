@@ -128,6 +128,7 @@
     s.cubetas = null;
     s.vuelos = [];
     s.listos = false;
+    s.salidaLista = false;
     s.exp = null;
     s.cuenta = s.modo === "bucket" ? { "pasos": 0 } : { "pasos": 0 };
     s.columnasConteo = s.modo === "radix" ? 10 : (s.maximo || 0) + 1;
@@ -299,7 +300,8 @@
       lineas: { contar: 3, contarLinea: 7, sumar: 9, indice: "i", salida: 12, colocar: 13, decrementar: 14 },
     });
     if (!ok) return;
-    s.listos = true;
+    // countingSort devuelve salida (v queda como estaba): la ordenada es salida.
+    s.salidaLista = true;
     ver(s, { vars: { maximo } });
     const letras = s.salida.filter((b) => b.e).map((b) => b.e).join("");
     paso(K, 17, `return salida: { ${lista(s.salida)} }. ${s.cuenta.pasos} pasos y ninguna comparación: O(n + k).`
@@ -622,7 +624,9 @@
     });
     (s.salida || []).forEach((b, k) => {
       if (!b) return;
-      ubicar(b, xDe(k), g.yBaseS, (vis.escritasSalida || []).includes(k) ? ["escrita"] : []);
+      const clases = s.salidaLista ? ["fija"] : [];
+      if ((vis.escritasSalida || []).includes(k)) clases.push("escrita");
+      ubicar(b, xDe(k), g.yBaseS, clases);
     });
     (s.cubetas || []).forEach((cubeta, c) => {
       cubeta.forEach((b, j) => {
