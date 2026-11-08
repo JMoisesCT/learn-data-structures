@@ -717,17 +717,21 @@
       camino.setAttribute("d", `M ${x1} ${y1} C ${derecha} ${y1}, ${derecha} ${y2}, ${x2} ${y2}`);
       camino.setAttribute("class", `lam-flecha${vis.flechaActiva ? " activa" : ""}${vis.flechas ? " nueva" : ""}`);
       camino.setAttribute("pathLength", "1");
-      camino.setAttribute("marker-end", "url(#lam-punta)");
+      camino.setAttribute("marker-end", `url(#lam-punta${vis.flechaActiva ? "-activa" : ""})`);
       svg.append(camino);
     }
     if (svg.childNodes.length) {
+      // La punta de la flecha activa lleva su color; como el trazo es más
+      // grueso (3 en vez de 2), se achica para que quede del mismo tamaño.
       const defs = document.createElementNS(SVG, "defs");
-      const punta = document.createElementNS(SVG, "marker");
-      for (const [a, v] of Object.entries({ id: "lam-punta", viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" })) punta.setAttribute(a, v);
-      const forma = document.createElementNS(SVG, "path");
-      forma.setAttribute("d", "M0 0 L10 5 L0 10 z");
-      punta.append(forma);
-      defs.append(punta);
+      for (const [id, lado] of [["lam-punta", 7], ["lam-punta-activa", 4.7]]) {
+        const punta = document.createElementNS(SVG, "marker");
+        for (const [a, v] of Object.entries({ id, viewBox: "0 0 10 10", refX: 8, refY: 5, markerWidth: lado, markerHeight: lado, orient: "auto-start-reverse" })) punta.setAttribute(a, v);
+        const forma = document.createElementNS(SVG, "path");
+        forma.setAttribute("d", "M0 0 L10 5 L0 10 z");
+        punta.append(forma);
+        defs.append(punta);
+      }
       svg.prepend(defs);
     }
   }
