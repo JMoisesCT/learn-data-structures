@@ -165,7 +165,7 @@
     DS.tema(Object.assign({}, cfg, {
       operaciones: cfg.operaciones.map((op) => Object.assign({}, op, {
         ejecutar(s, args, paso) {
-          s.nivelesMin = nivelesPara(s.items.length + 1);
+          s.nivelesMin = nivelesPara(s.items.length + (op.id === "insertar" ? 1 : 0));
           op.ejecutar(s, args, paso);
         },
       })),
@@ -175,8 +175,8 @@
   // El lienzo solo es tan alto como los niveles que ocupa el árbol.
   function geometria(niveles) {
     const yTitulo = Y_ARBOL + (niveles - 1) * NIVEL + NODO + 18;
-    const yCeldas = yTitulo + 42; // deja lugar para dos líneas de marcas
-    return { yTitulo, yCeldas, alto: yCeldas + 48 };
+    const yCeldas = yTitulo + 48; // deja lugar para dos líneas de marcas
+    return { yTitulo, yCeldas, alto: yCeldas + 58 }; // con los índices debajo de las celdas
   }
 
   function nuevoId(s) {
@@ -430,8 +430,15 @@
       nodo.style.top = `${p.y}px`;
       nodo.className = `hnodo ${estado(i)}${item.fantasma ? " fantasma" : ""}${vis.nuevo === i ? " nuevo" : ""}`;
     });
-    for (const n of lienzo.querySelectorAll(".hcelda")) if (!vivosArreglo.has(n.dataset.id)) n.remove();
-    for (const n of lienzo.querySelectorAll(".hnodo")) if (!vivosArbol.has(n.dataset.id)) n.remove();
+    // Lo que sale se desvanece antes de borrarse (si vuelve, por ejemplo al
+    // retroceder un paso, se reusa y ya no se borra).
+    const retirar = (n) => {
+      if (n.classList.contains("saliendo")) return;
+      n.classList.add("saliendo");
+      setTimeout(() => { if (n.classList.contains("saliendo")) n.remove(); }, 350);
+    };
+    for (const n of lienzo.querySelectorAll(".hcelda")) if (!vivosArreglo.has(n.dataset.id)) retirar(n);
+    for (const n of lienzo.querySelectorAll(".hnodo")) if (!vivosArbol.has(n.dataset.id)) retirar(n);
 
     // Capa fija: títulos, índices y marcadores (pertenecen a la posición, no al valor).
     const fija = lienzo.querySelector(".capa-fija");
