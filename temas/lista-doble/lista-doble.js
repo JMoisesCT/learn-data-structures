@@ -563,9 +563,30 @@
       const y2 = d.y + (adelante ? 15 : d.h - 15);
       const misma = Math.abs(d.y - o.y) < 5;
       if (misma && Math.abs(d.x - o.x) > PASO * 1.4) {
-        // Salta por encima (siguiente) o por debajo (anterior) de un nodo.
-        const curva = adelante ? -52 : 52;
-        path.setAttribute("d", `M ${x1} ${y1} C ${x1 + (aDerecha ? 40 : -40)} ${y1 + curva}, ${x2 + (aDerecha ? -40 : 40)} ${y2 + curva}, ${x2} ${y2}`);
+        // Salta por encima (siguiente) o por debajo (anterior) de un nodo; la
+        // de abajo pasa por debajo de las marcas. Si abajo, entre los dos, hay
+        // un nodo suelto (el que se está insertando), pasa también por debajo de él.
+        const xMin = Math.min(o.x, d.x) + o.w;
+        const xMax = Math.max(o.x, d.x);
+        const fondo = Math.max(0, ...[...lienzo.querySelectorAll(".dnodo.suelto")]
+          .filter((n) => n.offsetTop > o.y + o.h && n.offsetLeft + n.offsetWidth > xMin && n.offsetLeft < xMax)
+          .map((n) => n.offsetTop + n.offsetHeight + 26));
+        const ys = y1;
+        const curva = adelante ? -56 : Math.max(66, (fondo - ys) / 0.72);
+        // Llega por el borde de arriba o de abajo del destino, no al mismo
+        // punto que la flecha que ya le llega de al lado.
+        const xf = aDerecha ? d.x + 5 : d.x + d.w - 5; // en la esquina, lejos de la marca centrada
+        const yf = adelante ? d.y - 3 : d.y + d.h + 3;
+        path.setAttribute("d", `M ${x1} ${ys} C ${x1 + (aDerecha ? 40 : -40)} ${ys + curva}, ${xf} ${yf + curva * 0.8}, ${xf} ${yf}`);
+      } else if (!misma) {
+        // Entre la fila y un nodo suelto: un poco curva, cada una hacia su
+        // izquierda, así la de ida y la de vuelta no quedan encimadas.
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const largo = Math.hypot(dx, dy) || 1;
+        const cx = (x1 + x2) / 2 + (dy / largo) * 12;
+        const cy = (y1 + y2) / 2 - (dx / largo) * 12;
+        path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
       } else {
         path.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
       }
@@ -678,7 +699,10 @@
     const xs = Object.values(pos).map((p) => p.x + ANCHO);
     const ancho = Math.max(360, X0 + Math.max(n, 1) * PASO + 20, ...xs.map((x) => x + 30), vis.posMala != null ? X0 + (n + 1) * PASO : 0);
     const conSueltos = Object.values(pos).some((p) => p.y > Y_FILA);
-    const alto = conSueltos ? Y_FILA + BAJADA + ALTO + 24 : Y_FILA + ALTO + 24;
+    // Un nodo desenganchado que todavía está en la fila: la flecha anterior
+    // que lo salta pasa por debajo de su marca, y necesita ese lugar.
+    const conSalto = Object.values(pos).some((p) => p.suelto && p.y <= Y_FILA);
+    const alto = conSueltos ? Y_FILA + BAJADA + ALTO + 32 : Y_FILA + ALTO + (conSalto ? 48 : 24);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
     lienzo.dataset.ancho = ancho;
