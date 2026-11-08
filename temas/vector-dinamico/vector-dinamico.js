@@ -204,7 +204,7 @@
         }
         const nueva = nuevaFicha(s, valor);
         s.datos.celdas[s.tamano] = nueva;
-        s.vis = { vars: { valor }, escrita: s.tamano, cae: nueva.id, marcas: { [s.tamano]: "tamano" } };
+        s.vis = { vars: { valor }, ocupadas: s.tamano + 1, escrita: s.tamano, cae: nueva.id, caret: true };
         paso("agregarAlFinal", 5, `datos[${s.tamano}] = ${valor}: escribimos directo en la primera casilla libre. Nada se mueve.`);
         s.tamano++;
         s.vis = { vars: { valor }, cambio: ["tamano"] };
@@ -232,7 +232,7 @@
         paso("insertar", 5, `¿Está lleno? tamano (${s.tamano}) == capacidad (${s.capacidad})? ${lleno ? "Sí." : "No: hay lugar para correr los elementos."}`);
         if (lleno) {
           if (limiteAlcanzado(s, "insertar", 5, paso)) return;
-          s.vis = { vars, caret: true };
+          s.vis = { vars, caret: true, marcas: { [pos]: "pos" } };
           paso("insertar", 6, "Sí: primero redimensionamos al doble; después hacemos el hueco.");
           redimensionar(s, paso, vars);
         }
