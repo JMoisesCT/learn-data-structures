@@ -1114,7 +1114,9 @@
     }
     const presentes = new Set();
     for (const [donde, nombres] of Object.entries(marcas)) {
-      const x = donde === "hueco" ? parseFloat(hueco.style.left) + 17 : pos[donde].x + ANCHO / 2;
+      // Sobre un nodo, la marca termina en su centro (el ↓ queda justo a la
+      // izquierda): así no tapa la punta de la flecha que entra al nodo.
+      const x = donde === "hueco" ? parseFloat(hueco.style.left) + 17 : pos[donde].x + ANCHO / 2 - 1;
       const y = donde === "hueco" ? parseFloat(hueco.style.top) - 17 : pos[donde].y - 18;
       for (const k of nombres) {
         presentes.add(k);
@@ -1130,6 +1132,10 @@
         marca.style.top = `${y}px`;
         // Si comparten lugar, solo se ve la primera (que ya lleva todos los nombres).
         marca.classList.toggle("oculta", k !== nombres[0]);
+        // Si no cabe a la izquierda (nodo pegado al borde), va centrada.
+        const alCentro = donde !== "hueco" && x - marca.offsetWidth >= 2;
+        marca.classList.toggle("al-centro", alCentro);
+        marca.style.left = `${alCentro ? x : x + 1}px`;
         marca.classList.toggle("mala", donde === "hueco" && !!(vis.hueco && vis.hueco.malo));
       }
     }
