@@ -2940,9 +2940,9 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .ord-barra.pivote { border-color: var(--lambda); background: var(--lambda-suave); }
 .ord-barra.pivote.fija { box-shadow: 0 0 0 3px var(--lambda-suave); }
 .ord-barra.encontrada { border-color: var(--exito); background: var(--exito-suave); animation: pop 0.35s ease; }
-.dyv-buscado { height: 16px; border-radius: 4px; border: 2px dashed var(--exito); }
+.dyv-buscado { height: 22px; border-radius: 4px; border: 2px dashed var(--exito); }
 
-.dyv-arbol-titulo { font-family: var(--fuente-codigo); font-size: 0.68rem; color: var(--texto-suave); white-space: nowrap; }
+.dyv-arbol-titulo { font-family: var(--fuente-codigo); font-size: 0.68rem; color: var(--texto-suave); white-space: nowrap; line-height: 12px; }
 .dyv-arbol > .dyv-nodo {
   position: absolute;
   height: 13px;
