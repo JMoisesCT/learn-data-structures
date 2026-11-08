@@ -1382,6 +1382,9 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 /* Tabla hash: cubetas con fichas (una fila por cubeta, como imprimir()) */
 
 .cubetas-hash { display: grid; gap: 4px; }
+@media (min-width: 861px) {
+  .cubetas-hash.dos-columnas { grid-template-rows: repeat(var(--filas), auto); grid-auto-flow: column; column-gap: 1.25rem; }
+}
 
 .fila-cubeta { display: flex; align-items: center; gap: 8px; }
 .fila-cubeta .indice { width: 2.2rem; flex: none; text-align: right; }

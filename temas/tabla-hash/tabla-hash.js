@@ -290,13 +290,17 @@
     return `${n} clave(s) · ${usadas} de ${cubetas.length} cubetas usadas · ${n - usadas} colisión(es) · la más llena tiene ${mayor}`;
   }
 
+  // Con muchas cubetas (m = 10 u 11) van en dos columnas en pantallas anchas
+  // ([0]…[5] a la izquierda): así el paso cabe sin scroll.
   function dibujarCubetas(cubetas, vis) {
-    return el("div", { class: "cubetas-hash" },
-      cubetas.map((contenido, i) =>
-        el("div", { class: `fila-cubeta${vis.cubeta === i ? " activa" : ""}${contenido.length > 1 ? " colision" : ""}` },
-          el("span", { class: "indice", text: `[${i}]` }),
-          el("div", { class: "caja" },
-            contenido.map((v) => el("span", { class: `ficha${vis.nuevo === v && vis.cubeta === i ? " nueva" : ""}`, text: v }))))),
+    const dos = cubetas.length > 8;
+    return el("div", {},
+      el("div", { class: `cubetas-hash${dos ? " dos-columnas" : ""}`, style: dos ? `--filas:${Math.ceil(cubetas.length / 2)}` : null },
+        cubetas.map((contenido, i) =>
+          el("div", { class: `fila-cubeta${vis.cubeta === i ? " activa" : ""}${contenido.length > 1 ? " colision" : ""}` },
+            el("span", { class: "indice", text: `[${i}]` }),
+            el("div", { class: "caja" },
+              contenido.map((v) => el("span", { class: `ficha${vis.nuevo === v && vis.cubeta === i ? " nueva" : ""}`, text: v })))))),
       el("p", { class: "resumen-cubetas", text: resumen(cubetas) }));
   }
 
@@ -328,11 +332,11 @@
       paso(f.clave, 0, "Esas claves ya están en la tabla.", "error");
       return;
     }
-    nuevos.forEach((v, k) => {
+    nuevos.forEach((v) => {
       const indice = f.calcular(v, s.m);
       s.vis = { vars: { clave: v, m: s.m } };
       const texto = colocar(s, v, indice);
-      paso(f.clave, 0, `${f.clave}(${v}, ${s.m}) = ${indice}. ${texto}`, k === nuevos.length - 1 ? "exito" : "");
+      paso(f.clave, 0, `${f.clave}(${v}, ${s.m}) = ${indice}. ${texto}`);
     });
     s.vis = { vars: { m: s.m } };
     paso(f.clave, 0, `Así reparte ${f.nombre.toLowerCase()} con m = ${s.m}. ${resumen(s.cubetas)}. Cambia la función o m y compara.`, "exito");
@@ -441,7 +445,8 @@
             const indice = f.calcular(p, M_TEXTO);
             paso(f.clave, 0, `${f.clave}("${p}", ${M_TEXTO}) = ${indice}. ${colocar(s, p, indice)}`);
           }
-          s.vis = { vars: { m: M_TEXTO } };
+          // La última palabra sigue a la vista: si su fila de letras se fuera, la tabla subiría de golpe.
+          s.vis = { vars: { m: M_TEXTO }, palabra: nuevos[nuevos.length - 1] };
           paso(f.clave, 0, s.funcion === "suma"
             ? "Las cuatro palabras tienen las mismas letras, así que la suma es la misma: todas caen en la misma cubeta, sin importar m."
             : "Con el hash polinomial el orden cuenta y los anagramas se reparten. Dos aún pueden chocar (hay 7 cubetas), pero no por tener las mismas letras.", "exito");
