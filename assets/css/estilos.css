@@ -1184,6 +1184,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease;
 }
 .lpuntero.mala { color: var(--peligro); }
+.lpuntero.desde-flecha { transform: translateX(-0.4em); }
 .lpuntero.saliendo { opacity: 0; }
 
 /* Pila y cola (lecciones): el vaso de std::stack, la fila de std::queue y

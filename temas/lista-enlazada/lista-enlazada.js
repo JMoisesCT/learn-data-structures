@@ -295,7 +295,7 @@
     const id = crearNodo(s, valor, { ancla: pos - 0.5 });
     s.ptrs.nuevo = id;
     ver({ activo: id, mirado: anterior });
-    paso("insertarEn", 10, `new Nodo(${valor}): el nodo aparece suelto, debajo de donde va a quedar. Todavía nadie apunta a él.`);
+    paso("insertarEn", 10, `new Nodo(${valor}): el nodo aparece suelto, junto a donde va a quedar. Todavía nadie apunta a él.`);
     const siguiente = s.nodos[anterior].sig;
     s.nodos[id].sig = siguiente;
     ver({ activo: id, mirado: anterior, flecha: id, nulo: siguiente == null ? id : null });
@@ -606,7 +606,10 @@
     let extra = 0;
     for (const [id, n] of Object.entries(s.nodos)) {
       if (lugar[id]) continue;
-      const k = n.ancla != null ? n.ancla : lugares.length + extra++;
+      let k = n.ancla != null ? n.ancla : lugares.length + extra++;
+      // Un nodo nuevo que va al principio de una fila (por ejemplo, después de
+      // una fila llena) espera en esa fila, no al final de la fila de arriba.
+      if (n.ancla != null && Math.ceil(n.ancla) > 0 && Math.ceil(n.ancla) % cols === 0) k = Math.ceil(n.ancla);
       // Si abre una fila que todavía está vacía, aparece ya en ella.
       const f = filaDe(k);
       lugar[id] = { k, abajo: !(f > 0 && f * cols >= lugares.length) };
@@ -728,7 +731,9 @@
       return `M ${x1} ${y1} L ${x2} ${y2}`;
     }
     const arriba = ty < origen.offsetTop;
-    const x2 = tx + 20;
+    // Entra cerca de la esquina izquierda: abajo del nodo va su "pos N" (o su
+    // dirección) y arriba sus marcas, las dos centradas.
+    const x2 = tx + 10;
     const y2 = arriba ? ty + th + 3 : ty - 3;
     return `M ${x1} ${y1} C ${x1 + 46} ${y1}, ${x2} ${arriba ? y2 + 46 : y2 - 46}, ${x2} ${y2}`;
   }
@@ -878,6 +883,8 @@
         lienzo.append(marca);
       }
       marca.textContent = `↑ pos = ${posMala}`;
+      // Debajo de cabeza (pegada al borde) la marca se abre a la derecha.
+      marca.classList.toggle("desde-flecha", posMala < 0);
       marca.style.left = `${x}px`;
       marca.style.top = `${(posMala < 0 ? Y_FILA : fin.y) + ALTO_NODO + 8}px`;
       nombres.push("pos");
