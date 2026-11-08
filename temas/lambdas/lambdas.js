@@ -758,10 +758,12 @@
 
     // Desplazamiento visual de cada pieza que ya estaba (o que vuela desde su origen).
     const deltas = new Map();
+    const entran = [];
     for (const [id, nodo] of nuevos) {
       const previo = antes.get(id) || (nodo.dataset.desde && antes.get(nodo.dataset.desde));
       if (!previo) {
         nodo.classList.add("lam-entra");
+        entran.push(nodo);
         continue;
       }
       const r = nodo.getBoundingClientRect();
@@ -806,6 +808,18 @@
       });
       fantasmas.append(fantasma);
       setTimeout(() => fantasma.remove(), DURACION);
+      // Si algo nuevo aparece en el mismo lugar (por ejemplo, la llamada a
+      // pred con el elemento siguiente), primero se va lo viejo y después
+      // entra lo nuevo: así no se ven los dos encimados.
+      for (const nuevo of entran) {
+        const q = nuevo.getBoundingClientRect();
+        const ancho = Math.min(r.right, q.right) - Math.max(r.left, q.left);
+        const alto = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top);
+        if (ancho > 0 && alto > 0 && ancho * alto > 0.3 * q.width * q.height) {
+          fantasma.classList.add("lam-relevo");
+          nuevo.classList.add("lam-relevo");
+        }
+      }
     }
   }
 

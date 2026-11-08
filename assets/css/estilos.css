@@ -2013,6 +2013,10 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 
 /* Lo que aparece hace pop; lo que vuela pasa por encima del resto. */
 .lam-entra { animation: pop 0.35s ease; }
+/* Relevo en el mismo lugar: lo viejo se va rápido y lo nuevo entra después. */
+.lam-fantasmas .lam-fantasma.lam-relevo { animation-duration: 0.15s; }
+.lam-entra.lam-relevo { animation: lam-relevo 0.25s ease 0.1s both; }
+@keyframes lam-relevo { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
 .lam-vuela { z-index: 5; }
 .lam-valor.lam-vuela { box-shadow: var(--sombra); }
 
