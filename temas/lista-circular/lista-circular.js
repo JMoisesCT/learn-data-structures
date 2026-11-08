@@ -449,15 +449,14 @@
       let a1 = angulo(o);
       let a2 = angulo(d);
       if (a2 <= a1 + 1e-3) a2 += 2 * Math.PI;
-      // Si salta por encima de otro nodo (al eliminar), va por un anillo más grande.
-      const salta = [...centros.entries()].some(([id, c]) => {
+      // Los nodos que salta (al eliminar): la flecha pasa por encima de ellos.
+      const saltados = [...centros.entries()].filter(([id, c]) => {
         if (id === path.dataset.de || id === path.dataset.a || c.dentro) return false;
         let a = angulo(c);
         while (a <= a1) a += 2 * Math.PI;
         return a < a2;
       });
-      const k = salta ? 1.32 : 1;
-      const punto = (a) => ({ x: g.cx + k * g.rx * Math.cos(a), y: g.cy + k * g.ry * Math.sin(a) });
+      const punto = (a) => ({ x: g.cx + g.rx * Math.cos(a), y: g.cy + g.ry * Math.sin(a) });
       // Se avanza sobre la elipse hasta salir de cada caja.
       let i = 0;
       while (i++ < 200 && a1 < a2 && dentroDe(punto(a1), o, 2)) a1 += 0.01;
@@ -465,12 +464,16 @@
       while (i++ < 200 && a2 > a1 && dentroDe(punto(a2), d, 4)) a2 -= 0.01;
       const p1 = punto(a1);
       const p2 = punto(a2);
-      let dPath = `M ${p1.x} ${p1.y} A ${k * g.rx} ${k * g.ry} 0 ${a2 - a1 > Math.PI ? 1 : 0} 1 ${p2.x} ${p2.y}`;
-      if (salta) {
-        // Une el anillo grande con los dos nodos con tramos cortos.
-        const ini = borde(o, p1.x - o.x, p1.y - o.y, 1);
-        const fin = borde(d, p2.x - d.x, p2.y - d.y, 3);
-        dPath = `M ${ini.x} ${ini.y} L ${p1.x} ${p1.y} A ${k * g.rx} ${k * g.ry} 0 ${a2 - a1 > Math.PI ? 1 : 0} 1 ${p2.x} ${p2.y} L ${fin.x} ${fin.y}`;
+      let dPath = `M ${p1.x} ${p1.y} A ${g.rx} ${g.ry} 0 ${a2 - a1 > Math.PI ? 1 : 0} 1 ${p2.x} ${p2.y}`;
+      if (saltados.length) {
+        // Una sola curva por encima de los nodos que salta (y de su marca):
+        // sale hacia arriba del campo siguiente y baja sobre el valor del destino.
+        const ini = { x: o.x + ANCHO / 2 - 14, y: o.y - ALTO / 2 };
+        const fin = { x: d.x - ANCHO / 2 + 22, y: d.y - ALTO / 2 - 3 };
+        const techo = Math.min(...saltados.map(([, c]) => c.y - ALTO / 2)) - 30;
+        const cima = Math.min(ini.y, fin.y) - techo; // cuánto tiene que subir
+        const h = cima / 0.75; // una curva con los dos controles a esa altura sube 3/4 de ella
+        dPath = `M ${ini.x} ${ini.y} C ${ini.x} ${ini.y - h}, ${fin.x} ${fin.y - h}, ${fin.x} ${fin.y}`;
       }
       path.setAttribute("d", dPath);
     }
