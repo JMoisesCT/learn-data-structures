@@ -1471,8 +1471,14 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   background: var(--superficie-2);
   font-size: 0.85rem;
   color: var(--texto-suave);
-  transition: left 0.45s ease, top 0.45s ease, background-color 0.25s ease, border-color 0.25s ease;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, background-color 0.25s ease, border-color 0.25s ease;
 }
+/* Los nodos pasan por encima de las cubetas mientras se deslizan (en el rehash). */
+.lienzo-hash .cubeta { z-index: 1; }
+.lienzo-hash .nodo { z-index: 2; }
+.lienzo-hash .cubeta.saliendo, .lienzo-hash .nodo.saliendo { opacity: 0; }
+.lienzo-hash .capa-fija.relevo > .indice-cubeta { animation: aparecer-indice 0.45s ease both; }
+@keyframes aparecer-indice { from { opacity: 0; } to { opacity: 1; } }
 
 .cubeta::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--texto-suave); }
 .cubeta.nula::before { content: "∅"; width: auto; height: auto; background: none; }

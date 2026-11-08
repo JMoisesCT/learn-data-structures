@@ -592,6 +592,14 @@
     });
   }
 
+  // Lo que ya no está se desvanece antes de borrarse (sin id, para que no se reuse).
+  function retirar(pieza) {
+    delete pieza.dataset.id;
+    delete pieza.dataset.k;
+    pieza.classList.add("saliendo");
+    setTimeout(() => pieza.remove(), 350);
+  }
+
   function dibujarCadenas(escenario, s) {
     if (!escenario) return;
     const lienzo = escenario.querySelector(".lienzo-hash") || crearLienzoCadenas(escenario);
@@ -608,6 +616,14 @@
     let alto = 0;
 
     const ubicar = (nodo, x, y) => { nodo.style.left = `${x}px`; nodo.style.top = `${y}px`; };
+
+    // tabla.swap(nueva): las cubetas de la tabla nueva pasan a ser las de la
+    // tabla y se deslizan a su lugar; las de la vieja se desvanecen.
+    const relevo = !s.nueva && !!lienzo.querySelector('.cubeta[data-k^="n-"]');
+    if (relevo) {
+      for (const c of lienzo.querySelectorAll('.cubeta[data-k^="t-"]')) retirar(c);
+      for (const c of lienzo.querySelectorAll('.cubeta[data-k^="n-"]')) c.dataset.k = `t-${c.dataset.k.slice(2)}`;
+    }
 
     for (const b of lista) {
       ancho = Math.max(ancho, b.x + b.ancho);
@@ -653,11 +669,18 @@
         });
       });
     }
-    for (const pieza of lienzo.querySelectorAll(".nodo, .cubeta")) {
+    for (const pieza of lienzo.querySelectorAll(".nodo[data-id], .cubeta[data-k]")) {
       const clave = pieza.classList.contains("nodo") ? `n:${pieza.dataset.id}` : `c:${pieza.dataset.k}`;
-      if (!vivos.has(clave)) pieza.remove();
+      if (!vivos.has(clave)) retirar(pieza);
     }
-    lienzo.querySelector(".capa-fija").replaceChildren(...piezas);
+    const fija = lienzo.querySelector(".capa-fija");
+    fija.replaceChildren(...piezas);
+    // Con el relevo, los índices [i] aparecen de a poco en vez de saltar.
+    if (relevo) {
+      fija.classList.remove("relevo");
+      void fija.offsetWidth;
+      fija.classList.add("relevo");
+    }
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
 
