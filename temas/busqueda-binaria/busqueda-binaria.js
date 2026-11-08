@@ -831,6 +831,7 @@
       incremental: true,
       dibujar,
       codigo: fragmentos(claves),
+      tituloCodigo: (clave) => `${clave}()`,
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial,
       entradas: opciones.entradas,
