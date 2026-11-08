@@ -248,7 +248,9 @@
       est.orden.push({ id: nuevaId(s, "o"), v: u, de: sale.id });
       rec.estado[u] = "hecho";
       ver(s, { vars: vars({ u }), u, fila: u, vueltas: { 8: vuelta } });
-      paso(C, 11, `orden.push_back(${u}): orden = ${textoCola(s, "orden")}. Ahora se miran sus ${s.ady[u].length} vecinos, en el orden de su lista.`);
+      const grado = s.ady[u].length;
+      paso(C, 11, `orden.push_back(${u}): orden = ${textoCola(s, "orden")}. `
+        + (grado === 0 ? "Ahora se mira su lista de vecinos." : grado === 1 ? "Ahora se mira su único vecino." : `Ahora se miran sus ${grado} vecinos, en el orden de su lista.`));
       if (!s.ady[u].length) {
         ver(s, { vars: vars({ u }), u, fila: u, vueltas: { 8: vuelta, 12: 0 } });
         paso(C, 12, `La lista del ${u} está vacía: no tiene vecinos.`);
@@ -295,7 +297,9 @@
       const u = est.cola.shift().v;
       rec.estado[u] = "hecho";
       ver(s, { vars: vars({ u }), u, fila: u, vueltas: { 7: vuelta } });
-      paso(C, 9, `Sale el ${u}, a distancia ${est.dist[u]}. Sus vecinos sin distancia quedan a ${est.dist[u] + 1}.`);
+      const sinDistancia = s.ady[u].filter((v) => est.dist[v] === -1).length;
+      paso(C, 9, `Sale el ${u}, a distancia ${est.dist[u]}. `
+        + (sinDistancia ? `Sus vecinos sin distancia quedan a ${est.dist[u] + 1}.` : "Todos sus vecinos ya tienen distancia: no cambia nada."));
       s.ady[u].forEach((v, j) => {
         const base = { vars: vars({ u, v }), u, v, fila: u, chip: j, arista: clave(u, v), vueltas: { 7: vuelta, 10: j + 1 } };
         if (est.dist[v] !== -1) {
@@ -722,6 +726,9 @@
         celda.dataset.listo = "1";
         celda.classList.toggle("si", f.k === "visitado" ? est.visitado[v] : est.dist[v] >= 0);
         celda.classList.toggle("mirada", vis.v === v || vis.u === v);
+        // Cada distancia con el color de su capa, como el vértice en el grafo.
+        for (let k = 0; k <= 4; k++) celda.classList.toggle(`capa-${k}`, f.k === "dist" && Math.min(est.dist[v], 4) === k);
+        celda.classList.toggle("capa", f.k === "dist" && est.dist[v] >= 0);
       }
     }
     for (const t of lienzo.querySelectorAll(".gtitulo[data-fila]")) if (!titulos.has(t.dataset.fila)) t.remove();

@@ -2381,6 +2381,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 }
 .gcelda-valor { display: grid; place-items: center; border: 1.5px solid var(--borde); border-radius: 5px; background: var(--superficie-2); font-size: 0.72rem; font-weight: 700; color: var(--texto-suave); transition: background-color 0.25s ease, border-color 0.25s ease; }
 .gcelda.si .gcelda-valor { border-color: var(--exito); background: var(--exito-suave); color: var(--texto); }
+.gcelda.capa .gcelda-valor { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, var(--superficie)); }
 .gcelda.mirada .gcelda-valor { box-shadow: 0 0 0 2px var(--activo); }
 .gcelda.cambia .gcelda-valor { animation: latido 0.6s ease; }
 .gcelda-indice { font-size: 0.6rem; line-height: 12px; color: var(--texto-suave); }
