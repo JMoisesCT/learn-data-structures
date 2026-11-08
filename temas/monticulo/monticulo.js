@@ -6,7 +6,9 @@
   const MAXIMO = 15; // 4 niveles: lo que cabe en pantalla
   const NODO = 38;
   const NIVEL = 50;
-  const ANCHO_ARBOL = 400;
+  // Con 4 niveles (8 o más elementos) el árbol se abre más a lo ancho: así las
+  // hojas, sus marcas y los índices no se tocan.
+  const anchoArbol = (niveles) => (niveles >= 4 ? 560 : 400);
   const PASO_CELDA = 36;
   const MARGEN = 12;
   const Y_ARBOL = 22;
@@ -146,12 +148,13 @@
   const padreDe = (i) => Math.floor((i - 1) / 2);
 
   // El lienzo solo se ensancha si el arreglo no cabe bajo el árbol.
-  const anchoPara = (n) => Math.max(ANCHO_ARBOL, n * PASO_CELDA) + 2 * MARGEN;
+  const anchoPara = (n, niveles) => Math.max(anchoArbol(niveles), n * PASO_CELDA) + 2 * MARGEN;
 
-  function posArbol(i, ancho) {
+  function posArbol(i, ancho, niveles) {
     const d = nivel(i);
     const p = i - (2 ** d - 1);
-    const x = (ancho - ANCHO_ARBOL) / 2 + (p + 0.5) * (ANCHO_ARBOL / 2 ** d) - NODO / 2;
+    const w = anchoArbol(niveles);
+    const x = (ancho - w) / 2 + (p + 0.5) * (w / 2 ** d) - NODO / 2;
     return { x, y: Y_ARBOL + d * NIVEL };
   }
 
@@ -351,10 +354,10 @@
 
   function dibujar(escenario, s) {
     const lienzo = escenario.querySelector(".lienzo-heap") || crearLienzo(escenario);
-    const ancho = anchoPara(s.items.length);
     // Durante una operación los niveles no disminuyen (s.nivelesMin): si el árbol
     // se achica, el dibujo no salta hacia arriba. Al reiniciar se vuelve a medir.
     const niveles = Math.max(s.nivelesMin || 1, nivelesPara(s.items.length));
+    const ancho = anchoPara(s.items.length, niveles);
     const { yTitulo, yCeldas, alto } = geometria(niveles);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
@@ -390,8 +393,8 @@
     svg.replaceChildren();
     const resaltadas = [...(vis.comparar || []), ...(vis.intercambio || [])];
     for (let i = 1; i < enHeap; i++) {
-      const a = posArbol(padreDe(i), ancho);
-      const b = posArbol(i, ancho);
+      const a = posArbol(padreDe(i), ancho, niveles);
+      const b = posArbol(i, ancho, niveles);
       const linea = document.createElementNS(SVG, "line");
       linea.setAttribute("x1", a.x + NODO / 2);
       linea.setAttribute("y1", a.y + NODO / 2);
@@ -419,7 +422,7 @@
 
       if (i >= enHeap) return;
       vivosArbol.add(item.id);
-      const p = posArbol(i, ancho);
+      const p = posArbol(i, ancho, niveles);
       let nodo = lienzo.querySelector(`.hnodo[data-id="${item.id}"]`);
       if (!nodo) {
         nodo = el("div", { class: "hnodo", "data-id": item.id, style: `left:${p.x}px;top:${p.y}px` });
@@ -450,7 +453,7 @@
     for (let i = 0; i < s.items.length; i++) {
       piezas.push(el("span", { class: "indice", style: `left:${posCelda(i)}px;top:${yCeldas + 36}px;width:32px;text-align:center`, text: i }));
       if (i >= enHeap) continue;
-      const p = posArbol(i, ancho);
+      const p = posArbol(i, ancho, niveles);
       piezas.push(el("span", { class: "indice-nodo", style: `left:${p.x}px;top:${p.y + NODO + 2}px`, text: i }));
     }
     for (const [i, texto] of Object.entries(vis.marcas || {})) {
@@ -458,7 +461,7 @@
       const lineas = texto.split(", ");
       piezas.push(el("span", { class: "marcador apilado", style: `left:${posCelda(k) - 8}px;top:${yCeldas - 3 - 12 * lineas.length}px;width:48px`, text: lineas.join("\n") }));
       if (k >= enHeap) continue;
-      const p = posArbol(k, ancho);
+      const p = posArbol(k, ancho, niveles);
       piezas.push(el("span", { class: "marca-nodo", style: `left:${p.x + NODO / 2}px;top:${p.y - 16}px`, text: texto }));
     }
     fija.replaceChildren(...piezas);
