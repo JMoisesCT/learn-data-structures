@@ -1426,7 +1426,16 @@
       bFin.disabled = bAdelante.disabled = actual === pasos.length - 1;
       if (actual === pasos.length - 1) {
         detener();
-        for (const id of aleatoriosPendientes) campos[id].input.value = aleatorio(campos[id].cfg);
+        // La caja ya muestra el valor de la próxima operación: lo avisa con un
+        // destello (el mensaje sigue hablando del valor que se usó).
+        for (const id of aleatoriosPendientes) {
+          const input = campos[id].input;
+          input.value = aleatorio(campos[id].cfg);
+          input.title = "Nuevo valor al azar para la próxima operación";
+          input.classList.remove("renovado");
+          void input.offsetWidth;
+          input.classList.add("renovado");
+        }
         aleatoriosPendientes = [];
       }
       bPlay.textContent = temporizador ? "❚❚" : "▶";

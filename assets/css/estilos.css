@@ -665,6 +665,10 @@ body.con-leccion.leccion-final > .pie { display: block; }
 }
 
 .campo select { width: auto; }
+/* Una entrada al azar que ya tiene el valor de la próxima operación. */
+.campo input.renovado { animation: renovado 1.2s ease; }
+@keyframes renovado { 0%, 40% { border-color: var(--acento); background: var(--acento-suave); } 100% { border-color: var(--borde); background: var(--fondo); } }
+@media (prefers-reduced-motion: reduce) { .campo input.renovado { animation: none; } }
 
 .boton {
   border: 1px solid var(--borde);
