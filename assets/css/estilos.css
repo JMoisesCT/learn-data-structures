@@ -613,9 +613,11 @@ body.con-leccion.leccion-final > .pie { display: block; }
 .respuesta.bien { background: var(--exito-suave); animation: salir 0.3s ease; }
 .respuesta.pista { background: var(--peligro-suave); animation: salir 0.3s ease; }
 
+/* Con translate (no transform): así no pisa el scale() con el que se achican
+   los lienzos anchos, que si no saltan a tamaño real mientras se sacuden. */
 @keyframes sacudir {
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
+  20%, 60% { translate: -5px 0; }
+  40%, 80% { translate: 5px 0; }
 }
 
 /* ---------- Visualizador ---------- */
