@@ -1239,9 +1239,12 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   background: var(--superficie);
   border-radius: 4px;
   padding: 0 3px;
-  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease;
+  transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease, transform 0.45s ease;
 }
 .vmarca.centrada { transform: translateX(-50%); }
+/* La flecha (último o primer carácter) queda sobre x: la marca se abre hacia un lado. */
+.vmarca.flecha-al-final { transform: translateX(calc(-100% + 0.6em)); }
+.vmarca.flecha-al-inicio { transform: translateX(-0.6em); }
 .vmarca.acento { color: var(--acento); }
 .vmarca.mala { color: var(--peligro); }
 .vmarca.saliendo { opacity: 0; }

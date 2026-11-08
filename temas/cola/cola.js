@@ -433,6 +433,13 @@
       if (s.fila.length === 1) {
         marca(lienzo, "marca-front", "front() back() ↓", primero.x + 24, primero.y - 24, "centrada acento");
         vivos.add("marca-front");
+      } else if (s.fila.length === 2) {
+        // Casillas vecinas: centradas, las dos marcas se pisarían. Se abren
+        // hacia afuera con la flecha sobre su casilla.
+        marca(lienzo, "marca-front", "front() ↓", primero.x + 24, primero.y - 24, "flecha-al-final acento");
+        marca(lienzo, "marca-back", "↓ back()", ultimo.x + 24, ultimo.y - 24, "flecha-al-inicio acento");
+        vivos.add("marca-front");
+        vivos.add("marca-back");
       } else {
         marca(lienzo, "marca-front", "front() ↓", primero.x + 24, primero.y - 24, "centrada acento");
         marca(lienzo, "marca-back", "back() ↓", ultimo.x + 24, ultimo.y - 24, "centrada acento");
