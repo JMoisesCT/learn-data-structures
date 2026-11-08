@@ -433,9 +433,10 @@
       const d = centros.get(path.dataset.a);
       if (!o || !d) continue;
       if (path.dataset.de === path.dataset.a) {
-        // Un solo nodo: un lazo que sale por la derecha y vuelve por arriba.
+        // Un solo nodo: un lazo que sale por la derecha y vuelve por abajo
+        // (arriba van las marcas ultimo y primero, que lo taparían).
         const x = o.x + ANCHO / 2 - 14;
-        path.setAttribute("d", `M ${x} ${o.y} C ${x + 60} ${o.y}, ${o.x + 40} ${o.y - 70}, ${o.x + 6} ${o.y - ALTO / 2 - 3}`);
+        path.setAttribute("d", `M ${x} ${o.y} C ${x + 60} ${o.y}, ${o.x + 40} ${o.y + 70}, ${o.x + 6} ${o.y + ALTO / 2 + 3}`);
         continue;
       }
       if (o.dentro || d.dentro || !g.rx) {
