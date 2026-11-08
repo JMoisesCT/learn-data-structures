@@ -2690,7 +2690,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 /* Recursiones profundas: marcos más bajos para que la pila quepa. */
 .rec-contenido.apretado .rec-marcos { gap: 2px; }
 .rec-contenido.apretado .rec-marco { min-height: 26px; padding-top: 0; padding-bottom: 0; margin-left: calc(var(--prof) * 12px); max-width: calc(100% - var(--prof) * 12px); }
-.rec-contenido.apretado .rec-valor { height: 20px; }
+.rec-contenido.apretado .rec-valor { height: 20px; line-height: 1; font-size: 0.8rem; }
 .rec-contenido.apretado .rec-prof { width: 18px; height: 18px; }
 .rec-contenido.apretado .rec-hueco { padding-top: 0; padding-bottom: 0; }
 .rec-contenido.apretado .rec-hueco-vacio { height: 20px; }

@@ -270,7 +270,7 @@
             rec(q);
             volver(s);
             h.texto = "✓ terminó";
-            s.vis = { vigentes: largo - 1 };
+            s.vis = { vigentes: largo };
             P(C, 6, k === 1
               ? `Volvió y termina sin hacer nada más. Pantalla: ${pantalla()}: el último dígito salió primero.`
               : `imprimirAlReves(${n}) vuelve de su llamada y termina: no tenía nada pendiente.`, k === 1 ? "exito" : "");
@@ -322,7 +322,7 @@
           const r = rec(q, nuevo);
           volver(s);
           h.lleno = [r];
-          s.vis = { vigentes: largo - 1, activos: [r.id], salida: k === 1 ? r.v : null };
+          s.vis = { vigentes: largo, activos: [r.id], salida: k === 1 ? r.v : null };
           P(C, 5, k === 1
             ? `invertir(${n}, 0) devuelve ${r.v}. El resultado se armó de ida, en acumulado; de vuelta solo subió sin cambios.`
             : `Devolvió ${r.v}, y esta llamada devuelve lo mismo, sin tocarlo: es recursión de cola.`, k === 1 ? "exito" : "");
