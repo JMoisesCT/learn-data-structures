@@ -476,6 +476,7 @@
       "<defs>" +
       `<marker id="punta-doble-${n}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       `<marker id="punta-doble-activa-${n}" class="activa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
+      `<marker id="punta-doble-atras-${n}" class="hacia-atras" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       "</defs>";
     const vacia = el("div", { class: "doble-vacia", text: "nullptr" });
     const lienzo = el("div", { class: "lienzo-doble", "data-n": n }, svg, vacia);
@@ -539,7 +540,9 @@
       }
       const activa = vis.flecha === de;
       path.classList.toggle("activa", activa);
-      path.setAttribute("marker-end", `url(#punta-doble${activa ? "-activa" : ""}-${n})`);
+      // La punta lleva el color de su flecha: gris hacia adelante, azul hacia atrás.
+      const punta = activa ? "-activa" : de[0] === "s" ? "" : "-atras";
+      path.setAttribute("marker-end", `url(#punta-doble${punta}-${n})`);
     }
   }
 

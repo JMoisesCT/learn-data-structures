@@ -2402,6 +2402,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .lienzo-doble svg path.traza { animation: trazar 0.45s ease both; }
 .lienzo-doble svg path.activa { stroke: var(--activo); stroke-width: 3; opacity: 1; }
 .lienzo-doble svg marker path { fill: var(--texto-suave); stroke: none; stroke-dasharray: none; }
+.lienzo-doble svg marker.hacia-atras path { fill: var(--acento); }
 .lienzo-doble svg marker.activa path { fill: var(--activo); }
 
 .dnodo {
