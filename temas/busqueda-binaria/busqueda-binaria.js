@@ -271,7 +271,8 @@
       s.marcos.pop();
       marco.estado = "devuelve";
       marco.valor = r;
-      foto(s, Object.assign({}, base, final, { vars: { objetivo, izq, der }, devuelve: nivel === 1 ? r : null }));
+      // El recuadro vuelve al rango de esta llamada (el de sus izq y der).
+      foto(s, Object.assign({}, base, final, { rango: base.rango, vars: { objetivo, izq, der }, devuelve: nivel === 1 ? r : null }));
       paso(k, linea, nivel === 1
         ? `return ${r}: la primera llamada devuelve lo que le llegó. Hubo ${plural(s.profundidad, "marco", "marcos")} en la pila a la vez: O(log n) de memoria.`
         : `Llamada ${nivel}: recibe ${r} y lo devuelve tal cual. No le queda nada por hacer (recursión de cola).`,
@@ -804,6 +805,10 @@
     if (vis.der != null) marca("der", vis.der, `▲\nder = ${vis.der}`, "der", cerca ? 108 : 76);
     if (vis.respuesta != null) {
       marca("resp", vis.respuesta, `respuesta = ${vis.respuesta}`, `resp${vis.nueva ? " nueva" : ""}`, cerca ? 142 : 112);
+      const nodo = lienzo.querySelector('.bb-marcas > [data-k="resp"]');
+      const x = pct(vis.respuesta + 0.5);
+      nodo.classList.toggle("al-inicio", x < 12);
+      nodo.classList.toggle("al-final", x > 88);
     }
     marcas.fin();
   }

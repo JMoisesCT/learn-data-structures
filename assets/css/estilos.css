@@ -3130,7 +3130,8 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .bb-ficha.saliendo { opacity: 0; }
 
 .bb-marca {
-  transform: translateX(-50%);
+  /* translate (no transform): así la animación pop (que usa transform) no la descentra. */
+  translate: -50% 0;
   font-family: var(--fuente-codigo);
   font-size: 0.7rem;
   font-weight: 700;
@@ -3146,6 +3147,9 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .bb-marca.perdida { color: var(--peligro); animation: pop 0.35s ease; }
 .bb-marca.resp { padding: 0 0.4rem; border-radius: 999px; background: var(--exito-suave); color: var(--exito); line-height: 18px; }
 .bb-marca.resp.nueva { animation: pop 0.4s ease; }
+/* Junto a un extremo de la recta, la respuesta se abre hacia adentro para no cortarse. */
+.bb-marca.resp.al-inicio { translate: -14px 0; }
+.bb-marca.resp.al-final { translate: calc(-100% + 14px) 0; }
 .bb-marca.saliendo { opacity: 0; }
 
 /* Pila de busquedaRecursiva */
