@@ -2137,6 +2137,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   padding: 0 3px;
   transition: left 0.45s ease, top 0.45s ease, opacity 0.3s ease, color 0.25s ease;
 }
+.abb-puntero.al-centro { transform: translateX(-100%); }
 .abb-puntero.oculta, .abb-puntero.saliendo { opacity: 0; }
 .abb-puntero.mala { color: var(--peligro); }
 
