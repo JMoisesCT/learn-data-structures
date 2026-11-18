@@ -65,6 +65,15 @@ Luego abre http://localhost:8000. También puedes abrir `index.html` con doble c
 
 ¿Encontraste un error o tienes una idea? Abre un [issue](https://github.com/JMoisesCT/learn-data-structures/issues). Si quieres aportar código o un tema nuevo, lee [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Licencia
+
+Puedes usar, copiar y adaptar este material (en clases, cursos, apuntes o tus propios proyectos), siempre que menciones de dónde viene:
+
+- **El código** (`ejemplos/`, `assets/`, `scripts/` y los `.js` de `temas/`) está bajo la licencia [MIT](LICENSE).
+- **Los textos de las lecciones** (las páginas `.html`), la documentación y las imágenes están bajo [CC BY 4.0](LICENSE-CONTENIDO).
+
+Por ejemplo: *"Basado en [Aprende Estructuras de Datos](https://jmoisesct.github.io/learn-data-structures/), de Moisés Cumpa, CC BY 4.0."*
+
 ---
 
 Hecho por [Moisés C.](https://github.com/JMoisesCT)
