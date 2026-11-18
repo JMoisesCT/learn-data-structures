@@ -14,6 +14,15 @@
   const Y_ARBOL = 30; // arriba quedan las marcas de los punteros
   const PARA_ELIMINAR = [50, 30, 75, 20, 45, 65, 85, 10, 55, 80, 95, 90];
 
+  // Convención del factor de balance: "der-izq" (altura(der) − altura(izq), la de
+  // ejemplos/cpp/arbol_avl.cpp) o "izq-der" (la de arbol_avl_izq_menos_der.cpp).
+  // La elige el interruptor de la lección y se recuerda entre visitas.
+  const PREFERENCIA_FB = "ds-avl-factor";
+  let conv = "der-izq";
+  try {
+    if (localStorage.getItem(PREFERENCIA_FB) === "izq-der") conv = "izq-der";
+  } catch (e) { /* sin almacenamiento: la de siempre */ }
+
   // Copia exacta de las funciones de ejemplos/cpp/arbol_avl.cpp.
   const CODIGO = {
     altura: `
@@ -22,7 +31,7 @@
       }`,
     factorBalance: `
       static int factorBalance(Nodo* nodo) {
-          return altura(nodo->izq) - altura(nodo->der);
+          return altura(nodo->der) - altura(nodo->izq);
       }`,
     rotarDerecha: `
       static Nodo* rotarDerecha(Nodo* y) {
@@ -48,14 +57,14 @@
       static Nodo* rebalancear(Nodo* nodo) {
           actualizarAltura(nodo);
           int balance = factorBalance(nodo);
-          if (balance > 1) {  // cargado a la izquierda
-              if (factorBalance(nodo->izq) < 0) {
+          if (balance < -1) {  // cargado a la izquierda
+              if (factorBalance(nodo->izq) > 0) {
                   nodo->izq = rotarIzquierda(nodo->izq);  // caso izquierda-derecha
               }
               return rotarDerecha(nodo);  // caso izquierda-izquierda
           }
-          if (balance < -1) {  // cargado a la derecha
-              if (factorBalance(nodo->der) > 0) {
+          if (balance > 1) {  // cargado a la derecha
+              if (factorBalance(nodo->der) < 0) {
                   nodo->der = rotarDerecha(nodo->der);  // caso derecha-izquierda
               }
               return rotarIzquierda(nodo);  // caso derecha-derecha
@@ -130,6 +139,33 @@
       }`,
   };
 
+  // Lo que cambia con la otra convención: copia exacta de las funciones de
+  // ejemplos/cpp/arbol_avl_izq_menos_der.cpp (el resto es igual).
+  const CODIGO_IZQ_DER = {
+    factorBalance: `
+      static int factorBalance(Nodo* nodo) {
+          return altura(nodo->izq) - altura(nodo->der);
+      }`,
+    rebalancear: `
+      static Nodo* rebalancear(Nodo* nodo) {
+          actualizarAltura(nodo);
+          int balance = factorBalance(nodo);
+          if (balance > 1) {  // cargado a la izquierda
+              if (factorBalance(nodo->izq) < 0) {
+                  nodo->izq = rotarIzquierda(nodo->izq);  // caso izquierda-derecha
+              }
+              return rotarDerecha(nodo);  // caso izquierda-izquierda
+          }
+          if (balance < -1) {  // cargado a la derecha
+              if (factorBalance(nodo->der) > 0) {
+                  nodo->der = rotarDerecha(nodo->der);  // caso derecha-izquierda
+              }
+              return rotarIzquierda(nodo);  // caso derecha-derecha
+          }
+          return nodo;  // ya estaba balanceado
+      }`,
+  };
+
   // ------------------------------------------------------------------
   // Estado: nodos { v, h, izq, der } por id, raiz y punteros locales
   // ------------------------------------------------------------------
@@ -142,7 +178,19 @@
 
   const existe = (s, id) => id != null && !!s.nodos[id];
   const alt = (s, id) => (existe(s, id) ? s.nodos[id].h : 0);
-  const balanceDe = (s, id) => alt(s, s.nodos[id].izq) - alt(s, s.nodos[id].der);
+  // Cuánto más alto es el lado izquierdo (positivo: cargado a la izquierda), con
+  // cualquier convención. Las rotaciones se deciden con esto.
+  const cargaIzq = (s, id) => alt(s, s.nodos[id].izq) - alt(s, s.nodos[id].der);
+  const izqMenosDer = () => conv === "izq-der";
+  // El factor de balance tal como lo calcula factorBalance en la convención elegida.
+  const balanceDe = (s, id) => (izqMenosDer() ? 1 : -1) * cargaIzq(s, id);
+  // Los dos lados en el orden en que factorBalance los resta.
+  const ladosResta = () => (izqMenosDer() ? ["izq", "der"] : ["der", "izq"]);
+  const formula = () => (izqMenosDer() ? "altura(izq) − altura(der)" : "altura(der) − altura(izq)");
+  // El factor de un nodo con k niveles de más a la izquierda (izq = true) o a la derecha.
+  const factorCargado = (izq, k) => signo((izq === izqMenosDer() ? 1 : -1) * k);
+  // La condición de rebalancear que detecta ese lado: "> 1" o "< −1".
+  const condicionCargado = (izq) => (izq === izqMenosDer() ? "> 1" : "< −1");
   const val = (s, id) => s.nodos[id].v;
   const nombre = (s, id) => (id == null ? "nullptr" : existe(s, id) ? `nodo ${val(s, id)}` : "liberado");
   const signo = (b) => (b > 0 ? `+${b}` : b < 0 ? `−${-b}` : "0");
@@ -200,15 +248,15 @@
   // Devuelve la raíz nueva y, en casos, el nombre del caso que hubo (si rotó).
   function rebalancearDirecto(s, id, casos) {
     recalcular(s, id);
-    const b = balanceDe(s, id);
+    const b = cargaIzq(s, id);
     if (b > 1) {
-      const doble = balanceDe(s, s.nodos[id].izq) < 0;
+      const doble = cargaIzq(s, s.nodos[id].izq) < 0;
       if (doble) s.nodos[id].izq = rotarDirecto(s, s.nodos[id].izq, "izquierda");
       if (casos) casos.push(doble ? "izquierda-derecha" : "izquierda-izquierda");
       return rotarDirecto(s, id, "derecha");
     }
     if (b < -1) {
-      const doble = balanceDe(s, s.nodos[id].der) > 0;
+      const doble = cargaIzq(s, s.nodos[id].der) > 0;
       if (doble) s.nodos[id].der = rotarDirecto(s, s.nodos[id].der, "derecha");
       if (casos) casos.push(doble ? "derecha-izquierda" : "derecha-derecha");
       return rotarDirecto(s, id, "izquierda");
@@ -314,27 +362,30 @@
         : `altura(nodo->${l}): el ${val(s, hijo)} tiene guardada su altura, ${alt(s, hijo)}. No hace falta recorrer su subárbol: O(1).`);
       return regla;
     };
-    const ri = medir("izq");
+    // En el orden de la resta: altura(nodo->der) - altura(nodo->izq), o al revés.
+    const [l1, l2] = ladosResta();
+    const nombreLado = (l) => (l === "izq" ? "izquierda" : "derecha");
+    const r1 = medir(l1);
     s.ptrs = { nodo: id };
-    ver(s, null, { vars: { nodo: nombre(s, id), izquierda: ri.h }, activo: id, reglas: [ri], sub: { ids: subarbol(s, n.izq), lado: "izq" } });
-    paso(C, 2, `La izquierda mide ${ri.h}. Ahora la derecha.`);
-    const rd = medir("der");
+    ver(s, null, { vars: { nodo: nombre(s, id), [nombreLado(l1)]: r1.h }, activo: id, reglas: [r1], sub: { ids: subarbol(s, n[l1]), lado: l1 } });
+    paso(C, 2, `La ${nombreLado(l1)} mide ${r1.h}. Ahora la ${nombreLado(l2)}.`);
+    const r2 = medir(l2);
     s.ptrs = { nodo: id };
-    const b = ri.h - rd.h;
+    const b = r1.h - r2.h;
     s.fbVisibles = [...new Set([...(s.fbVisibles || []), id])];
     const malo = Math.abs(b) > 1;
     ver(s, null, {
-      vars: { nodo: nombre(s, id), izquierda: ri.h, derecha: rd.h },
+      vars: { nodo: nombre(s, id), [nombreLado(l1)]: r1.h, [nombreLado(l2)]: r2.h },
       activo: id,
-      reglas: [ri, rd],
+      reglas: [r1, r2],
       salida: signo(b),
       malo,
       fbNuevo: id,
       error: malo,
     });
     paso(C, 2, malo
-      ? `Devuelve ${ri.h} − ${rd.h} = ${signo(b)}. ¡Se pasa de ±1! Con este nodo el árbol no es AVL: un lado es ${Math.abs(b)} niveles más alto que el otro.`
-      : `Devuelve ${ri.h} − ${rd.h} = ${signo(b)}. Está entre −1 y +1: este nodo cumple la regla AVL.`, malo ? "error" : "exito");
+      ? `Devuelve ${r1.h} − ${r2.h} = ${signo(b)}. ¡Se pasa de ±1! Con este nodo el árbol no es AVL: un lado es ${Math.abs(b)} niveles más alto que el otro.`
+      : `Devuelve ${r1.h} − ${r2.h} = ${signo(b)}. Está entre −1 y +1: este nodo cumple la regla AVL.`, malo ? "error" : "exito");
   }
 
   // ------------------------------------------------------------------
@@ -431,7 +482,8 @@
       : `actualizarAltura(nodo): el ${n.v} pasa de altura ${h0} a ${n.h} (1 + la mayor de sus hijos).`);
 
     const b = balanceDe(s, id);
-    const reglas = [{ de: n.izq, lado: "izq", h: alt(s, n.izq) }, { de: n.der, lado: "der", h: alt(s, n.der) }];
+    // En el orden de la resta de factorBalance.
+    const reglas = ladosResta().map((l) => ({ de: n[l], lado: l, h: alt(s, n[l]) }));
     ver(s, ctx, { vars: { nodo: nombre(s, id), balance: signo(b) }, cambio: ["balance"], activo: id, reglas, fbNuevo: id });
     const desbalanceado = Math.abs(b) > 1;
     if (!desbalanceado) {
@@ -441,16 +493,17 @@
       ctx.pila.pop();
       return id;
     }
-    paso(C, 3, `balance = ${reglas[0].h} − ${reglas[1].h} = ${signo(b)}. ¡Se pasó! El lado ${b > 0 ? "izquierdo" : "derecho"} es 2 niveles más alto.`, "error");
+    const izq = cargaIzq(s, id) > 0;
+    paso(C, 3, `balance = ${reglas[0].h} − ${reglas[1].h} = ${signo(b)}. ¡Se pasó! El lado ${izq ? "izquierdo" : "derecho"} es 2 niveles más alto.`, "error");
 
-    const izq = b > 0;
     const S = izq ? "izq" : "der";
     const hijo = n[S];
     const bh = balanceDe(s, hijo);
-    const doble = izq ? bh < 0 : bh > 0;
+    // Zigzag: el hijo está cargado hacia el lado contrario.
+    const doble = izq ? cargaIzq(s, hijo) < 0 : cargaIzq(s, hijo) > 0;
     const caso = izq ? (doble ? "izquierda-derecha" : "izquierda-izquierda") : (doble ? "derecha-izquierda" : "derecha-derecha");
     ver(s, ctx, { vars: { nodo: nombre(s, id), balance: signo(b) }, activo: id, caso });
-    paso(C, izq ? 4 : 10, `balance ${izq ? "> 1" : "< −1"}: cargado a la ${lado(izq)}. Hay que subir a su hijo ${izq ? "izquierdo" : "derecho"}, el ${val(s, hijo)}.`);
+    paso(C, izq ? 4 : 10, `balance ${condicionCargado(izq)}: cargado a la ${lado(izq)}. Hay que subir a su hijo ${izq ? "izquierdo" : "derecho"}, el ${val(s, hijo)}.`);
 
     ver(s, ctx, { vars: { nodo: nombre(s, id), balance: signo(b) }, activo: hijo, fbNuevo: hijo, flecha: `${id}:${S}`, caso });
     paso(C, izq ? 5 : 11, doble
@@ -1025,7 +1078,7 @@
         caja = el("div", { class: "anodo avl", "data-id": id },
           el("span", { class: "valor" }), el("span", { class: "alt", title: "altura guardada en el nodo" }),
           el("span", { class: "ptr izq" }), el("span", { class: "ptr der" }),
-          el("span", { class: "avl-fb", title: "factor de balance: altura(izq) − altura(der)" }));
+          el("span", { class: "avl-fb" }));
         caja.style.left = `${p.x}px`;
         caja.style.top = `${p.y}px`;
         lienzo.append(caja);
@@ -1064,6 +1117,7 @@
         fb.classList.add("cambia");
       }
       fb.textContent = texto;
+      fb.title = `factor de balance: ${formula()}`;
       fb.className = `avl-fb fb-${Math.min(2, Math.abs(b))}${fb.classList.contains("cambia") ? " cambia" : ""}`;
       const visible = (fbVisibles == null || fbVisibles.has(id)) && !(s.fbOcultos || []).includes(id);
       fb.classList.toggle("oculto", !visible);
@@ -1237,15 +1291,23 @@
     buscar: ["buscar"],
   };
 
+  // Los visualizadores de la página, para cambiarles la convención a todos juntos.
+  const visualizadores = [];
+
   function visualizador(contenedor, opciones) {
     const claves = new Set();
     for (const op of opciones.ops) FRAGMENTOS[op].forEach((k) => claves.add(k));
     for (const op of opciones.secundarias || []) claves.add(op.codigo);
-    DS.tema({
+    const alternos = [...claves].filter((k) => CODIGO_IZQ_DER[k]);
+    const v = DS.tema({
       contenedor,
       incremental: true,
       dibujar,
       codigo: Object.fromEntries([...claves].map((k) => [k, CODIGO[k]])),
+      variantes: alternos.length
+        ? { "izq-der": { archivo: "arbol_avl_izq_menos_der.cpp", codigo: Object.fromEntries(alternos.map((k) => [k, CODIGO_IZQ_DER[k]])) } }
+        : {},
+      variante: alternos.length && izqMenosDer() ? "izq-der" : null,
       tituloCodigo: (clave) => `ArbolAVL::${clave}()`,
       codigoInicial: opciones.codigoInicial,
       mensajeInicial: opciones.mensajeInicial,
@@ -1254,6 +1316,7 @@
       operaciones: opciones.ops.map((id) => Object.assign({ id, codigo: id }, OPS[id]))
         .concat(opciones.secundarias || []),
     });
+    if (v) visualizadores.push(v);
   }
 
   // Paso 1: altura guardada y factor de balance.
@@ -1294,7 +1357,7 @@
     ops: ["insertar"],
     entradas: [Object.assign({}, VALOR, { valor: 5 })],
     estadoInicial: () => estadoAVL([40, 20, 60, 10, 30]),
-    mensajeInicial: "Inserta 5: al volver de la recursión, el 40 queda en +2 y rota. Después prueba 25, 27 y un repetido.",
+    mensajeInicial: () => `Inserta 5: al volver de la recursión, el 40 queda en ${factorCargado(true, 2)} y rota. Después prueba 25, 27 y un repetido.`,
   });
 
   // Paso 5: la revancha (valores ordenados).
@@ -1321,7 +1384,7 @@
     ops: ["eliminar"],
     entradas: [Object.assign({}, VALOR, { valor: 45 })],
     estadoInicial: () => estadoAVL(PARA_ELIMINAR),
-    mensajeInicial: "Elimina 45: el 30 queda en +2 y rota, y al subir, la raíz queda en −2 y rota también. Después prueba 75 (dos hijos).",
+    mensajeInicial: () => `Elimina 45: el 30 queda en ${factorCargado(true, 2)} y rota, y al subir, la raíz queda en ${factorCargado(false, 2)} y rota también. Después prueba 75 (dos hijos).`,
   });
 
   // Paso 7: todo junto.
@@ -1331,4 +1394,67 @@
     estadoInicial: () => estadoAVL([40, 20, 60, 10, 30, 50, 70]),
     mensajeInicial: "Inserta y elimina lo que quieras: el árbol se mantiene balanceado solo. Intenta desbalancearlo.",
   });
+
+  // ------------------------------------------------------------------
+  // Interruptor de la convención del factor de balance
+  // ------------------------------------------------------------------
+  //
+  // Cambia a la vez el texto de la lección (los elementos con data-fb="der-izq"
+  // o data-fb="izq-der", y las explicaciones de las preguntas con
+  // data-explicacion-izq-der), el código y la animación de cada visualizador y
+  // el código completo. Va en cada <span class="selector-fb"></span> de la página.
+
+  function montarInterruptor() {
+    const selectores = [...document.querySelectorAll(".selector-fb")];
+    const botones = [];
+    for (const caja of selectores) {
+      caja.classList.add("selector-modo");
+      caja.setAttribute("role", "group");
+      caja.setAttribute("aria-label", "Factor de balance");
+      for (const [valor, texto] of [["der-izq", "der − izq"], ["izq-der", "izq − der"]]) {
+        const b = el("button", {
+          type: "button",
+          text: texto,
+          title: valor === "der-izq" ? "altura(der) − altura(izq)" : "altura(izq) − altura(der)",
+          onclick: () => cambiar(valor),
+        });
+        b.dataset.valor = valor;
+        botones.push(b);
+        caja.append(b);
+      }
+    }
+
+    // Las explicaciones de la convención por defecto quedan en data-explicacion-der-izq.
+    const conAlterna = [...document.querySelectorAll("[data-explicacion-izq-der]")];
+    for (const o of conAlterna) o.dataset.explicacionDerIzq = o.dataset.explicacion || "";
+    const preguntas = new Set([...document.querySelectorAll(".pregunta [data-fb]"), ...conAlterna].map((n) => n.closest(".pregunta")));
+
+    function aplicar() {
+      for (const b of botones) b.setAttribute("aria-pressed", String(b.dataset.valor === conv));
+      for (const n of document.querySelectorAll("[data-fb]")) n.hidden = n.dataset.fb !== conv;
+      for (const o of conAlterna) o.dataset.explicacion = izqMenosDer() ? o.dataset.explicacionIzqDer : o.dataset.explicacionDerIzq;
+    }
+
+    function cambiar(nuevo) {
+      if (nuevo === conv) return;
+      conv = nuevo;
+      try { localStorage.setItem(PREFERENCIA_FB, conv); } catch (e) { /* sin almacenamiento: solo esta visita */ }
+      aplicar();
+      // Las respuestas que ya se dieron hablaban de la otra convención.
+      for (const p of preguntas) {
+        if (!p) continue;
+        for (const o of p.querySelectorAll(".opcion")) {
+          o.classList.remove("correcta", "incorrecta");
+          o.removeAttribute("aria-pressed");
+        }
+        const r = p.querySelector(".respuesta");
+        if (r) { r.textContent = ""; r.className = "respuesta"; }
+      }
+      for (const v of visualizadores) v.usarVariante(izqMenosDer() ? "izq-der" : null);
+    }
+
+    aplicar();
+  }
+
+  if (typeof document !== "undefined") montarInterruptor();
 })();

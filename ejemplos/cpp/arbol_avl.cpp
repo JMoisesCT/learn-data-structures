@@ -4,6 +4,11 @@
 // inserción o un borrado lo rompe, una o dos rotaciones lo arreglan en O(1).
 // Así la altura queda en O(log n) aunque los valores lleguen ordenados.
 //
+// Aquí el factor de balance es altura(der) - altura(izq): positivo si sobra
+// altura a la derecha. Muchos libros usan el contrario, izq - der; esa
+// versión está en arbol_avl_izq_menos_der.cpp (solo cambian factorBalance y
+// los signos de rebalancear).
+//
 // std::set y std::map también son árboles balanceados, pero rojo-negro: una
 // regla menos estricta que rota menos al insertar y borrar.
 //
@@ -90,9 +95,9 @@ private:
         return nodo == nullptr ? 0 : nodo->altura;
     }
 
-    // O(1): altura del izquierdo menos la del derecho. En un AVL es -1, 0 o +1.
+    // O(1): altura del derecho menos la del izquierdo. En un AVL es -1, 0 o +1.
     static int factorBalance(Nodo* nodo) {
-        return altura(nodo->izq) - altura(nodo->der);
+        return altura(nodo->der) - altura(nodo->izq);
     }
 
     // O(1): se recalcula con las alturas (ya correctas) de sus dos hijos.
@@ -128,14 +133,14 @@ private:
     static Nodo* rebalancear(Nodo* nodo) {
         actualizarAltura(nodo);
         int balance = factorBalance(nodo);
-        if (balance > 1) {  // cargado a la izquierda
-            if (factorBalance(nodo->izq) < 0) {
+        if (balance < -1) {  // cargado a la izquierda
+            if (factorBalance(nodo->izq) > 0) {
                 nodo->izq = rotarIzquierda(nodo->izq);  // caso izquierda-derecha
             }
             return rotarDerecha(nodo);  // caso izquierda-izquierda
         }
-        if (balance < -1) {  // cargado a la derecha
-            if (factorBalance(nodo->der) > 0) {
+        if (balance > 1) {  // cargado a la derecha
+            if (factorBalance(nodo->der) < 0) {
                 nodo->der = rotarDerecha(nodo->der);  // caso derecha-izquierda
             }
             return rotarIzquierda(nodo);  // caso derecha-derecha

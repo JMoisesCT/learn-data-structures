@@ -20,22 +20,25 @@
     <div class="leccion">
 
       <section class="paso-leccion" id="idea" data-titulo="Balance en cada nodo">
-        <h2>La regla: ningún lado más alto que el otro por más de 1</h2>
+        <div class="titulo-fb">
+          <h2>La regla: ningún lado más alto que el otro por más de 1</h2>
+          <span class="interruptor-fb">Factor de balance <span class="selector-fb"></span></span>
+        </div>
         <div class="dos-columnas">
           <div>
             <p>El AVL es un ABB con una regla más: en <strong>cada</strong> nodo, las alturas de sus dos subárboles difieren en <strong>1 como mucho</strong>. Así h nunca llega a n.</p>
           </div>
           <div>
-            <p>Cada nodo <strong>guarda su altura</strong> (h). El <strong>factor de balance</strong> es <code>altura(izq) − altura(der)</code> y tiene que ser −1, 0 o +1.</p>
+            <p>Cada nodo <strong>guarda su altura</strong> (h). El <strong>factor de balance</strong> es <code data-fb="der-izq">altura(der) − altura(izq)</code><code data-fb="izq-der" hidden>altura(izq) − altura(der)</code> y tiene que ser −1, 0 o +1.</p>
           </div>
         </div>
         <div id="vis-balance"></div>
 
         <div class="pregunta">
-          <p class="pregunta-enunciado">En este árbol, ¿qué nodo tiene factor de balance +2?</p>
+          <p class="pregunta-enunciado">En este árbol, ¿qué nodo tiene factor de balance <span data-fb="der-izq">−2</span><span data-fb="izq-der" hidden>+2</span>?</p>
           <div class="opciones">
-            <button type="button" class="opcion" data-explicacion="Su izquierdo (el 20) mide 2 y su derecho (el 40) mide 1: +1, todavía cumple.">El 30</button>
-            <button type="button" class="opcion" data-correcta data-explicacion="Su izquierdo (el 30) mide 3 y su derecho (el 70) mide 1: 3 − 1 = +2. Este árbol no es AVL.">El 50</button>
+            <button type="button" class="opcion" data-explicacion="Su derecho (el 40) mide 1 y su izquierdo (el 20) mide 2: 1 − 2 = −1, todavía cumple." data-explicacion-izq-der="Su izquierdo (el 20) mide 2 y su derecho (el 40) mide 1: 2 − 1 = +1, todavía cumple.">El 30</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Su derecho (el 70) mide 1 y su izquierdo (el 30) mide 3: 1 − 3 = −2. Este árbol no es AVL." data-explicacion-izq-der="Su izquierdo (el 30) mide 3 y su derecho (el 70) mide 1: 3 − 1 = +2. Este árbol no es AVL.">El 50</button>
             <button type="button" class="opcion" data-explicacion="El 10 es una hoja: sus dos lados miden 0, así que su balance es 0.">El 10</button>
           </div>
         </div>
@@ -64,13 +67,16 @@
       </section>
 
       <section class="paso-leccion" id="rebalancear" data-titulo="Los cuatro casos">
-        <h2><code>rebalancear</code>: una o dos rotaciones</h2>
+        <div class="titulo-fb">
+          <h2><code>rebalancear</code>: una o dos rotaciones</h2>
+          <span class="interruptor-fb">Factor de balance <span class="selector-fb"></span></span>
+        </div>
         <div class="dos-columnas">
           <div>
-            <p>Si un nodo queda en <strong>+2</strong>, sobra altura a la izquierda: se rota a la derecha. Si el hijo izquierdo está cargado al revés (zigzag, <strong>izquierda-derecha</strong>), antes se rota ese hijo a la izquierda para dejarlo en línea recta.</p>
+            <p>Si un nodo queda en <strong><span data-fb="der-izq">−2</span><span data-fb="izq-der" hidden>+2</span></strong>, sobra altura a la izquierda: se rota a la derecha. Si el hijo izquierdo está cargado al revés (zigzag, <strong>izquierda-derecha</strong>), antes se rota ese hijo a la izquierda para dejarlo en línea recta.</p>
           </div>
           <div>
-            <p>Con <strong>−2</strong> es el espejo. Así quedan cuatro casos: izquierda-izquierda y derecha-derecha con una rotación, izquierda-derecha y derecha-izquierda con dos. Elige un caso en la lista.</p>
+            <p>Con <strong><span data-fb="der-izq">+2</span><span data-fb="izq-der" hidden>−2</span></strong> es el espejo. Así quedan cuatro casos: izquierda-izquierda y derecha-derecha con una rotación, izquierda-derecha y derecha-izquierda con dos. Elige un caso en la lista.</p>
           </div>
         </div>
         <div id="vis-rebalancear"></div>
@@ -95,7 +101,7 @@
           <div class="opciones">
             <button type="button" class="opcion" data-explicacion="Un nodo fuera del camino no ganó ni perdió nada debajo: su altura y su balance siguen igual.">Cualquiera del árbol</button>
             <button type="button" class="opcion" data-correcta data-explicacion="Solo cambió la altura de los subárboles por donde bajamos: por eso se revisan al volver de la recursión, de abajo hacia arriba.">Solo los del camino de la raíz a la hoja nueva</button>
-            <button type="button" class="opcion" data-explicacion="La raíz puede desbalancearse, pero también cualquier otro nodo del camino: si después del 5 insertas el 3, el que queda en +2 es el 10.">Solo la raíz</button>
+            <button type="button" class="opcion" data-explicacion="La raíz puede desbalancearse, pero también cualquier otro nodo del camino: si después del 5 insertas el 3, el que queda en −2 es el 10." data-explicacion-izq-der="La raíz puede desbalancearse, pero también cualquier otro nodo del camino: si después del 5 insertas el 3, el que queda en +2 es el 10.">Solo la raíz</button>
           </div>
         </div>
       </section>
@@ -130,7 +136,7 @@
         <div class="pregunta">
           <p class="pregunta-enunciado">Después de rotar en el 30, ¿por qué la raíz también se desbalancea?</p>
           <div class="opciones">
-            <button type="button" class="opcion" data-correcta data-explicacion="El subárbol izquierdo pasó de altura 3 a 2 (borrar el 45 y rotar lo achicó), y el derecho mide 4: 2 − 4 = −2.">Porque su subárbol izquierdo quedó más bajo</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El subárbol izquierdo pasó de altura 3 a 2 (borrar el 45 y rotar lo achicó), y el derecho mide 4: 4 − 2 = +2." data-explicacion-izq-der="El subárbol izquierdo pasó de altura 3 a 2 (borrar el 45 y rotar lo achicó), y el derecho mide 4: 2 − 4 = −2.">Porque su subárbol izquierdo quedó más bajo</button>
             <button type="button" class="opcion" data-explicacion="La rotación no toca a la raíz: solo a los nodos del subárbol que rotó.">Porque la rotación movió la raíz</button>
             <button type="button" class="opcion" data-explicacion="Al revés: rotar sirve justamente para que no haya errores. El problema es que la altura de la izquierda bajó.">Porque la rotación fue un error</button>
           </div>
@@ -166,10 +172,15 @@
       </section>
 
       <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
-        <h2>Código completo en C++</h2>
+        <div class="titulo-fb">
+          <h2>Código completo en C++</h2>
+          <span class="interruptor-fb">Factor de balance <span class="selector-fb"></span></span>
+        </div>
         <p>Compílalo y ejecútalo con:</p>
-        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra arbol_avl.cpp -o arbol_avl &amp;&amp; ./arbol_avl</span></pre>
-        <div data-codigo-completo="arbol_avl.cpp"></div>
+        <pre class="codigo" data-fb="der-izq"><span class="linea">g++ -std=c++17 -Wall -Wextra arbol_avl.cpp -o arbol_avl &amp;&amp; ./arbol_avl</span></pre>
+        <pre class="codigo" data-fb="izq-der" hidden><span class="linea">g++ -std=c++17 -Wall -Wextra arbol_avl_izq_menos_der.cpp -o arbol_avl &amp;&amp; ./arbol_avl</span></pre>
+        <div data-codigo-completo="arbol_avl.cpp" data-fb="der-izq"></div>
+        <div data-codigo-completo="arbol_avl_izq_menos_der.cpp" data-fb="izq-der" hidden></div>
 
         <h2>Para practicar</h2>
         <ol>

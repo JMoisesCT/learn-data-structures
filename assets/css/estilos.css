@@ -2223,6 +2223,13 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .anodo.lado-izq { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
 .anodo.lado-der { border-color: var(--lambda); box-shadow: 0 0 0 3px var(--lambda-suave); }
 
+/* Interruptor de la convención del factor de balance (der − izq o izq − der) */
+[data-fb][hidden] { display: none; }
+.titulo-fb { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem; margin: 0.75rem 0; }
+.titulo-fb > h2 { margin: 0; }
+.interruptor-fb { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--texto-suave); white-space: nowrap; }
+.selector-fb button { font-family: var(--fuente-codigo); padding-block: 0.1rem; line-height: 1.35; }
+
 .avl-fb {
   position: absolute;
   top: -13px;
