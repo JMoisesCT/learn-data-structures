@@ -64,6 +64,7 @@ Usa como plantilla **`temas/vector-dinamico/`** (estructura lineal) o **`temas/m
 2. **Animación** — `temas/<slug>/<slug>.js`
    - Llama a `DS.tema({...})` (la API está documentada al inicio de la sección "Visualizador" en `assets/js/visualizador.js`).
    - `codigo`: copia **exacta** de cada función del `.cpp` que se anima (la sangría no importa). `verificar-fragmentos.mjs` falla si no coinciden.
+   - Si el tema deja elegir entre dos versiones de algunas funciones (como la convención del factor de balance en `temas/arbol-avl/`), la otra versión va en `variantes` (ver `DS.tema` en `visualizador.js`) con su propio `.cpp`. El verificador exige que ese archivo sea el principal con esos fragmentos cambiados (sin contar comentarios).
    - `ejecutar(s, args, paso)`: modifica el estado `s` como lo haría el C++ y llama a `paso(clave, linea, mensaje, tipo)` después de cada línea relevante. Las líneas empiezan en 1, contadas dentro del fragmento.
    - Muestra también los casos de error (`tipo = "error"`) en la línea del `throw` o del `return` correspondiente.
    - Mensajes cortos que expliquen **por qué**, no solo qué.

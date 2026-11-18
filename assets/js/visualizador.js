@@ -694,7 +694,17 @@
   //   mensajeInicial                                  // texto o (valores) => texto
   //   codigoInicial                                   // opcional: clave del fragmento que se ve al
   //                                                   // empezar (texto o (valores) => clave)
+  //   variantes:     { nombre: { archivo: "otro.cpp", codigo: { clave: "fragmento" } } }
+  //                                                   // opcional: otra versión de algunos fragmentos,
+  //                                                   // para un interruptor de toda la lección (como la
+  //                                                   // convención del factor de balance en el AVL).
+  //                                                   // verificar-fragmentos.mjs compara cada una con
+  //                                                   // su archivo .cpp.
+  //   variante:      "nombre"                         // opcional: la variante que se usa al empezar
   // }
+  //
+  // DS.tema devuelve { usarVariante(nombre) }: cambia los fragmentos por los
+  // de esa variante (null = los de codigo) y reinicia el visualizador.
   //
   // Dentro de ejecutar(), cada llamada paso(clave, linea, mensaje, tipo)
   // toma una "foto" del estado s. Las líneas empiezan en 1. tipo puede ser
@@ -728,16 +738,23 @@
     if (!contenedor) return;
     const prefijo = cfg.contenedor ? cfg.contenedor : "entrada";
 
-    const fragmentos = {};
-    for (const [clave, texto] of Object.entries(cfg.codigo)) fragmentos[clave] = dedent(texto);
+    let fragmentos = {};
     // Nombre, bucles y llamadas de cada fragmento (para las indicaciones del código).
-    const analisis = {};
-    const clavePorNombre = {};
-    for (const [clave, texto] of Object.entries(fragmentos)) {
-      analisis[clave] = analizarFragmento(texto);
-      const n = analisis[clave].nombre;
-      if (n && !(n in clavePorNombre)) clavePorNombre[n] = clave;
+    let analisis = {};
+    let clavePorNombre = {};
+    function prepararCodigo(variante) {
+      const codigo = Object.assign({}, cfg.codigo, variante ? cfg.variantes[variante].codigo : {});
+      fragmentos = {};
+      analisis = {};
+      clavePorNombre = {};
+      for (const [clave, texto] of Object.entries(codigo)) {
+        fragmentos[clave] = dedent(texto);
+        analisis[clave] = analizarFragmento(fragmentos[clave]);
+        const n = analisis[clave].nombre;
+        if (n && !(n in clavePorNombre)) clavePorNombre[n] = clave;
+      }
     }
+    prepararCodigo(cfg.variante && cfg.variantes && cfg.variantes[cfg.variante] ? cfg.variante : null);
     const nombreDe = (clave) => (analisis[clave] && analisis[clave].nombre) || clave;
 
     let estado = null;
@@ -1463,6 +1480,14 @@
     }
 
     reiniciar();
+
+    return {
+      usarVariante(nombre) {
+        prepararCodigo(nombre && cfg.variantes && cfg.variantes[nombre] ? nombre : null);
+        claveMostrada = null; // el fragmento que se ve se vuelve a pintar
+        reiniciar();
+      },
+    };
   }
   DS.tema = tema;
 
