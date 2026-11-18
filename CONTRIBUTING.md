@@ -2,6 +2,31 @@
 
 Todo el contenido (textos, comentarios, identificadores del código de ejemplo y nombres de PR) va **en español**.
 
+## Estructura del repositorio
+
+El repositorio **es** el sitio: GitHub Pages publica `main` tal cual, sin pasos de construcción.
+
+```
+index.html                 Portada
+assets/css/estilos.css     Estilos compartidos (modo claro y oscuro)
+assets/js/visualizador.js  Motor de animaciones, resaltado C++ y lista de temas
+temas/<tema>/index.html    Página del tema
+temas/<tema>/<tema>.js     Animación del tema
+ejemplos/cpp/              Programas C++ completos, uno por tema (las páginas los muestran)
+docs/                      Notas del proyecto (p. ej. inspiración para el rediseño visual)
+docs/img/                  Imágenes del README
+scripts/
+  compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos (con sanitizadores)
+  verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp
+.github/workflows/
+  verificar.yml            CI de cada pull request y de main
+```
+
+## GitHub Pages
+
+Configuración (ya hecha): **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama `main`, carpeta `/ (root)`.
+Cada merge a `main` se publica en uno o dos minutos. El archivo `.nojekyll` hace que GitHub sirva los archivos tal cual: no lo borres. Usa siempre rutas relativas, porque el sitio vive bajo `/learn-data-structures/`.
+
 ## Flujo de trabajo
 
 1. Crea una rama desde `main` con un nombre descriptivo (ver abajo). **No hagas push directo a `main`.**
@@ -46,8 +71,11 @@ La descripción sigue [la plantilla](.github/pull_request_template.md): qué hac
 ```bash
 scripts/compilar-ejemplos.sh          # compila con -Wall -Wextra -Werror y sanitizadores, y ejecuta
 node scripts/verificar-fragmentos.mjs # el código de las animaciones coincide con los .cpp
+for f in $(find assets temas -name '*.js'); do node --check "$f"; done  # sintaxis de los .js
 python3 -m http.server 8000           # desde la raíz: revisar en el navegador
 ```
+
+Las tres primeras son las mismas que corre el CI.
 
 Prueba cada operación de la animación, incluidos los casos de error (estructura vacía, llena, posición inválida), en pantalla ancha y en móvil (~390 px), en modo claro y oscuro.
 
@@ -74,7 +102,7 @@ Usa como plantilla **`temas/vector-dinamico/`** (estructura lineal) o **`temas/m
    - Siempre es una **lección por pasos** (ver "Formato de un tema"): envuelve las secciones en `<div class="leccion">`, cada una como `<section class="paso-leccion" id="<paso>" data-titulo="<título corto>">`. El motor agrega la barra de progreso y los botones Atrás / Continuar. Las preguntas con respuesta inmediata usan `.pregunta`. El marcado está documentado en `visualizador.js`.
    - Un visualizador por paso: `<div id="vis-<operacion>"></div>` y `DS.tema({ contenedor: "vis-<operacion>", ... })`.
 4. **Registro** — agrega el tema en `DS.TEMAS` (`assets/js/visualizador.js`); si estaba como `proximamente`, quita esa marca. Eso actualiza menú, portada y enlaces anterior/siguiente.
-5. **Docs** — agrega la fila en la tabla de `README.md` y marca el tema como hecho en `ROADMAP.md`.
+5. **Docs** — agrega la fila en la tabla de `README.md`, en su grupo y con una descripción corta (una línea: el detalle va en la lección), y marca el tema como hecho en `ROADMAP.md`.
 
 ## Formato de un tema
 
