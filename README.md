@@ -33,7 +33,7 @@ Cada tema tiene:
 | Tabla hash (funciones hash, encadenamiento, sondeo y rehash) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/tabla-hash/) | [`tabla_hash.cpp`](ejemplos/cpp/tabla_hash.cpp) |
 | Búsqueda binaria (iterativa y recursiva, sin orden no sirve, el medio que se desborda, `lowerBound`, `upperBound`, contar repetidos, búsqueda sobre la respuesta) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/busqueda-binaria/) | [`busqueda_binaria.cpp`](ejemplos/cpp/busqueda_binaria.cpp) |
 | Árbol binario de búsqueda (buscar, insertar, recorridos, eliminar en sus 3 casos) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-binario-busqueda/) | [`arbol_binario_busqueda.cpp`](ejemplos/cpp/arbol_binario_busqueda.cpp) |
-| Árbol AVL (altura y factor de balance, rotaciones simples y dobles, insertar y eliminar con rebalanceo) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-avl/) | [`arbol_avl.cpp`](ejemplos/cpp/arbol_avl.cpp) |
+| Árbol AVL (altura y factor de balance, rotaciones simples y dobles, insertar y eliminar con rebalanceo) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/arbol-avl/) | [`arbol_avl.cpp`](ejemplos/cpp/arbol_avl.cpp) (factor der − izq), [`arbol_avl_izq_menos_der.cpp`](ejemplos/cpp/arbol_avl_izq_menos_der.cpp) |
 | Grafos (lista de adyacencia, BFS con cola, distancias, DFS con pila y recursivo, componentes conexas) | [ver](https://jmoisesct.github.io/learn-data-structures/temas/grafos/) | [`grafos.cpp`](ejemplos/cpp/grafos.cpp) |
 
 Los próximos temas están en [ROADMAP.md](ROADMAP.md).
