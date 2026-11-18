@@ -2,6 +2,8 @@
 
 Todo el contenido (textos, comentarios, identificadores del código de ejemplo y nombres de PR) va **en español**.
 
+Al contribuir aceptas que tu aporte se publique con las mismas licencias del proyecto: [MIT](LICENSE) para el código y [CC BY 4.0](LICENSE-CONTENIDO) para los textos, la documentación y las imágenes (ver "Licencia" en el README).
+
 ## Estructura del repositorio
 
 El repositorio **es** el sitio: GitHub Pages publica `main` tal cual, sin pasos de construcción.
@@ -20,6 +22,8 @@ scripts/
   verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp
 .github/workflows/
   verificar.yml            CI de cada pull request y de main
+LICENSE                    Licencia MIT (código)
+LICENSE-CONTENIDO          Licencia CC BY 4.0 (textos, documentación e imágenes)
 ```
 
 ## GitHub Pages
