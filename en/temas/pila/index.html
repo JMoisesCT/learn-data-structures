@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stack · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a stack is (LIFO), how to use std::stack (push, top, pop and their pitfalls), a real use with balanced parentheses, and how to build a stack with a linked list (push, pop and peek in O(1)). Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="pila">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Stack</div>
+      <h1>Stack</h1>
+      <p class="resumen"><strong>The last one in is the first one out</strong> (LIFO, <em>Last In, First Out</em>). You will see <code>std::stack</code> and a <strong>linked stack</strong> built from nodes.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Last in, first out">
+        <h2>Last in, first out</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Like a stack of plates: the last one you put on top is the first one you take off. You only work at one end, the <strong>top</strong>.</p>
+          </div>
+          <div>
+            <p><code>std::stack&lt;int&gt;</code>: <code>push</code> adds on top, <code>top</code> reads the top and <code>pop</code> removes it, all in <strong>O(1)</strong>. On an empty stack they don't warn you: ask <code>empty()</code> first.</p>
+          </div>
+        </div>
+        <div id="vis-stack"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">You do <code>push(4)</code>, <code>push(8)</code>, <code>push(15)</code> and then <code>pop()</code> twice. What does <code>top()</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="15 was the last one in, so it was the first one out.">15</button>
+            <button type="button" class="opcion" data-explicacion="8 left with the second pop(): first 15 came out, then 8.">8</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="They come out in the reverse order they went in: 15, then 8. That leaves 4, which was the first one in.">4</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>int x = stack.pop();</code> do?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That is what pop() does in this lesson's LinkedStack, not std::stack::pop.">It removes the top and stores it in <code>x</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="pop() returns void: it only removes. To keep the value: int x = stack.top(); and then stack.pop();">It doesn't compile: <code>pop()</code> returns nothing</button>
+            <button type="button" class="opcion" data-explicacion="pop() doesn't return a size; size() is a different method.">It stores in <code>x</code> how many are left</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="parentesis" data-titulo="Balanced parentheses">
+        <h2>A real use: balanced parentheses</h2>
+        <p>The compiler checks that every <code>(</code>, <code>[</code> and <code>{</code> is closed in order. With a stack it is easy: each opener is pushed, and each closer must match the <strong>last opener still open</strong>, which is exactly the top. It goes through the text once: <strong>O(n)</strong>.</p>
+        <div id="vis-parentesis"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why isn't <code>"([)]"</code> balanced, if it has one pair of each?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The counts do match: one ( and one ), one [ and one ]. Counting is not enough.">Because there is an extra parenthesis</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="When ) arrives, the last opener still open is [, not (. The pairs cross. That is why you need a stack and not a counter.">Because <code>)</code> arrives when the last opener is <code>[</code></button>
+            <button type="button" class="opcion" data-explicacion="Brackets can go inside parentheses and the other way around; the problem is that they close in another order.">Because you can't mix types</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="apilar" data-titulo="Inside: push">
+        <h2>Inside: a linked list, with <code>push</code></h2>
+        <p>A stack can be built from nodes: the <code>top</code> pointer is the head of a <a href="../lista-enlazada/">linked list</a>, and the top of the stack is the first node. <code>push</code> is exactly <code>insertAtFront</code>: create the node, make it point to the current top and move <code>top</code>. <strong>O(1)</strong>, without traversing anything.</p>
+        <div id="vis-apilar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why is the top at the <strong>front</strong> of the list and not at the end (using <code>nodeAt(size - 1)</code>)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="At the end, every push and pop would have to walk the whole list with nodeAt: O(n). Also, to remove the last node you need the second to last. At the front everything is O(1).">Because at the end every operation would be O(n)</button>
+            <button type="button" class="opcion" data-explicacion="It would work, but every operation would walk the whole list. The stack only uses one end: use the one that is at hand.">It doesn't matter, both are O(1)</button>
+            <button type="button" class="opcion" data-explicacion="nodeAt exists and works; the problem is what walking the list costs.">Because <code>nodeAt</code> doesn't work with nodes</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desapilar" data-titulo="pop">
+        <h2><code>pop</code>: save, move and free</h2>
+        <p>It is removing the head of the list: <code>temp</code> keeps the top, its value is read, <code>top</code> moves to the next node and the node is freed with <code>delete</code>. Unlike <code>std::stack</code>, this version <strong>returns</strong> the value and throws <code>std::underflow_error</code> if the stack is empty.</p>
+        <div id="vis-desapilar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What happens if you do <code>delete temp</code> <em>before</em> <code>top = top-&gt;next</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The order matters: top and temp point to the same node.">Nothing, it's the same</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="top and temp point to the same node: after the delete, reading top->next uses freed memory (undefined behavior). AddressSanitizer reports it as heap-use-after-free.">Freed memory is read</button>
+            <button type="button" class="opcion" data-explicacion="There is no leak: the node is freed. The problem is what is read afterwards.">A memory leak</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cima" data-titulo="peek">
+        <h2><code>peek</code>: look without removing</h2>
+        <p>It returns the value of the node <code>top</code> points to, without changing anything: <strong>O(1)</strong>. It is <code>std::stack</code>'s <code>top()</code>, but on an empty stack it throws an exception instead of reading garbage.</p>
+        <div id="vis-cima"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If you call <code>peek()</code> three times in a row, what do you get?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="peek() doesn't modify the stack: it always returns the same value until someone pushes or pops.">The same value three times</button>
+            <button type="button" class="opcion" data-explicacion="That would happen with pop(), which does remove the value.">The top three, one per call</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>The same buttons for both versions. Switch versions and compare: <code>std::stack</code> hides how it stores the values; in <code>LinkedStack</code> you see the nodes and the pointers.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th><code>std::stack</code></th><th><code>LinkedStack</code></th><th>Time</th><th>On an empty stack</th></tr></thead>
+            <tbody>
+              <tr><td>Push</td><td><code>push(x)</code></td><td><code>push(x)</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+              <tr><td>Read the top</td><td><code>top()</code></td><td><code>peek()</code></td><td class="o-grande bueno">O(1)</td><td><code>top</code>: undefined behavior; <code>peek</code>: exception</td></tr>
+              <tr><td>Remove the top</td><td><code>pop()</code> (returns nothing)</td><td><code>pop()</code> (returns the value)</td><td class="o-grande bueno">O(1)</td><td><code>std::stack::pop</code>: undefined behavior; <code>LinkedStack::pop</code>: exception</td></tr>
+              <tr><td>Is it empty? / size</td><td><code>empty()</code> / <code>size()</code></td><td><code>isEmpty()</code> / <code>size()</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><strong>Inside <code>std::stack</code></strong> there is a <code>std::deque</code> (blocks of arrays). You can change it: <code>std::stack&lt;int, std::vector&lt;int&gt;&gt;</code> uses a vector. An array with a <code>top</code> index works too, but it has a fixed capacity.</li>
+          <li><strong>Linked or array-based:</strong> the linked one never fills up and copies nothing when it grows, but each node asks for memory with <code>new</code> and stores an extra pointer. In practice, <code>std::stack</code> (with a deque or a vector) is usually faster.</li>
+          <li><strong>Where it is used:</strong> the function call stack (and recursion), undo and redo in an editor, the browser's "back" button, evaluating expressions, checking parentheses and the depth-first search (DFS) of a graph.</li>
+          <li>If you need to remove from the <strong>other end</strong> (the oldest first), what you want is a <a href="../cola/">queue</a>.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Both versions in a single file. Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra stack.cpp -o stack &amp;&amp; ./stack</span></pre>
+        <div data-codigo-completo="en/stack.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>std::string reverse(const std::string&amp; text)</code> using a <code>std::stack&lt;char&gt;</code>.</li>
+          <li>Add a <code>void clear()</code> method to <code>LinkedStack</code>. Can you reuse it in the destructor?</li>
+          <li>Write an <code>ArrayStack</code> with a <code>std::vector&lt;int&gt;</code> and <code>push_back</code> / <code>pop_back</code>. Why does the top go at the <strong>end</strong> of the vector and not at the beginning?</li>
+          <li>Use a stack to evaluate an expression in postfix notation, such as <code>3 4 + 2 *</code> (result: 14).</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/pila/pila.js"></script>
+</body>
+</html>
