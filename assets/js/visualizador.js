@@ -1009,7 +1009,7 @@
       } else {
         input = el("input", { type: "number", id: `${prefijo}-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
-        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
+        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !temporizador) cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
       }
       campos[e.id] = { cfg: e, input };
       controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta, input));
@@ -1089,6 +1089,7 @@
     // --- Lógica ---
     function cambiarModo(nuevo, elegidoAqui) {
       modo = nuevo;
+      invitarAvanzar(false);
       bAuto.setAttribute("aria-pressed", String(modo === "auto"));
       bManual.setAttribute("aria-pressed", String(modo === "manual"));
       etiquetaVelocidad.hidden = modo === "manual";
@@ -1470,6 +1471,7 @@
     }
 
     function ejecutar(op) {
+      if (temporizador) return; // los botones están bloqueados mientras corre la animación
       detener();
       const { args, error } = leerArgumentos(op);
       if (error) {
@@ -1493,10 +1495,13 @@
       reservarEspacio();
       ir(0);
       if (pasos.length > 1 && modo === "auto") reproducir();
+      // Paso a paso: el botón › invita a avanzar hasta que se use por primera vez.
+      invitarAvanzar(pasos.length > 1 && modo === "manual" && !avanzoAMano);
     }
 
     function reiniciar() {
       detener();
+      invitarAvanzar(false);
       aleatoriosPendientes = [];
       liberarAlturas();
       const valores = valoresEntradas();
@@ -1676,6 +1681,7 @@
       bFin.disabled = bAdelante.disabled = actual === pasos.length - 1;
       if (actual === pasos.length - 1) {
         detener();
+        invitarAvanzar(false);
         // La caja ya muestra el valor de la próxima operación: lo avisa con un
         // destello (el mensaje sigue hablando del valor que se usó).
         for (const id of aleatoriosPendientes) {
@@ -1699,12 +1705,65 @@
       if (actual >= pasos.length - 1) ir(0);
       temporizador = setInterval(() => ir(actual + 1), 1300 / VELOCIDADES[velocidad]);
       bPlay.textContent = "❚❚";
+      bloquearOperaciones(true);
     }
 
     function detener() {
       clearInterval(temporizador);
       temporizador = null;
       bPlay.textContent = "▶";
+      bloquearOperaciones(false);
+    }
+
+    // Mientras corre la animación, los botones de operación esperan: así no se
+    // interrumpe sin querer lo que se está viendo. Se desbloquean al terminar o
+    // al pausar.
+    function bloquearOperaciones(si) {
+      for (const [, boton] of botones) {
+        boton.disabled = si;
+        boton.title = si ? tr("Espera a que termine la animación o pausa con ❚❚", "Wait for the animation to finish or pause it with ❚❚") : "";
+      }
+    }
+
+    // --- Guía para quien no sabe qué pulsar ---
+    // 1. Si el visualizador está a la vista y nadie lo toca en unos segundos,
+    //    el primer botón de operación pulsa (una sola vez por visualizador).
+    // 2. En modo Paso a paso, después de ejecutar una operación, el botón ›
+    //    pulsa hasta que se use por primera vez.
+    let avanzoAMano = false;
+    function invitarAvanzar(si) {
+      bAdelante.classList.toggle("invita-continua", si);
+    }
+    bAdelante.addEventListener("click", () => {
+      avanzoAMano = true;
+      invitarAvanzar(false);
+    });
+
+    const ESPERA_INVITACION = 4000;
+    let invitado = false;
+    let esperaInvitacion = null;
+    const primeraOperacion = (botones.find(([op]) => !op.secundaria) || botones[0] || [])[1];
+    function cancelarInvitacion() {
+      clearTimeout(esperaInvitacion);
+      esperaInvitacion = null;
+      invitado = true;
+      if (primeraOperacion) primeraOperacion.classList.remove("invita");
+    }
+    for (const evento of ["pointerdown", "keydown", "focusin"]) contenedor.addEventListener(evento, cancelarInvitacion);
+    if (primeraOperacion && window.IntersectionObserver) {
+      new IntersectionObserver((entradas) => {
+        const visible = entradas.some((e) => e.isIntersecting);
+        clearTimeout(esperaInvitacion);
+        esperaInvitacion = null;
+        if (!visible || invitado) return;
+        esperaInvitacion = setTimeout(() => {
+          invitado = true;
+          if (primeraOperacion.disabled) return;
+          primeraOperacion.classList.add("invita");
+          // Tres pulsos (o, sin animaciones, un anillo fijo) y se quita.
+          setTimeout(() => primeraOperacion.classList.remove("invita"), 3400);
+        }, ESPERA_INVITACION);
+      }, { threshold: 0.3 }).observe(contenedor);
     }
 
     function alternar() {
