@@ -164,8 +164,11 @@
   // historial de ejecuciones (cada una deja un punto en la gráfica).
   // ------------------------------------------------------------------
 
-  function estadoDesde(op, n) {
-    const s = { historial: [], sigCorrida: 1, vis: {} };
+  // sinPista: no agregar al mensaje final la pista de la curva del peor caso
+  // (en Todo junto la gráfica ya tiene las curvas y su leyenda, y el mensaje
+  // más largo le quitaría alto al paso).
+  function estadoDesde(op, n, sinPista) {
+    const s = { historial: [], sigCorrida: 1, vis: {}, sinPista: !!sinPista };
     preparar(s, op, n, "sin");
     s.enCurso = false;
     return s;
@@ -209,7 +212,7 @@
     if (s.historial.length > 40) s.historial.shift();
     const distintos = new Set(s.historial.filter((h) => h.op === s.op).map((h) => h.n));
     let extra = "";
-    if (distintos.size >= 2 && !(s.formaVista || {})[s.op]) {
+    if (!s.sinPista && distintos.size >= 2 && !(s.formaVista || {})[s.op]) {
       s.formaVista = Object.assign({}, s.formaVista, { [s.op]: true });
       extra = tr(` Ya hay puntos con dos n distintos: la línea punteada muestra el peor caso, ${CLASES[s.op].forma}`,
         ` There are now points with two different n: the dotted line shows the worst case, ${CLASES[s.op].forma}`);
@@ -930,7 +933,7 @@
       codigo: fragmentos(claves),
       tituloCodigo: (clave) => `${nombre(clave)}()`,
       mensajeInicial: opciones.mensajeInicial,
-      estadoInicial: (valores) => estadoDesde(opciones.ops[0], valores.n),
+      estadoInicial: (valores) => estadoDesde(opciones.ops[0], valores.n, opciones.sinPista),
       entradas: opciones.entradas,
       operaciones: opciones.ops.map((id) => Object.assign({ id }, OPS[id])),
     });
@@ -992,6 +995,7 @@
 
   visualizador("vis-todo", {
     ops: ["obtener", "busquedaBinaria", "sumar", "contarPresentes", "hayRepetidos"],
+    sinPista: true,
     entradas: [entradaN(16, 64), { id: "i", etiqueta: "i", min: -5, max: 70, valor: 3 }, OBJETIVO(999, 999), CASO],
     maxN: 64,
     tituloGrafica: tr("pasos según n", "steps by n"),
