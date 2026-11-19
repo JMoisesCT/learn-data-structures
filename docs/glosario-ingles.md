@@ -33,6 +33,10 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Lista enlazada | `obtener(i)` | `get(i)` |
 | Lista enlazada | `insertarAlInicio` / `insertarAlFinal` / `insertarEn` | `insertAtFront` / `insertAtBack` / `insertAt` |
 | Lista enlazada | `buscar` / `eliminar` / `eliminarEn` | `find` / `remove` / `removeAt` |
+| Notación algorítmica | `pasos` / `datos` / `suma` | `steps` / `data` / `total` |
+| Notación algorítmica | `obtener` / `sumar` / `hayRepetidos` | `get` / `sum` / `hasDuplicates` |
+| Notación algorítmica | `busquedaBinaria` / `objetivo` / `medio` | `binarySearch` / `target` / `mid` |
+| Notación algorítmica | `contarPresentes` / `consultas` / `encontrados` | `countPresent` / `queries` / `found` |
 | Pila | `PilaEnlazada` | `LinkedStack` |
 | Pila | `apilar` / `desapilar` / `cima` | `push` / `pop` / `peek` |
 | Pila | `tope` (puntero a la cima) | `top` |

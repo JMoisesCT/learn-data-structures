@@ -43,6 +43,7 @@
         titulo: "Algorithmic notation (Big-O)",
         resumen: "The language for comparing algorithms: how the number of steps grows with n. O(1), O(log n), O(n), O(n log n), O(n²) and O(2ⁿ), with charts.",
         etiquetas: ["start here", "O(1) to O(2ⁿ)"],
+        archivo: "algorithmic_notation.cpp",
       },
     },
     {
