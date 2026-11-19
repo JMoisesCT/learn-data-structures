@@ -12,8 +12,26 @@
 
   const REPO = "https://github.com/JMoisesCT/learn-data-structures";
 
+  // ------------------------------------------------------------------
+  // Idioma
+  // ------------------------------------------------------------------
+  //
+  // El sitio está en español (en la raíz) y en inglés (bajo en/). Cada página
+  // dice su idioma en <html lang>. DS.tr(es, en) devuelve el valor del idioma
+  // de la página: un texto, un objeto o un fragmento de código. Si falta el
+  // inglés, usa el español.
+  const idioma = /^en\b/i.test(document.documentElement.lang || "") ? "en" : "es";
+  const otroIdioma = idioma === "en" ? "es" : "en";
+  DS.idioma = idioma;
+  DS.tr = (es, en) => (idioma === "en" && en !== undefined ? en : es);
+  const tr = DS.tr;
+
   // Lista única de temas: alimenta el menú, la portada y los enlaces
   // anterior/siguiente. Agrega aquí cada tema nuevo.
+  // en: título, resumen y etiquetas en inglés. Cuando el tema ya tiene su
+  // página en inglés (en/temas/<slug>/), en.archivo es su .cpp en inglés
+  // (ejemplos/cpp/en/); sin en.archivo, la versión en inglés enlaza a la de
+  // español.
   DS.TEMAS = [
     {
       slug: "notacion-algoritmica",
@@ -21,6 +39,11 @@
       resumen: "El idioma para comparar algoritmos: cómo crecen los pasos con n. O(1), O(log n), O(n), O(n log n), O(n²) y O(2ⁿ), con gráficas.",
       etiquetas: ["empieza aquí", "O(1) a O(2ⁿ)"],
       archivo: "notacion_algoritmica.cpp",
+      en: {
+        titulo: "Algorithmic notation (Big-O)",
+        resumen: "The language for comparing algorithms: how the number of steps grows with n. O(1), O(log n), O(n), O(n log n), O(n²) and O(2ⁿ), with charts.",
+        etiquetas: ["start here", "O(1) to O(2ⁿ)"],
+      },
     },
     {
       slug: "recursion",
@@ -28,6 +51,11 @@
       resumen: "Una función que se llama a sí misma con un problema más chico. Sacar dígitos, cambio de base, palíndromos, potencia rápida y el árbol de llamadas de Fibonacci, con la pila a la vista.",
       etiquetas: ["caso base", "pila de llamadas"],
       archivo: "recursion.cpp",
+      en: {
+        titulo: "Recursion",
+        resumen: "A function that calls itself with a smaller problem. Extracting digits, base conversion, palindromes, fast power and the Fibonacci call tree, with the call stack in view.",
+        etiquetas: ["base case", "call stack"],
+      },
     },
     {
       slug: "lambdas",
@@ -35,6 +63,11 @@
       resumen: "Funciones sin nombre que se escriben donde se usan: capturas por valor y por referencia, lambdas anidadas y cómo le dan un criterio a std::sort o std::count_if.",
       etiquetas: ["herramienta de C++", "capturas [=] [&]"],
       archivo: "lambdas.cpp",
+      en: {
+        titulo: "Lambdas in C++",
+        resumen: "Unnamed functions written where they are used: captures by value and by reference, nested lambdas, and how they give std::sort or std::count_if a criterion.",
+        etiquetas: ["C++ tool", "captures [=] [&]"],
+      },
     },
     {
       slug: "vector-dinamico",
@@ -42,6 +75,11 @@
       resumen: "Un arreglo que crece solo. Acceso por índice en O(1) y cómo se duplica la capacidad.",
       etiquetas: ["acceso O(1)", "insertar O(n)"],
       archivo: "vector_dinamico.cpp",
+      en: {
+        titulo: "Dynamic array",
+        resumen: "An array that grows on its own. O(1) access by index and how the capacity doubles.",
+        etiquetas: ["O(1) access", "O(n) insert"],
+      },
     },
     {
       slug: "lista-enlazada",
@@ -49,6 +87,11 @@
       resumen: "Nodos conectados con punteros. Insertar al inicio es instantáneo; buscar requiere recorrer.",
       etiquetas: ["inicio O(1)", "buscar O(n)"],
       archivo: "lista_enlazada.cpp",
+      en: {
+        titulo: "Linked list",
+        resumen: "Nodes connected by pointers. Inserting at the front is instant; searching requires a traversal.",
+        etiquetas: ["O(1) front", "O(n) search"],
+      },
     },
     {
       slug: "lista-doble",
@@ -56,6 +99,11 @@
       resumen: "Cada nodo apunta al siguiente y al anterior, y la lista guarda cabeza y cola: insertar y eliminar en los dos extremos es O(1). La idea de std::list.",
       etiquetas: ["extremos O(1)", "anterior y siguiente"],
       archivo: "lista_doble.cpp",
+      en: {
+        titulo: "Doubly linked list",
+        resumen: "Each node points to the next and the previous one, and the list keeps a head and a tail: inserting and removing at both ends is O(1). The idea behind std::list.",
+        etiquetas: ["O(1) ends", "prev and next"],
+      },
     },
     {
       slug: "lista-circular",
@@ -63,6 +111,11 @@
       resumen: "El último nodo apunta al primero: con un solo puntero se llega a los dos extremos. Insertar, rotar y repartir turnos (round-robin) en O(1).",
       etiquetas: ["rotar O(1)", "round-robin"],
       archivo: "lista_circular.cpp",
+      en: {
+        titulo: "Circular list",
+        resumen: "The last node points to the first: a single pointer reaches both ends. Insert, rotate and hand out turns (round-robin) in O(1).",
+        etiquetas: ["O(1) rotate", "round-robin"],
+      },
     },
     {
       slug: "pila",
@@ -70,6 +123,11 @@
       resumen: "El último que entra es el primero que sale (LIFO). std::stack y una pila hecha con nodos; paréntesis balanceados.",
       etiquetas: ["LIFO", "push/pop O(1)"],
       archivo: "pila.cpp",
+      en: {
+        titulo: "Stack",
+        resumen: "The last one in is the first one out (LIFO). std::stack and a stack built from nodes; balanced parentheses.",
+        etiquetas: ["LIFO", "O(1) push/pop"],
+      },
     },
     {
       slug: "cola",
@@ -77,6 +135,11 @@
       resumen: "El primero que entra es el primero que sale (FIFO). std::queue y una cola hecha con nodos y dos punteros.",
       etiquetas: ["FIFO", "push/pop O(1)"],
       archivo: "cola.cpp",
+      en: {
+        titulo: "Queue",
+        resumen: "The first one in is the first one out (FIFO). std::queue and a queue built from nodes and two pointers.",
+        etiquetas: ["FIFO", "O(1) push/pop"],
+      },
     },
     {
       slug: "ordenamiento-elemental",
@@ -84,6 +147,11 @@
       resumen: "Exchange, bubble, selection, insertion y shell sort: comparar pares y moverlos. Cuánto trabaja cada uno, cuál es estable y cuándo conviene.",
       etiquetas: ["O(n²)", "estabilidad"],
       archivo: "ordenamiento_elemental.cpp",
+      en: {
+        titulo: "Elementary sorting",
+        resumen: "Exchange, bubble, selection, insertion and shell sort: compare pairs and move them. How much work each one does, which ones are stable and when to use them.",
+        etiquetas: ["O(n²)", "stability"],
+      },
     },
     {
       slug: "merge-sort-quicksort",
@@ -91,6 +159,11 @@
       resumen: "Divide y vencerás: mezclar mitades ordenadas o particionar alrededor de un pivote. O(n log n), el peor caso de quicksort, el pivote al azar y quickselect.",
       etiquetas: ["O(n log n)", "recursión"],
       archivo: "merge_sort_quicksort.cpp",
+      en: {
+        titulo: "Merge sort and quicksort",
+        resumen: "Divide and conquer: merge sorted halves or partition around a pivot. O(n log n), quicksort's worst case, the random pivot and quickselect.",
+        etiquetas: ["O(n log n)", "recursion"],
+      },
     },
     {
       slug: "ordenamiento-sin-comparaciones",
@@ -98,6 +171,11 @@
       resumen: "Counting, radix y bucket sort: usar el valor como índice en lugar de compararlo. O(n + k), dígito por dígito, cubetas, y cuándo le ganan a O(n log n).",
       etiquetas: ["O(n + k)", "sin comparar"],
       archivo: "ordenamiento_sin_comparaciones.cpp",
+      en: {
+        titulo: "Non-comparison sorting",
+        resumen: "Counting, radix and bucket sort: use the value as an index instead of comparing it. O(n + k), digit by digit, buckets, and when they beat O(n log n).",
+        etiquetas: ["O(n + k)", "no comparisons"],
+      },
     },
     {
       slug: "monticulo",
@@ -105,6 +183,11 @@
       resumen: "Min-heap y max-heap: un árbol guardado en un arreglo con el mínimo (o el máximo) siempre en la raíz. Incluye heapsort.",
       etiquetas: ["insertar O(log n)", "heapsort O(n log n)"],
       archivo: "monticulo.cpp",
+      en: {
+        titulo: "Heap",
+        resumen: "Min-heap and max-heap: a tree stored in an array with the minimum (or the maximum) always at the root. Includes heapsort.",
+        etiquetas: ["O(log n) insert", "O(n log n) heapsort"],
+      },
     },
     {
       slug: "tabla-hash",
@@ -112,6 +195,11 @@
       resumen: "Una función hash lleva cada clave directo a su cubeta. Funciones hash, colisiones con encadenamiento y con sondeo, y rehash.",
       etiquetas: ["buscar O(1) promedio", "colisiones"],
       archivo: "tabla_hash.cpp",
+      en: {
+        titulo: "Hash table",
+        resumen: "A hash function takes each key straight to its bucket. Hash functions, collisions with chaining and with probing, and rehashing.",
+        etiquetas: ["O(1) average search", "collisions"],
+      },
     },
     {
       slug: "busqueda-binaria",
@@ -119,6 +207,11 @@
       resumen: "En un arreglo ordenado, mirar el del medio descarta la mitad de golpe. Versión iterativa y recursiva, el medio que se desborda, lower_bound y upper_bound con repetidos, y buscar la respuesta sin arreglo.",
       etiquetas: ["buscar O(log n)", "requiere orden"],
       archivo: "busqueda_binaria.cpp",
+      en: {
+        titulo: "Binary search",
+        resumen: "In a sorted array, looking at the middle discards half at once. Iterative and recursive versions, the overflowing midpoint, lower_bound and upper_bound with duplicates, and searching for the answer without an array.",
+        etiquetas: ["O(log n) search", "needs order"],
+      },
     },
     {
       slug: "arbol-binario-busqueda",
@@ -126,6 +219,11 @@
       resumen: "Menores a la izquierda, mayores a la derecha. Buscar, insertar, recorridos y eliminar en sus tres casos; la idea detrás de std::set.",
       etiquetas: ["buscar O(h)", "inorden ordenado"],
       archivo: "arbol_binario_busqueda.cpp",
+      en: {
+        titulo: "Binary search tree",
+        resumen: "Smaller to the left, larger to the right. Search, insert, traversals and remove in its three cases; the idea behind std::set.",
+        etiquetas: ["O(h) search", "sorted inorder"],
+      },
     },
     {
       slug: "arbol-avl",
@@ -133,6 +231,11 @@
       resumen: "Un árbol binario de búsqueda que se rebalancea solo: altura y factor de balance en cada nodo, rotaciones simples y dobles, e insertar y eliminar en O(log n) aunque los datos lleguen ordenados.",
       etiquetas: ["rotaciones O(1)", "altura O(log n)"],
       archivo: "arbol_avl.cpp",
+      en: {
+        titulo: "AVL tree",
+        resumen: "A binary search tree that rebalances itself: height and balance factor in every node, single and double rotations, and O(log n) insert and remove even when the data arrives sorted.",
+        etiquetas: ["O(1) rotations", "O(log n) height"],
+      },
     },
     {
       slug: "grafos",
@@ -140,11 +243,36 @@
       resumen: "Vértices y aristas guardados en una lista de adyacencia. Recorrer por capas con BFS y una cola, al fondo con DFS y una pila o con recursión, distancias y componentes conexas.",
       etiquetas: ["BFS y DFS", "O(V + E)"],
       archivo: "grafos.cpp",
+      en: {
+        titulo: "Graphs",
+        resumen: "Vertices and edges stored in an adjacency list. Traverse by layers with BFS and a queue, deep with DFS and a stack or with recursion, distances and connected components.",
+        etiquetas: ["BFS and DFS", "O(V + E)"],
+      },
     },
   ];
 
+  // data-raiz es la raíz del sitio: assets/ y ejemplos/ sirven a los dos idiomas.
   const raiz = document.body.dataset.raiz || "./";
   const temaActual = document.body.dataset.tema || "";
+
+  const tieneIngles = (t) => !!(t.en && t.en.archivo);
+  // El tema con su título, resumen y etiquetas en el idioma de la página.
+  const enIdioma = (t) => (idioma === "en" && t.en ? Object.assign({}, t, t.en) : t);
+  const inicioDe = (lengua) => (lengua === "en" ? `${raiz}en/` : raiz);
+  const inicio = inicioDe(idioma);
+  // Página de un tema en el idioma de la página; en inglés, si todavía no
+  // está traducido, la de español.
+  const sinTraducir = (t) => idioma === "en" && !tieneIngles(t);
+  const urlTema = (t) => `${inicioDe(sinTraducir(t) ? "es" : idioma)}temas/${t.slug}/`;
+  // Los temas que tienen página en este idioma (para anterior y siguiente).
+  const temasDelIdioma = () => DS.TEMAS.filter((t) => !t.proximamente && !sinTraducir(t));
+  // Esta misma página en otro idioma, o null si no existe todavía.
+  function paginaEn(lengua) {
+    if (!temaActual) return inicioDe(lengua);
+    const t = DS.TEMAS.find((x) => x.slug === temaActual);
+    if (!t || (lengua === "en" && !tieneIngles(t))) return null;
+    return `${inicioDe(lengua)}temas/${t.slug}/`;
+  }
 
   // ------------------------------------------------------------------
   // Utilidades
@@ -176,12 +304,12 @@
     return texto.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   }
 
-  function leerPreferencia(clave) {
-    try { return localStorage.getItem(clave); } catch (e) { return null; }
+  function leerPreferencia(clave, almacen) {
+    try { return (almacen || localStorage).getItem(clave); } catch (e) { return null; }
   }
 
-  function guardarPreferencia(clave, valor) {
-    try { localStorage.setItem(clave, valor); } catch (e) { /* sin almacenamiento: no pasa nada */ }
+  function guardarPreferencia(clave, valor, almacen) {
+    try { (almacen || localStorage).setItem(clave, valor); } catch (e) { /* sin almacenamiento: no pasa nada */ }
   }
 
   // ------------------------------------------------------------------
@@ -200,7 +328,7 @@
   }
 
   function botonTema() {
-    const boton = el("button", { class: "boton-tema", type: "button", "aria-label": "Cambiar tema claro/oscuro" });
+    const boton = el("button", { class: "boton-tema", type: "button", "aria-label": tr("Cambiar tema claro/oscuro", "Switch light/dark theme") });
     const actualizar = () => { boton.textContent = esOscuro() ? "☀" : "☾"; };
     boton.addEventListener("click", () => {
       const nuevo = esOscuro() ? "light" : "dark";
@@ -213,6 +341,95 @@
   }
 
   // ------------------------------------------------------------------
+  // Selector de idioma
+  // ------------------------------------------------------------------
+  //
+  // Un enlace a esta misma página en el otro idioma, en el mismo paso de la
+  // lección. Elegir un idioma lo recuerda: después, cualquier página abre
+  // directo en ese idioma si ya está traducida.
+
+  function botonIdioma() {
+    const destino = paginaEn(otroIdioma);
+    const texto = otroIdioma.toUpperCase();
+    if (!destino) {
+      return el("span", { class: "boton-idioma no-disponible", "aria-disabled": "true", text: texto,
+        title: "Este tema todavía no está en inglés · Not available in English yet" });
+    }
+    const etiqueta = tr("Read in English", "Leer en español");
+    const enlace = el("a", { class: "boton-idioma", href: destino, hreflang: otroIdioma, lang: otroIdioma, title: etiqueta, "aria-label": etiqueta, text: texto });
+    // El paso de la lección va en #paso, que cambia sin recargar la página.
+    const conPaso = () => { enlace.href = destino + location.hash; };
+    for (const evento of ["pointerdown", "focus", "contextmenu"]) enlace.addEventListener(evento, conPaso);
+    enlace.addEventListener("click", () => {
+      conPaso();
+      guardarPreferencia("ds-idioma", otroIdioma);
+    });
+    return enlace;
+  }
+
+  // Quien ya eligió un idioma va directo a esa versión de la página, si existe.
+  function irAlIdiomaPreferido() {
+    if (leerPreferencia("ds-idioma") !== otroIdioma) return false;
+    const destino = paginaEn(otroIdioma);
+    if (!destino) return false;
+    document.documentElement.style.visibility = "hidden"; // sin destello de la otra versión
+    location.replace(destino + location.hash);
+    return true;
+  }
+
+  // Quien todavía no eligió ve una sugerencia junto al selector si su
+  // navegador está en otro idioma (una vez por visita). No se cambia de idioma
+  // solo: los buscadores, que no guardan preferencias, ven las dos versiones.
+  function sugerirIdioma() {
+    const boton = document.querySelector("header.encabezado a.boton-idioma");
+    if (!boton || leerPreferencia("ds-idioma")) return;
+    if (leerPreferencia("ds-idioma-sugerido", sessionStorage)) return;
+    const lenguas = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    const principal = String(lenguas[0] || "").toLowerCase();
+    if (!principal || principal.startsWith("es") === (idioma === "es")) return;
+    guardarPreferencia("ds-idioma-sugerido", "1", sessionStorage);
+
+    const quedarse = el("button", { class: "sugerencia-cerrar", type: "button", text: "×",
+      "aria-label": idioma === "es" ? "No thanks, stay in Spanish" : "No, gracias: seguir en inglés" });
+    const cambiar = el("a", { class: "boton principal", href: boton.getAttribute("href"),
+      text: idioma === "es" ? "Read in English" : "Leer en español" });
+    const burbuja = el("div", { class: "sugerencia-idioma", role: "status", lang: otroIdioma },
+      el("span", { text: idioma === "es" ? "This page is also in English." : "Esta página también está en español." }),
+      cambiar, quedarse);
+    cambiar.addEventListener("click", (ev) => { ev.preventDefault(); boton.click(); });
+    quedarse.addEventListener("click", () => {
+      guardarPreferencia("ds-idioma", idioma);
+      burbuja.remove();
+    });
+    const fila = boton.parentElement;
+    fila.append(burbuja);
+    // La flecha de la burbuja apunta al selector.
+    const ubicar = () => {
+      const derecha = fila.getBoundingClientRect().right - parseFloat(getComputedStyle(fila).paddingRight);
+      const b = boton.getBoundingClientRect();
+      burbuja.style.setProperty("--flecha", `${Math.max(12, derecha - (b.left + b.width / 2) - 7)}px`);
+    };
+    ubicar();
+    window.addEventListener("resize", ubicar);
+  }
+
+  // En inglés, los enlaces del contenido a un tema que todavía no está
+  // traducido (../lista-enlazada/) llevan a su versión en español.
+  function ajustarEnlacesSinTraducir() {
+    if (idioma !== "en") return;
+    const base = new URL(`${raiz}en/temas/`, location.href).href;
+    for (const a of document.querySelectorAll("main a[href]")) {
+      const url = new URL(a.getAttribute("href"), location.href);
+      if (!url.href.startsWith(base)) continue;
+      const t = DS.TEMAS.find((x) => x.slug === url.href.slice(base.length).split(/[/#?]/)[0]);
+      if (!t || tieneIngles(t)) continue;
+      a.href = new URL(`${raiz}temas/${t.slug}/${url.hash}`, location.href).href;
+      a.hreflang = "es";
+      a.title = "In Spanish for now";
+    }
+  }
+
+  // ------------------------------------------------------------------
   // Encabezado, portada y navegación entre temas
   // ------------------------------------------------------------------
 
@@ -222,10 +439,15 @@
     const encabezado = document.querySelector("header.encabezado");
     if (!encabezado) return;
     const actual = DS.TEMAS.find((t) => t.slug === temaActual);
-    const nav = el("nav", { class: "nav", "aria-label": "Temas" },
+    const nav = el("nav", { class: "nav", "aria-label": tr("Temas", "Topics") },
       DS.TEMAS.filter((t) => !t.proximamente).map((t) =>
-        el("a", { href: `${raiz}temas/${t.slug}/`, "aria-current": t.slug === temaActual ? "page" : null, text: t.titulo })));
-    const menu = el("details", { class: "menu-temas" }, el("summary", { text: "Temas" }), nav);
+        el("a", {
+          href: urlTema(t),
+          "aria-current": t.slug === temaActual ? "page" : null,
+          hreflang: sinTraducir(t) ? "es" : null,
+          title: sinTraducir(t) ? "In Spanish for now" : null,
+        }, enIdioma(t).titulo, sinTraducir(t) ? el("span", { class: "solo-espanol", "aria-hidden": "true", text: "ES" }) : null)));
+    const menu = el("details", { class: "menu-temas" }, el("summary", { text: tr("Temas", "Topics") }), nav);
     // Se cierra al elegir, al tocar fuera o con Escape.
     document.addEventListener("click", (ev) => { if (menu.open && !menu.contains(ev.target)) menu.open = false; });
     document.addEventListener("keydown", (ev) => {
@@ -235,43 +457,47 @@
       }
     });
     encabezado.append(el("div", { class: "contenedor" },
-      el("a", { class: "marca", href: raiz, title: "Inicio" },
+      el("a", { class: "marca", href: inicio, title: tr("Inicio", "Home") },
         el("span", { class: "marca-icono", "aria-hidden": "true", text: "{ }" }),
-        el("span", { class: actual ? "marca-texto con-tema" : "marca-texto", text: "Aprende Estructuras de Datos" })),
-      actual ? el("span", { class: "marca-tema", text: actual.titulo }) : null,
+        el("span", { class: actual ? "marca-texto con-tema" : "marca-texto", text: tr("Aprende Estructuras de Datos", "Learn Data Structures") })),
+      actual ? el("span", { class: "marca-tema", text: enIdioma(actual).titulo }) : null,
       menu,
+      botonIdioma(),
       botonTema()));
   }
 
   function montarPortada() {
     const contenedor = document.getElementById("lista-temas");
     if (!contenedor) return;
-    for (const t of DS.TEMAS) {
+    for (const tema of DS.TEMAS) {
+      const t = enIdioma(tema);
       const contenido = [
         el("h3", { text: t.titulo }),
         el("p", { text: t.resumen }),
-        el("div", { class: "etiquetas" }, t.etiquetas.map((e) => el("span", { class: "etiqueta", text: e }))),
+        el("div", { class: "etiquetas" },
+          t.etiquetas.map((e) => el("span", { class: "etiqueta", text: e })),
+          sinTraducir(tema) ? el("span", { class: "etiqueta solo-espanol", text: "in Spanish for now" }) : null),
       ];
       contenedor.append(t.proximamente
         ? el("div", { class: "tarjeta proximamente" }, contenido)
-        : el("a", { class: "tarjeta", href: `${raiz}temas/${t.slug}/` }, contenido));
+        : el("a", { class: "tarjeta", href: urlTema(tema), hreflang: sinTraducir(tema) ? "es" : null }, contenido));
     }
   }
 
   function montarNavegacionTemas() {
     const contenedor = document.getElementById("navegacion-temas");
     if (!contenedor) return;
-    const listos = DS.TEMAS.filter((t) => !t.proximamente);
+    const listos = temasDelIdioma();
     const i = listos.findIndex((t) => t.slug === temaActual);
     if (i < 0) return;
     contenedor.className = "navegacion-temas";
     contenedor.append(
-      i > 0 ? el("a", { href: `${raiz}temas/${listos[i - 1].slug}/`, text: `← ${listos[i - 1].titulo}` }) : el("span"),
-      i < listos.length - 1 ? el("a", { href: `${raiz}temas/${listos[i + 1].slug}/`, text: `${listos[i + 1].titulo} →` }) : el("a", { href: raiz, text: "Volver al inicio" }));
+      i > 0 ? el("a", { href: urlTema(listos[i - 1]), text: `← ${enIdioma(listos[i - 1]).titulo}` }) : el("span"),
+      i < listos.length - 1 ? el("a", { href: urlTema(listos[i + 1]), text: `${enIdioma(listos[i + 1]).titulo} →` }) : el("a", { href: inicio, text: tr("Volver al inicio", "Back to home") }));
   }
 
   function siguienteTema() {
-    const listos = DS.TEMAS.filter((t) => !t.proximamente);
+    const listos = temasDelIdioma();
     const i = listos.findIndex((t) => t.slug === temaActual);
     return i >= 0 && i < listos.length - 1 ? listos[i + 1] : null;
   }
@@ -298,19 +524,19 @@
     let actual = -1;
 
     const segmentos = pasos.map((p, k) =>
-      el("li", {}, el("a", { href: `#${p.id}`, title: `${k + 1}. ${p.dataset.titulo}`, "aria-label": `Paso ${k + 1}: ${p.dataset.titulo}` })));
+      el("li", {}, el("a", { href: `#${p.id}`, title: `${k + 1}. ${p.dataset.titulo}`, "aria-label": `${tr("Paso", "Step")} ${k + 1}: ${p.dataset.titulo}` })));
     const contador = el("span", { class: "leccion-contador" });
-    const cabecera = el("nav", { class: "leccion-cabecera", "aria-label": "Pasos de la lección" },
+    const cabecera = el("nav", { class: "leccion-cabecera", "aria-label": tr("Pasos de la lección", "Lesson steps") },
       el("ol", { class: "leccion-indice" }, segmentos), contador);
 
-    const bAtras = el("button", { class: "boton", type: "button", text: "← Atrás", onclick: () => ir(actual - 1) });
+    const bAtras = el("button", { class: "boton", type: "button", text: tr("← Atrás", "← Back"), onclick: () => ir(actual - 1) });
     const destino = el("span", { class: "leccion-destino" });
-    const bContinuar = el("button", { class: "boton principal", type: "button", onclick: () => ir(actual + 1) }, "Continuar", destino, " →");
+    const bContinuar = el("button", { class: "boton principal", type: "button", onclick: () => ir(actual + 1) }, tr("Continuar", "Continue"), destino, " →");
     const proximo = siguienteTema();
     const enlaceFinal = el("a", {
       class: "boton principal",
-      href: proximo ? `${raiz}temas/${proximo.slug}/` : raiz,
-      text: proximo ? `Siguiente tema: ${proximo.titulo} →` : "Volver al inicio",
+      href: proximo ? urlTema(proximo) : inicio,
+      text: proximo ? `${tr("Siguiente tema", "Next topic")}: ${enIdioma(proximo).titulo} →` : tr("Volver al inicio", "Back to home"),
     });
     const pie = el("div", { class: "leccion-pie" }, el("div", { class: "leccion-pie-interior" }, bAtras, bContinuar, enlaceFinal));
 
@@ -425,7 +651,7 @@
           }
           opcion.classList.add(correcta ? "correcta" : "incorrecta");
           respuesta.className = `respuesta ${correcta ? "bien" : "pista"}`;
-          respuesta.textContent = `${correcta ? "¡Exacto! " : "Todavía no. "}${opcion.dataset.explicacion || ""}`;
+          respuesta.textContent = `${correcta ? tr("¡Exacto! ", "Exactly! ") : tr("Todavía no. ", "Not quite. ")}${opcion.dataset.explicacion || ""}`;
         });
       }
     }
@@ -642,8 +868,8 @@
     for (const caja of document.querySelectorAll("[data-codigo-completo]")) {
       const archivo = caja.dataset.codigoCompleto;
       const enGithub = `${REPO}/blob/main/ejemplos/cpp/${archivo}`;
-      const pre = el("pre", { class: "codigo", tabindex: "0" }, el("span", { class: "linea", text: "// Cargando…" }));
-      const copiar = el("button", { class: "boton", type: "button", text: "Copiar" });
+      const pre = el("pre", { class: "codigo", tabindex: "0" }, el("span", { class: "linea", text: tr("// Cargando…", "// Loading…") }));
+      const copiar = el("button", { class: "boton", type: "button", text: tr("Copiar", "Copy") });
       caja.classList.add("codigo-completo");
       caja.append(
         el("div", { class: "barra" },
@@ -657,15 +883,15 @@
           pre.innerHTML = resaltarCpp(texto.replace(/\s+$/, ""));
           copiar.addEventListener("click", () => {
             navigator.clipboard.writeText(texto).then(() => {
-              copiar.textContent = "¡Copiado!";
-              setTimeout(() => { copiar.textContent = "Copiar"; }, 1500);
+              copiar.textContent = tr("¡Copiado!", "Copied!");
+              setTimeout(() => { copiar.textContent = tr("Copiar", "Copy"); }, 1500);
             });
           });
         })
         .catch(() => {
           pre.innerHTML = "";
-          pre.append(el("span", { class: "linea", text: "// No se pudo cargar el archivo aquí." }),
-            el("span", { class: "linea", text: `// Míralo en GitHub: ${enGithub}` }));
+          pre.append(el("span", { class: "linea", text: tr("// No se pudo cargar el archivo aquí.", "// The file could not be loaded here.") }),
+            el("span", { class: "linea", text: `${tr("// Míralo en GitHub", "// See it on GitHub")}: ${enGithub}` }));
           copiar.disabled = true;
         });
     }
@@ -793,28 +1019,28 @@
       controles.append(boton);
     }
     controles.append(el("span", { class: "separador" }),
-      el("button", { class: "boton", type: "button", text: "Reiniciar", onclick: reiniciar }));
+      el("button", { class: "boton", type: "button", text: tr("Reiniciar", "Reset"), onclick: reiniciar }));
 
     const escenario = el("div", { class: "escenario" });
     const mensaje = el("p", { class: "mensaje", "aria-live": "polite" });
 
-    const bInicio = el("button", { class: "boton", type: "button", title: "Primer paso", "aria-label": "Primer paso", text: "«", onclick: () => ir(0) });
-    const bAtras = el("button", { class: "boton", type: "button", title: "Paso anterior", "aria-label": "Paso anterior", text: "‹", onclick: () => ir(actual - 1) });
+    const bInicio = el("button", { class: "boton", type: "button", title: tr("Primer paso", "First step"), "aria-label": tr("Primer paso", "First step"), text: "«", onclick: () => ir(0) });
+    const bAtras = el("button", { class: "boton", type: "button", title: tr("Paso anterior", "Previous step"), "aria-label": tr("Paso anterior", "Previous step"), text: "‹", onclick: () => ir(actual - 1) });
     // Ancho fijo: si ▶ y ❚❚ midieran distinto, la fila podría partirse en dos al empezar a
     // reproducir, después de que ajustarEscala midió el alto disponible.
-    const bPlay = el("button", { class: "boton boton-play", type: "button", title: "Reproducir / pausar", "aria-label": "Reproducir o pausar", onclick: alternar });
-    const bAdelante = el("button", { class: "boton", type: "button", title: "Paso siguiente", "aria-label": "Paso siguiente", text: "›", onclick: () => ir(actual + 1) });
-    const bFin = el("button", { class: "boton", type: "button", title: "Último paso", "aria-label": "Último paso", text: "»", onclick: () => ir(pasos.length - 1) });
+    const bPlay = el("button", { class: "boton boton-play", type: "button", title: tr("Reproducir / pausar", "Play / pause"), "aria-label": tr("Reproducir o pausar", "Play or pause"), onclick: alternar });
+    const bAdelante = el("button", { class: "boton", type: "button", title: tr("Paso siguiente", "Next step"), "aria-label": tr("Paso siguiente", "Next step"), text: "›", onclick: () => ir(actual + 1) });
+    const bFin = el("button", { class: "boton", type: "button", title: tr("Último paso", "Last step"), "aria-label": tr("Último paso", "Last step"), text: "»", onclick: () => ir(pasos.length - 1) });
     const contador = el("span", { class: "contador-pasos" });
-    const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": "Velocidad", title: "Velocidad" });
+    const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": tr("Velocidad", "Speed"), title: tr("Velocidad", "Speed") });
     rango.value = velocidad;
     rango.addEventListener("input", () => { velocidad = Number(rango.value); if (temporizador) { detener(); reproducir(); } });
-    const etiquetaVelocidad = el("label", { class: "velocidad" }, el("span", { class: "texto-velocidad", text: "Velocidad" }), rango);
+    const etiquetaVelocidad = el("label", { class: "velocidad" }, el("span", { class: "texto-velocidad", text: tr("Velocidad", "Speed") }), rango);
 
     // Modo al ejecutar una operación: reproducir solo o avanzar con ›.
-    const bAuto = el("button", { type: "button", text: "▶ Automático", onclick: () => cambiarModo("auto", true) });
-    const bManual = el("button", { type: "button", text: "Paso a paso", onclick: () => cambiarModo("manual", true) });
-    const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": "Al ejecutar una operación", title: "Al ejecutar una operación" }, bAuto, bManual);
+    const bAuto = el("button", { type: "button", text: tr("▶ Automático", "▶ Automatic"), onclick: () => cambiarModo("auto", true) });
+    const bManual = el("button", { type: "button", text: tr("Paso a paso", "Step by step"), onclick: () => cambiarModo("manual", true) });
+    const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": tr("Al ejecutar una operación", "When an operation runs"), title: tr("Al ejecutar una operación", "When an operation runs") }, bAuto, bManual);
 
     const reproduccion = el("div", { class: "reproduccion" },
       el("div", { class: "fila-reproduccion" }, bInicio, bAtras, bPlay, bAdelante, bFin, contador),
@@ -832,7 +1058,7 @@
     function plegar(si) {
       panelCodigo.classList.toggle("plegado", si);
       bPlegar.setAttribute("aria-expanded", String(!si));
-      bPlegar.textContent = si ? "Ver todo ▾" : "Ver menos ▴";
+      bPlegar.textContent = si ? tr("Ver todo ▾", "Show all ▾") : tr("Ver menos ▴", "Show less ▴");
       // Los corchetes y el cursor se miden con las líneas a la vista.
       if (pasos[actual]) mostrarCodigo(pasos[actual], false);
     }
@@ -1025,10 +1251,10 @@
         }
         const n = Number(input.value);
         if (input.value.trim() === "" || !Number.isInteger(n)) {
-          return { error: `Escribe un número entero en "${e.etiqueta}".` };
+          return { error: tr(`Escribe un número entero en "${e.etiqueta}".`, `Type a whole number in "${e.etiqueta}".`) };
         }
         if ((e.min != null && n < e.min) || (e.max != null && n > e.max)) {
-          return { error: `"${e.etiqueta}" debe estar entre ${e.min} y ${e.max}.` };
+          return { error: tr(`"${e.etiqueta}" debe estar entre ${e.min} y ${e.max}.`, `"${e.etiqueta}" must be between ${e.min} and ${e.max}.`) };
         }
         args[id] = n;
       }
@@ -1074,7 +1300,7 @@
     // Nombre con el que se muestra un marco: la función o la lambda.
     const nombreMarco = (m) => (m.lambda ? m.lambda.nombre || "lambda" : nombreDe(m.clave));
     // "insertarEn()" o, para una lambda sin nombre, "la lambda".
-    const comoLlamada = (nombre) => (nombre === "lambda" ? "la lambda" : `${nombre}()`);
+    const comoLlamada = (nombre) => (nombre === "lambda" ? tr("la lambda", "the lambda") : `${nombre}()`);
 
     // Línea del fragmento del marco que llama a la función de la clave dada.
     function lineaDeLlamada(marco, clave) {
@@ -1260,7 +1486,7 @@
       s.vis = {};
       estado = s;
       anotarRastro(lista);
-      pasos = lista.length ? lista : [pasoInicial("Listo.")];
+      pasos = lista.length ? lista : [pasoInicial(tr("Listo.", "Done."))];
       aleatoriosPendientes = (op.usa || []).filter((id) => campos[id].cfg.aleatorio);
       reservarEspacio();
       ir(0);
@@ -1275,7 +1501,7 @@
       estado = cfg.estadoInicial(valores);
       actualizarEtiquetas(valores);
       const texto = typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial;
-      pasos = [pasoInicial(texto || "Elige una operación para empezar.")];
+      pasos = [pasoInicial(texto || tr("Elige una operación para empezar.", "Pick an operation to start."))];
       reservarEspacio();
       ir(0);
     }
@@ -1321,7 +1547,7 @@
           el("span", { class: "miga-llamada", text: conVeces(g.nombre === "lambda" ? "lambda" : `${g.nombre}()`, g) }),
           el("span", { class: "miga-separador", text: "›" })]),
         el("span", { class: "miga-actual", text: ultimoGrupo.lambda ? (ultimoGrupo.nombre === "lambda" ? "lambda" : `${ultimoGrupo.nombre} (lambda)`) : conVeces(tituloDe(clave), ultimoGrupo) }));
-      nombreCodigo.title = pila.length > 1 ? `${pila.map((m) => m.nombre).join(" llama a ")}` : "";
+      nombreCodigo.title = pila.length > 1 ? `${pila.map((m) => m.nombre).join(tr(" llama a ", " calls "))}` : "";
 
       // Cinta "llamada desde": la línea del que llamó, con su código. Justo
       // después de un retorno, en cambio, dice de qué función se volvió.
@@ -1331,14 +1557,14 @@
       procedencia.classList.toggle("retorno", !!retorno);
       if (retorno) {
         procedencia.replaceChildren(
-          el("span", { class: "llamada-desde-quien" }, "↩ volvió de ", el("b", { text: comoLlamada(retorno.de) }),
-            `: sigue en ${comoLlamada(pila.length ? pila[pila.length - 1].nombre : nombreDe(clave))}${linea > 0 ? `, línea ${linea}` : ""}`));
+          el("span", { class: "llamada-desde-quien" }, tr("↩ volvió de ", "↩ returned from "), el("b", { text: comoLlamada(retorno.de) }),
+            `: ${tr("sigue en", "continues in")} ${comoLlamada(pila.length ? pila[pila.length - 1].nombre : nombreDe(clave))}${linea > 0 ? `, ${tr("línea", "line")} ${linea}` : ""}`));
         procedencia.classList.toggle("recien", !!animar);
       } else if (llamador) {
         const texto = (fragmentos[llamador.clave].split("\n")[llamador.linea - 1] || "").trim();
         procedencia.replaceChildren(
-          el("span", { class: "llamada-desde-quien" }, "↳ llamada desde ", el("b", { text: comoLlamada(llamador.nombre) }),
-            llamador.nombre === pila[pila.length - 1].nombre ? " (ella misma)" : "", `, línea ${llamador.linea}:`),
+          el("span", { class: "llamada-desde-quien" }, tr("↳ llamada desde ", "↳ called from "), el("b", { text: comoLlamada(llamador.nombre) }),
+            llamador.nombre === pila[pila.length - 1].nombre ? tr(" (ella misma)", " (itself)") : "", `, ${tr("línea", "line")} ${llamador.linea}:`),
           el("code", { html: resaltarCpp(texto).replace(/<\/?span class="linea">/g, "") }));
         procedencia.classList.toggle("recien", !!(animar && r.evento && r.evento.tipo === "llamada"));
       }
@@ -1352,16 +1578,20 @@
         lineas[n - 1].append(nodo);
         if (n === linea) plegada(nodo.cloneNode(true));
       };
-      const plural = (k) => `${k} ${k === 1 ? "vuelta" : "vueltas"}`;
+      const plural = (k) => `${k} ${k === 1 ? tr("vuelta", "iteration") : tr("vueltas", "iterations")}`;
       if (r && linea > 0) {
         for (const { bucle: b, vueltas, nueva } of r.bucles) {
           const enCondicion = linea === b.condicion;
-          const texto = enCondicion ? (vueltas ? `↻ ${plural(vueltas)} · ¿otra?` : "↻ ¿entra al bucle?") : `↻ vuelta ${vueltas}`;
-          const ayuda = enCondicion ? "Se evalúa la condición del bucle" : `La ejecución va en la vuelta ${vueltas} del bucle ${b.tipo}`;
+          const texto = enCondicion
+            ? (vueltas ? `↻ ${plural(vueltas)} · ${tr("¿otra?", "again?")}` : tr("↻ ¿entra al bucle?", "↻ enter the loop?"))
+            : `↻ ${tr("vuelta", "iteration")} ${vueltas}`;
+          const ayuda = enCondicion
+            ? tr("Se evalúa la condición del bucle", "The loop condition is evaluated")
+            : tr(`La ejecución va en la vuelta ${vueltas} del bucle ${b.tipo}`, `Execution is in iteration ${vueltas} of the ${b.tipo} loop`);
           const clase = `bucle${nueva && animar && vueltas > 1 ? " nueva" : ""}`;
           pegar(b.condicion, insignia(clase, texto, ayuda));
           // En móvil solo se ve la línea actual: la vuelta va también en su fila.
-          if (!enCondicion) plegada(insignia(clase, `↻ ${b.tipo}: vuelta ${vueltas}`, ayuda));
+          if (!enCondicion) plegada(insignia(clase, `↻ ${b.tipo}: ${tr("vuelta", "iteration")} ${vueltas}`, ayuda));
           const arriba = lineas[b.inicio - 1];
           const abajo = lineas[b.fin - 1];
           if (arriba && abajo) {
@@ -1373,8 +1603,9 @@
           }
         }
         for (const { bucle: b, vueltas } of r.terminados) {
-          const nodo = insignia("bucle termino", `✓ salió tras ${plural(vueltas)}`, "El bucle ya terminó");
-          if (b.condicion !== linea) plegada(insignia("bucle termino", `✓ ${b.tipo}: salió tras ${plural(vueltas)}`));
+          const salio = `${tr("salió tras", "exited after")} ${plural(vueltas)}`;
+          const nodo = insignia("bucle termino", `✓ ${salio}`, tr("El bucle ya terminó", "The loop has finished"));
+          if (b.condicion !== linea) plegada(insignia("bucle termino", `✓ ${b.tipo}: ${salio}`));
           pegar(b.condicion, nodo);
         }
         const ls = (analisis[clave] && analisis[clave].llamadas[linea - 1]) || [];
@@ -1385,22 +1616,22 @@
           for (const { id, metodo } of ls) {
             if (metodo) continue;
             if (id === nombrePropio) {
-              pegar(linea, insignia("llamada", "↻ se llama a sí misma", "Llamada recursiva: la función se llama a sí misma con otros argumentos"));
+              pegar(linea, insignia("llamada", tr("↻ se llama a sí misma", "↻ calls itself"), tr("Llamada recursiva: la función se llama a sí misma con otros argumentos", "Recursive call: the function calls itself with other arguments")));
               break;
             }
             if (clavePorNombre[id]) {
-              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ llama a ${id}()`, "Otra función de este tema"));
+              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ ${tr("llama a", "calls")} ${id}()`, tr("Otra función de este tema", "Another function from this topic")));
               break;
             }
             if (analisis[clave].lambdas.some((x) => x.nombre === id)) {
-              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ llama a la lambda ${id}`, "El cuerpo de la lambda corre ahora, con los valores de esta llamada"));
+              pegar(linea, insignia(`llamada${entra ? " entra" : ""}`, `→ ${tr("llama a la lambda", "calls the lambda")} ${id}`, tr("El cuerpo de la lambda corre ahora, con los valores de esta llamada", "The lambda's body runs now, with this call's values")));
               break;
             }
           }
         }
         const deBiblioteca = ls.find((x) => !x.metodo && ORIGENES[x.id]);
         if (deBiblioteca) {
-          pegar(linea, insignia("origen", `${deBiblioteca.id} ← #include ${ORIGENES[deBiblioteca.id]}`, `std::${deBiblioteca.id} es de la biblioteca estándar de C++`));
+          pegar(linea, insignia("origen", `${deBiblioteca.id} ← #include ${ORIGENES[deBiblioteca.id]}`, tr(`std::${deBiblioteca.id} es de la biblioteca estándar de C++`, `std::${deBiblioteca.id} is from the C++ standard library`)));
         }
       }
 
@@ -1438,7 +1669,7 @@
       mostrarCodigo(p, actual === anterior + 1);
       mensaje.textContent = p.mensaje;
       mensaje.className = "mensaje" + (p.tipo ? ` ${p.tipo}` : "");
-      contador.textContent = `Paso ${actual + 1} de ${pasos.length}`;
+      contador.textContent = tr(`Paso ${actual + 1} de ${pasos.length}`, `Step ${actual + 1} of ${pasos.length}`);
       bInicio.disabled = bAtras.disabled = actual === 0;
       bFin.disabled = bAdelante.disabled = actual === pasos.length - 1;
       if (actual === pasos.length - 1) {
@@ -1448,7 +1679,7 @@
         for (const id of aleatoriosPendientes) {
           const input = campos[id].input;
           input.value = aleatorio(campos[id].cfg);
-          input.title = "Nuevo valor al azar para la próxima operación";
+          input.title = tr("Nuevo valor al azar para la próxima operación", "New random value for the next operation");
           input.classList.remove("renovado");
           void input.offsetWidth;
           input.classList.add("renovado");
@@ -1502,7 +1733,10 @@
         el("span", { class: (cambiadas || []).includes(k) ? "cambio" : "" }, `${k} = `, el("b", { text: String(v) }))));
   };
 
+  if (irAlIdiomaPreferido()) return;
   montarEncabezado();
+  sugerirIdioma();
+  ajustarEnlacesSinTraducir();
   montarPortada();
   montarNavegacionTemas();
   montarLeccion();

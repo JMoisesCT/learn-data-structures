@@ -1,6 +1,6 @@
 # Cómo contribuir
 
-Todo el contenido (textos, comentarios, identificadores del código de ejemplo y nombres de PR) va **en español**.
+El sitio está **en español y en inglés** (ver "Versión en inglés"). La versión en español lleva textos, comentarios e identificadores del código de ejemplo en español, y la versión en inglés, todo eso en inglés. Commits, ramas, PR, la documentación del repositorio y los comentarios internos de los `.js` van **en español**.
 
 Al contribuir aceptas que tu aporte se publique con las mismas licencias del proyecto: [MIT](LICENSE) para el código y [CC BY 4.0](LICENSE-CONTENIDO) para los textos, la documentación y las imágenes (ver "Licencia" en el README).
 
@@ -10,16 +10,20 @@ El repositorio **es** el sitio: GitHub Pages publica `main` tal cual, sin pasos 
 
 ```
 index.html                 Portada
+en/index.html              Portada en inglés
+en/temas/<tema>/index.html Página en inglés de un tema traducido (usa el mismo <tema>.js)
 assets/css/estilos.css     Estilos compartidos (modo claro y oscuro)
 assets/js/visualizador.js  Motor de animaciones, resaltado C++ y lista de temas
 temas/<tema>/index.html    Página del tema
 temas/<tema>/<tema>.js     Animación del tema
 ejemplos/cpp/              Programas C++ completos, uno por tema (las páginas los muestran)
+ejemplos/cpp/en/           Los mismos programas en inglés, línea por línea
 docs/                      Notas del proyecto (p. ej. inspiración para el rediseño visual)
+docs/glosario-ingles.md    Nombres en inglés de las funciones y variables de los ejemplos
 docs/img/                  Imágenes del README
 scripts/
-  compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos (con sanitizadores)
-  verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp
+  compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos, en los dos idiomas (con sanitizadores)
+  verificar-fragmentos.mjs Comprueba que el código de las animaciones = el de los .cpp (en los dos idiomas)
 .github/workflows/
   verificar.yml            CI de cada pull request y de main
 LICENSE                    Licencia MIT (código)
@@ -81,7 +85,7 @@ python3 -m http.server 8000           # desde la raíz: revisar en el navegador
 
 Las tres primeras son las mismas que corre el CI.
 
-Prueba cada operación de la animación, incluidos los casos de error (estructura vacía, llena, posición inválida), en pantalla ancha y en móvil (~390 px), en modo claro y oscuro.
+Prueba cada operación de la animación, incluidos los casos de error (estructura vacía, llena, posición inválida), en pantalla ancha y en móvil (~390 px), en modo claro y oscuro, y en los dos idiomas si el tema tiene versión en inglés.
 
 ## Cómo agregar un tema nuevo
 
@@ -107,6 +111,26 @@ Usa como plantilla **`temas/vector-dinamico/`** (estructura lineal) o **`temas/m
    - Un visualizador por paso: `<div id="vis-<operacion>"></div>` y `DS.tema({ contenedor: "vis-<operacion>", ... })`.
 4. **Registro** — agrega el tema en `DS.TEMAS` (`assets/js/visualizador.js`); si estaba como `proximamente`, quita esa marca. Eso actualiza menú, portada y enlaces anterior/siguiente.
 5. **Docs** — agrega la fila en la tabla de `README.md`, en su grupo y con una descripción corta (una línea: el detalle va en la lección), y marca el tema como hecho en `ROADMAP.md`.
+
+## Versión en inglés
+
+El sitio en español está en la raíz y el sitio en inglés bajo `en/`, con las mismas rutas: `temas/pila/` ↔ `en/temas/pila/`, y la portada `index.html` ↔ `en/index.html`. Los dos idiomas comparten `assets/`, `ejemplos/` y el `.js` de cada tema.
+
+**Cómo se ve:**
+
+- El selector **EN / ES** está en el encabezado, junto al botón de claro/oscuro. Lleva a la misma página en el otro idioma y conserva el paso de la lección (`#paso`). En un tema que todavía no está traducido aparece atenuado, con una ayuda que lo explica.
+- Elegir un idioma (con el selector o con la sugerencia) se recuerda en `localStorage` (`ds-idioma`): después, cualquier página abre directo en ese idioma si ya está traducida.
+- Quien no eligió nada y tiene el navegador en otro idioma (`navigator.languages`) ve una sugerencia que flota bajo el selector, una vez por visita. **No se redirige solo** por el idioma del navegador: así los buscadores, que no guardan preferencias, indexan las dos versiones. Tampoco se usa el país: un sitio estático no lo sabe sin un servicio externo, y el país no dice qué idioma lee cada persona.
+- En inglés, el menú y la portada muestran todos los temas con su título en inglés; los que faltan traducir dicen *in Spanish for now* y abren la versión en español. Los enlaces del contenido a un tema sin traducir (`../lista-enlazada/`) se ajustan solos a la versión en español.
+
+**Cómo traducir un tema** (un tema por PR, título `[<Tema>] Agregar la lección en inglés`):
+
+1. **Código C++** — `ejemplos/cpp/en/<nombre-en-ingles>.cpp`, traducido **línea por línea** desde el de español: las mismas líneas, en el mismo orden, con identificadores, comentarios, mensajes y salidas en inglés. Usa los nombres de `docs/glosario-ingles.md` (y agrega ahí los nuevos) para que coincidan entre temas. Las líneas de comentario pueden cambiar de cantidad; las de código no.
+2. **Animación** — en el mismo `temas/<slug>/<slug>.js`, cada texto que ve el visitante pasa por `DS.tr(es, en)`: mensajes de `paso(...)`, `mensajeInicial`, etiquetas de botones y entradas, títulos del código y los nombres de variables y punteros que se dibujan. Los fragmentos de código también: `const CODIGO = DS.tr({ … }, { … })`, con las mismas claves. La lógica de la animación es una sola para los dos idiomas.
+3. **Página** — `en/temas/<slug>/index.html`, copia traducida de `temas/<slug>/index.html` con `<html lang="en">`, `data-raiz="../../../"`, los mismos `id` de pasos (para que el selector conserve el paso), `data-codigo-completo="en/<archivo>.cpp"` y los scripts `../../../assets/js/visualizador.js` y `../../../temas/<slug>/<slug>.js`. Los enlaces a otros temas se escriben como en español (`../cola/`).
+4. **Registro** — en `DS.TEMAS`, agrega `archivo: "<archivo>.cpp"` dentro de `en` (eso hace que el selector, el menú y la portada usen la página en inglés), y marca el tema como traducido en `ROADMAP.md`.
+
+`verificar-fragmentos.mjs` revisa la página en inglés igual que la de español (con `DS.idioma = "en"`) y además que cada fragmento tenga **las mismas líneas** en los dos idiomas, porque los mensajes de la animación usan los mismos números de línea. `compilar-ejemplos.sh` compila también `ejemplos/cpp/en/`.
 
 ## Formato de un tema
 
