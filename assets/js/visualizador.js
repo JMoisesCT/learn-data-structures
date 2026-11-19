@@ -127,6 +127,7 @@
         titulo: "Stack",
         resumen: "The last one in is the first one out (LIFO). std::stack and a stack built from nodes; balanced parentheses.",
         etiquetas: ["LIFO", "O(1) push/pop"],
+        archivo: "stack.cpp",
       },
     },
     {

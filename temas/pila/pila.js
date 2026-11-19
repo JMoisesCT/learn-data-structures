@@ -1,9 +1,10 @@
 // Lección de la pila, en pasos: std::stack (con un uso real, paréntesis
 // balanceados) y PilaEnlazada (la misma idea con nodos). Los fragmentos de
-// código deben coincidir línea por línea con ejemplos/cpp/pila.cpp
-// (scripts/verificar-fragmentos.mjs lo revisa).
+// código deben coincidir línea por línea con ejemplos/cpp/pila.cpp, y en
+// inglés con ejemplos/cpp/en/stack.cpp (scripts/verificar-fragmentos.mjs lo
+// revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const MAXIMO = 5; // límite solo para que la animación quepa en pantalla
   const SVG = "http://www.w3.org/2000/svg";
 
@@ -18,10 +19,11 @@
   const BAJADA = 94; // de la fila a un nodo suelto
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/pila.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/pila.cpp y de
+  // ejemplos/cpp/en/stack.cpp, con las mismas líneas)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     push: `
       pila.push(valor);`,
     top: `
@@ -77,17 +79,79 @@
           }
           return tope->valor;
       }`,
-  };
+  }, {
+    push: `
+      stack.push(value);`,
+    top: `
+      if (!stack.empty()) {
+          std::cout << "top() = " << stack.top() << "\\n";
+      }`,
+    pop: `
+      if (!stack.empty()) {
+          stack.pop();
+      }`,
+    estanBalanceados: `
+      bool isBalanced(const std::string& text) {
+          std::stack<char> openers;
+          for (char c : text) {
+              if (c == '(' || c == '[' || c == '{') {
+                  openers.push(c);
+              } else if (c == ')' || c == ']' || c == '}') {
+                  if (openers.empty()) {
+                      return false;
+                  }
+                  char expected = c == ')' ? '(' : (c == ']' ? '[' : '{');
+                  if (openers.top() != expected) {
+                      return false;
+                  }
+                  openers.pop();
+              }
+          }
+          return openers.empty();
+      }`,
+    apilar: `
+      void push(int value) {
+          Node* newNode = new Node(value);
+          newNode->next = top;
+          top = newNode;
+          count++;
+      }`,
+    desapilar: `
+      int pop() {
+          if (top == nullptr) {
+              throw std::underflow_error("empty stack");
+          }
+          Node* temp = top;
+          int value = temp->value;
+          top = top->next;
+          delete temp;
+          count--;
+          return value;
+      }`,
+    cima: `
+      int peek() const {
+          if (top == nullptr) {
+              throw std::underflow_error("empty stack");
+          }
+          return top->value;
+      }`,
+  });
 
   const TITULOS = {
     push: "std::stack<int>::push",
     top: "std::stack<int>::top",
     pop: "std::stack<int>::pop",
-    estanBalanceados: "estanBalanceados()",
-    apilar: "PilaEnlazada::apilar()",
-    desapilar: "PilaEnlazada::desapilar()",
-    cima: "PilaEnlazada::cima()",
+    estanBalanceados: tr("estanBalanceados()", "isBalanced()"),
+    apilar: tr("PilaEnlazada::apilar()", "LinkedStack::push()"),
+    desapilar: tr("PilaEnlazada::desapilar()", "LinkedStack::pop()"),
+    cima: tr("PilaEnlazada::cima()", "LinkedStack::peek()"),
   };
+
+  // Nombres del C++ que se dibujan (variables y punteros), en el idioma de la página.
+  const N = tr(
+    { cantidad: "cantidad", valor: "valor", tope: "tope", nuevo: "nuevo", temp: "temp", texto: "texto", esperado: "esperado", abiertos: "abiertos", pila: "pila" },
+    { cantidad: "count", valor: "value", tope: "top", nuevo: "newNode", temp: "temp", texto: "text", esperado: "expected", abiertos: "openers", pila: "stack" });
+  const CLASE = tr("PilaEnlazada", "LinkedStack");
 
   // ------------------------------------------------------------------
   // Estados. std::stack: ids de abajo hacia arriba. PilaEnlazada: nodos
@@ -142,7 +206,8 @@
   const lleno = (s, n, clave, paso, linea) => {
     if (n < MAXIMO) return false;
     s.vis = { error: true };
-    paso(clave, linea, `Hasta ${MAXIMO} elementos, para que quepa en pantalla: saca alguno o pulsa Reiniciar.`, "error");
+    paso(clave, linea, tr(`Hasta ${MAXIMO} elementos, para que quepa en pantalla: saca alguno o pulsa Reiniciar.`,
+      `Up to ${MAXIMO} elements, so it fits on screen: remove some or press Reset.`), "error");
     return true;
   };
 
@@ -154,7 +219,7 @@
 
   const OPS = {
     push: {
-      etiqueta: "push(valor)",
+      etiqueta: tr("push(valor)", "push(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         if (lleno(s, s.pila.length, "push", paso, 1)) return;
@@ -162,7 +227,8 @@
         s.vals[id] = valor;
         s.pila.push(id);
         s.vis = { vars: varsStl(s), cambio: ["size()"], entrando: id };
-        paso("push", 1, `push(${valor}): el ${valor} cae encima de todo y pasa a ser la cima. Lo que había abajo no se toca: O(1).`, "exito");
+        paso("push", 1, tr(`push(${valor}): el ${valor} cae encima de todo y pasa a ser la cima. Lo que había abajo no se toca: O(1).`,
+          `push(${valor}): ${valor} lands on top of everything and becomes the top. What was below is not touched: O(1).`), "exito");
       },
     },
 
@@ -171,15 +237,18 @@
       ejecutar(s, args, paso) {
         const vacia = s.pila.length === 0;
         s.vis = { vars: varsStl(s) };
-        paso("top", 1, `¿!pila.empty()? ${vacia ? "No: la pila está vacía." : "Sí: hay algo arriba."}`);
+        paso("top", 1, tr(`¿!pila.empty()? ${vacia ? "No: la pila está vacía." : "Sí: hay algo arriba."}`,
+          `!stack.empty()? ${vacia ? "No: the stack is empty." : "Yes: there is something on top."}`));
         if (vacia) {
           s.vis = { vars: varsStl(s), error: true };
-          paso("top", 1, "No se llama a top(). Sin esta pregunta, top() con la pila vacía sería comportamiento indefinido: std::stack no lanza ninguna excepción, simplemente lee basura (o el programa se cae).", "error");
+          paso("top", 1, tr("No se llama a top(). Sin esta pregunta, top() con la pila vacía sería comportamiento indefinido: std::stack no lanza ninguna excepción, simplemente lee basura (o el programa se cae).",
+            "top() is not called. Without this check, top() on an empty stack would be undefined behavior: std::stack throws no exception, it just reads garbage (or the program crashes)."), "error");
           return;
         }
         const id = s.pila[s.pila.length - 1];
         s.vis = { vars: varsStl(s), leida: id, salida: s.vals[id] };
-        paso("top", 2, `top() = ${s.vals[id]}: lee la cima sin sacarla. Es lo único que se puede ver; para llegar a los de abajo hay que sacar los de arriba.`, "exito");
+        paso("top", 2, tr(`top() = ${s.vals[id]}: lee la cima sin sacarla. Es lo único que se puede ver; para llegar a los de abajo hay que sacar los de arriba.`,
+          `top() = ${s.vals[id]}: reads the top without removing it. It is the only thing you can see; to reach the ones below you have to remove the ones above.`), "exito");
       },
     },
 
@@ -188,160 +257,186 @@
       ejecutar(s, args, paso) {
         const vacia = s.pila.length === 0;
         s.vis = { vars: varsStl(s) };
-        paso("pop", 1, `¿!pila.empty()? ${vacia ? "No: la pila está vacía." : "Sí: hay algo que sacar."}`);
+        paso("pop", 1, tr(`¿!pila.empty()? ${vacia ? "No: la pila está vacía." : "Sí: hay algo que sacar."}`,
+          `!stack.empty()? ${vacia ? "No: the stack is empty." : "Yes: there is something to remove."}`));
         if (vacia) {
           s.vis = { vars: varsStl(s), error: true };
-          paso("pop", 1, "No se llama a pop(). Con la pila vacía, pop() sería comportamiento indefinido: no hay excepción que te avise.", "error");
+          paso("pop", 1, tr("No se llama a pop(). Con la pila vacía, pop() sería comportamiento indefinido: no hay excepción que te avise.",
+            "pop() is not called. On an empty stack, pop() would be undefined behavior: no exception warns you."), "error");
           return;
         }
         const id = s.pila[s.pila.length - 1];
         s.vis = { vars: varsStl(s), condenada: id };
-        paso("pop", 2, `pop() quita la cima (${s.vals[id]})...`);
+        paso("pop", 2, tr(`pop() quita la cima (${s.vals[id]})...`, `pop() removes the top (${s.vals[id]})...`));
         s.pila.pop();
         delete s.vals[id];
         s.vis = { vars: varsStl(s), cambio: ["size()", "empty()"] };
-        paso("pop", 2, `...y no devuelve nada (es void). Si necesitabas el valor, había que leerlo antes con top(). ${s.pila.length ? `Ahora la cima es ${s.vals[s.pila[s.pila.length - 1]]}.` : "La pila quedó vacía."}`, "exito");
+        const cima = s.pila.length ? s.vals[s.pila[s.pila.length - 1]] : null;
+        paso("pop", 2, tr(`...y no devuelve nada (es void). Si necesitabas el valor, había que leerlo antes con top(). ${cima != null ? `Ahora la cima es ${cima}.` : "La pila quedó vacía."}`,
+          `...and returns nothing (it is void). If you needed the value, you had to read it first with top(). ${cima != null ? `Now the top is ${cima}.` : "The stack is now empty."}`), "exito");
       },
     },
 
     estanBalanceados: {
-      etiqueta: "estanBalanceados(texto)",
+      etiqueta: tr("estanBalanceados(texto)", "isBalanced(text)"),
       ejecutar(s, args, paso) {
         // Cada ejecución empieza de cero, con abiertos vacía.
         Object.assign(s, { pila: [], vals: {}, i: -1, hechos: 0 });
         const texto = s.texto;
-        const vars = (extra) => Object.assign({ texto: `"${texto}"` }, extra);
+        const vars = (extra) => Object.assign({ [N.texto]: `"${texto}"` }, extra);
+        // c y esperado (expected) como variables del dibujo.
+        const conC = (c, esperado) => vars(esperado == null ? { c: comillas(c) } : { c: comillas(c), [N.esperado]: comillas(esperado) });
         s.vis = { vars: vars() };
-        paso("estanBalanceados", 2, "abiertos empieza vacía. Va a guardar las aperturas que todavía no se cerraron.");
+        paso("estanBalanceados", 2, tr("abiertos empieza vacía. Va a guardar las aperturas que todavía no se cerraron.",
+          "openers starts empty. It will keep the openers that are not closed yet."));
         for (let i = 0; i < texto.length; i++) {
           const c = texto[i];
           s.i = i;
-          s.vis = { vars: vars({ c: comillas(c) }) };
+          s.vis = { vars: conC(c) };
           if ("([{".includes(c)) {
-            paso("estanBalanceados", 4, `c = ${comillas(c)}: es una apertura.`);
+            paso("estanBalanceados", 4, tr(`c = ${comillas(c)}: es una apertura.`, `c = ${comillas(c)}: it is an opener.`));
             const id = `c${s.sig++}`;
             s.vals[id] = c;
             s.pila.push(id);
-            s.vis = { vars: vars({ c: comillas(c) }), entrando: id, desde: i };
-            paso("estanBalanceados", 5, `abiertos.push(${comillas(c)}): queda arriba de todo, porque es la que tiene que cerrarse primero.`);
+            s.vis = { vars: conC(c), entrando: id, desde: i };
+            paso("estanBalanceados", 5, tr(`abiertos.push(${comillas(c)}): queda arriba de todo, porque es la que tiene que cerrarse primero.`,
+              `openers.push(${comillas(c)}): it sits on top of everything, because it is the one that must be closed first.`));
           } else if (")]}".includes(c)) {
-            paso("estanBalanceados", 6, `c = ${comillas(c)}: es un cierre. Tiene que corresponder a la última apertura sin cerrar, la cima.`);
+            paso("estanBalanceados", 6, tr(`c = ${comillas(c)}: es un cierre. Tiene que corresponder a la última apertura sin cerrar, la cima.`,
+              `c = ${comillas(c)}: it is a closer. It must match the last opener still open, the top.`));
             if (!s.pila.length) {
-              s.vis = { vars: vars({ c: comillas(c) }), error: true, charMalo: i };
-              paso("estanBalanceados", 7, "¿abiertos.empty()? Sí: no hay ninguna apertura esperando.");
-              s.vis = { vars: vars({ c: comillas(c) }), error: true, charMalo: i, salida: "false" };
-              paso("estanBalanceados", 8, `return false: ${comillas(c)} cierra algo que nunca se abrió.`, "error");
+              s.vis = { vars: conC(c), error: true, charMalo: i };
+              paso("estanBalanceados", 7, tr("¿abiertos.empty()? Sí: no hay ninguna apertura esperando.", "openers.empty()? Yes: no opener is waiting."));
+              s.vis = { vars: conC(c), error: true, charMalo: i, salida: "false" };
+              paso("estanBalanceados", 8, tr(`return false: ${comillas(c)} cierra algo que nunca se abrió.`, `return false: ${comillas(c)} closes something that was never opened.`), "error");
               s.i = -1;
               return;
             }
-            paso("estanBalanceados", 7, "¿abiertos.empty()? No.");
+            paso("estanBalanceados", 7, tr("¿abiertos.empty()? No.", "openers.empty()? No."));
             const esperado = c === ")" ? "(" : c === "]" ? "[" : "{";
             const arriba = s.pila[s.pila.length - 1];
-            s.vis = { vars: vars({ c: comillas(c), esperado: comillas(esperado) }), cambio: ["esperado"] };
-            paso("estanBalanceados", 10, `esperado = ${comillas(esperado)}: la apertura que corresponde a ${comillas(c)}.`);
+            s.vis = { vars: conC(c, esperado), cambio: [N.esperado] };
+            paso("estanBalanceados", 10, tr(`esperado = ${comillas(esperado)}: la apertura que corresponde a ${comillas(c)}.`,
+              `expected = ${comillas(esperado)}: the opener that matches ${comillas(c)}.`));
             const coincide = s.vals[arriba] === esperado;
             s.vis = coincide
-              ? { vars: vars({ c: comillas(c), esperado: comillas(esperado) }), leida: arriba, charLeido: i }
-              : { vars: vars({ c: comillas(c), esperado: comillas(esperado) }), error: true, mala: arriba, charMalo: i };
-            paso("estanBalanceados", 11, `¿abiertos.top() != esperado? La cima es ${comillas(s.vals[arriba])}: ${coincide ? "coinciden." : `no es ${comillas(esperado)}.`}`);
+              ? { vars: conC(c, esperado), leida: arriba, charLeido: i }
+              : { vars: conC(c, esperado), error: true, mala: arriba, charMalo: i };
+            paso("estanBalanceados", 11, tr(`¿abiertos.top() != esperado? La cima es ${comillas(s.vals[arriba])}: ${coincide ? "coinciden." : `no es ${comillas(esperado)}.`}`,
+              `openers.top() != expected? The top is ${comillas(s.vals[arriba])}: ${coincide ? "they match." : `it is not ${comillas(esperado)}.`}`));
             if (!coincide) {
               s.vis = Object.assign({}, s.vis, { salida: "false" });
-              paso("estanBalanceados", 12, `return false: ${comillas(c)} intenta cerrar, pero la última apertura es ${comillas(s.vals[arriba])}. Se cruzaron.`, "error");
+              paso("estanBalanceados", 12, tr(`return false: ${comillas(c)} intenta cerrar, pero la última apertura es ${comillas(s.vals[arriba])}. Se cruzaron.`,
+                `return false: ${comillas(c)} tries to close, but the last opener is ${comillas(s.vals[arriba])}. They crossed.`), "error");
               s.i = -1;
               return;
             }
-            s.vis = { vars: vars({ c: comillas(c), esperado: comillas(esperado) }), condenada: arriba, charLeido: i };
+            s.vis = { vars: conC(c, esperado), condenada: arriba, charLeido: i };
             s.pila.pop();
             delete s.vals[arriba];
-            paso("estanBalanceados", 14, `abiertos.pop(): ${comillas(esperado)} y ${comillas(c)} forman un par. La apertura sale de la pila.`);
+            paso("estanBalanceados", 14, tr(`abiertos.pop(): ${comillas(esperado)} y ${comillas(c)} forman un par. La apertura sale de la pila.`,
+              `openers.pop(): ${comillas(esperado)} and ${comillas(c)} make a pair. The opener leaves the stack.`));
           } else {
-            paso("estanBalanceados", 6, `c = ${comillas(c)}: no es ni apertura ni cierre. Se ignora.`);
+            paso("estanBalanceados", 6, tr(`c = ${comillas(c)}: no es ni apertura ni cierre. Se ignora.`, `c = ${comillas(c)}: it is neither an opener nor a closer. It is ignored.`));
           }
           s.hechos = i + 1;
         }
         s.i = -1;
         const ok = s.pila.length === 0;
         s.vis = { vars: vars(), salida: String(ok), error: !ok, mala: ok ? null : s.pila[s.pila.length - 1] };
+        const sinCerrar = ok ? "" : comillas(s.vals[s.pila[s.pila.length - 1]]);
         paso("estanBalanceados", 17, ok
-          ? "return abiertos.empty(): true. Todas las aperturas se cerraron, en el orden correcto."
-          : `return abiertos.empty(): false. El texto se terminó y ${comillas(s.vals[s.pila[s.pila.length - 1]])} quedó sin cerrar.`, ok ? "exito" : "error");
+          ? tr("return abiertos.empty(): true. Todas las aperturas se cerraron, en el orden correcto.", "return openers.empty(): true. Every opener was closed, in the right order.")
+          : tr(`return abiertos.empty(): false. El texto se terminó y ${sinCerrar} quedó sin cerrar.`, `return openers.empty(): false. The text ended and ${sinCerrar} was left open.`), ok ? "exito" : "error");
       },
     },
 
     apilar: {
-      etiqueta: "apilar(valor)",
+      etiqueta: tr("apilar(valor)", "push(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         if (lleno(s, s.cantidad, "apilar", paso, 2)) return;
-        const vars = () => ({ valor, cantidad: s.cantidad });
+        const vars = () => ({ [N.valor]: valor, [N.cantidad]: s.cantidad });
         const id = `n${s.sig++}`;
         s.nodos[id] = { v: valor, sig: null, ancla: true };
-        s.ptrs = { nuevo: id };
+        s.ptrs = { [N.nuevo]: id };
         s.vis = { vars: vars(), activo: id };
-        paso("apilar", 2, `new Nodo(${valor}): el nodo aparece suelto. Su siguiente es nullptr y nadie apunta a él todavía.`);
+        paso("apilar", 2, tr(`new Nodo(${valor}): el nodo aparece suelto. Su siguiente es nullptr y nadie apunta a él todavía.`,
+          `new Node(${valor}): the node appears on its own. Its next is nullptr and nobody points to it yet.`));
         s.nodos[id].sig = s.tope;
         s.vis = { vars: vars(), activo: id, flecha: id };
         paso("apilar", 3, s.tope == null
-          ? "nuevo->siguiente = tope: la pila estaba vacía, así que sigue siendo nullptr."
-          : `nuevo->siguiente = tope: el nuevo apunta a la cima actual (${s.nodos[s.tope].v}). Así no se pierde el resto de la pila.`);
+          ? tr("nuevo->siguiente = tope: la pila estaba vacía, así que sigue siendo nullptr.", "newNode->next = top: the stack was empty, so it stays nullptr.")
+          : tr(`nuevo->siguiente = tope: el nuevo apunta a la cima actual (${s.nodos[s.tope].v}). Así no se pierde el resto de la pila.`,
+            `newNode->next = top: the new node points to the current top (${s.nodos[s.tope].v}). That way the rest of the stack is not lost.`));
         s.tope = id;
         delete s.nodos[id].ancla;
         s.vis = { vars: vars(), activo: id, flecha: "tope" };
-        paso("apilar", 4, `tope = nuevo: ${valor} es la nueva cima. Los demás nodos no se movieron en memoria.`);
+        paso("apilar", 4, tr(`tope = nuevo: ${valor} es la nueva cima. Los demás nodos no se movieron en memoria.`,
+          `top = newNode: ${valor} is the new top. The other nodes did not move in memory.`));
         s.cantidad++;
-        s.vis = { vars: vars(), activo: id, cambio: ["cantidad"] };
-        paso("apilar", 5, "cantidad++. Son los mismos pasos que insertarAlInicio de la lista enlazada: O(1), sin recorrer nada.", "exito");
+        s.vis = { vars: vars(), activo: id, cambio: [N.cantidad] };
+        paso("apilar", 5, tr("cantidad++. Son los mismos pasos que insertarAlInicio de la lista enlazada: O(1), sin recorrer nada.",
+          "count++. These are the same steps as the linked list's insertAtFront: O(1), without traversing anything."), "exito");
         s.ptrs = {};
       },
     },
 
     desapilar: {
-      etiqueta: "desapilar()",
+      etiqueta: tr("desapilar()", "pop()"),
       ejecutar(s, args, paso) {
         let valor;
-        const vars = () => (valor == null ? { cantidad: s.cantidad } : { cantidad: s.cantidad, valor });
+        const vars = () => (valor == null ? { [N.cantidad]: s.cantidad } : { [N.cantidad]: s.cantidad, [N.valor]: valor });
         s.vis = { vars: vars(), flecha: "tope", nuloTope: s.tope == null };
-        paso("desapilar", 2, `¿tope == nullptr? ${s.tope == null ? "Sí: la pila está vacía." : "No."}`);
+        paso("desapilar", 2, tr(`¿tope == nullptr? ${s.tope == null ? "Sí: la pila está vacía." : "No."}`,
+          `top == nullptr? ${s.tope == null ? "Yes: the stack is empty." : "No."}`));
         if (s.tope == null) {
           s.vis = { vars: vars(), nuloTope: true, error: true };
-          paso("desapilar", 3, "No hay nada que sacar: se lanza std::underflow_error. A diferencia de std::stack::pop, aquí el error se avisa.", "error");
+          paso("desapilar", 3, tr("No hay nada que sacar: se lanza std::underflow_error. A diferencia de std::stack::pop, aquí el error se avisa.",
+            "There is nothing to remove: std::underflow_error is thrown. Unlike std::stack::pop, here the error is reported."), "error");
           return;
         }
         const temp = s.tope;
-        s.ptrs = { temp };
+        s.ptrs = { [N.temp]: temp };
         s.vis = { vars: vars(), condenado: temp };
-        paso("desapilar", 5, "temp = tope: guardamos la dirección de la cima para poder liberarla después.");
+        paso("desapilar", 5, tr("temp = tope: guardamos la dirección de la cima para poder liberarla después.",
+          "temp = top: we keep the address of the top so we can free it later."));
         valor = s.nodos[temp].v;
-        s.vis = { vars: vars(), condenado: temp, cambio: ["valor"] };
-        paso("desapilar", 6, `int valor = temp->valor: guardamos el ${valor} para devolverlo (después del delete ya no se puede leer).`);
+        s.vis = { vars: vars(), condenado: temp, cambio: [N.valor] };
+        paso("desapilar", 6, tr(`int valor = temp->valor: guardamos el ${valor} para devolverlo (después del delete ya no se puede leer).`,
+          `int value = temp->value: we keep ${valor} to return it (after the delete it can no longer be read).`));
         s.nodos[temp].reserva = true;
         s.tope = s.nodos[temp].sig;
         s.vis = { vars: vars(), condenado: temp, flecha: "tope", nuloTope: s.tope == null };
-        paso("desapilar", 7, `tope = tope->siguiente: la cima ahora es ${s.tope == null ? "nullptr (la pila quedó vacía)" : s.nodos[s.tope].v}. El ${valor} quedó afuera, pero sigue ocupando memoria.`);
+        paso("desapilar", 7, tr(`tope = tope->siguiente: la cima ahora es ${s.tope == null ? "nullptr (la pila quedó vacía)" : s.nodos[s.tope].v}. El ${valor} quedó afuera, pero sigue ocupando memoria.`,
+          `top = top->next: the top is now ${s.tope == null ? "nullptr (the stack is empty)" : s.nodos[s.tope].v}. ${valor} was left out, but it still takes up memory.`));
         delete s.nodos[temp];
         s.ptrs = {};
         s.vis = { vars: vars() };
-        paso("desapilar", 8, "delete temp: liberamos la memoria del nodo.");
+        paso("desapilar", 8, tr("delete temp: liberamos la memoria del nodo.", "delete temp: we free the node's memory."));
         s.cantidad--;
-        s.vis = { vars: vars(), cambio: ["cantidad"] };
-        paso("desapilar", 9, "cantidad--.");
+        s.vis = { vars: vars(), cambio: [N.cantidad] };
+        paso("desapilar", 9, tr("cantidad--.", "count--."));
         s.vis = { vars: vars(), salida: valor };
-        paso("desapilar", 10, `return ${valor}. Es borrar la cabeza de una lista enlazada: O(1).`, "exito");
+        paso("desapilar", 10, tr(`return ${valor}. Es borrar la cabeza de una lista enlazada: O(1).`, `return ${valor}. It is removing the head of a linked list: O(1).`), "exito");
       },
     },
 
     cima: {
-      etiqueta: "cima()",
+      etiqueta: tr("cima()", "peek()"),
       ejecutar(s, args, paso) {
-        s.vis = { vars: { cantidad: s.cantidad }, flecha: "tope", nuloTope: s.tope == null };
-        paso("cima", 2, `¿tope == nullptr? ${s.tope == null ? "Sí: la pila está vacía." : "No."}`);
+        const vars = { [N.cantidad]: s.cantidad };
+        s.vis = { vars, flecha: "tope", nuloTope: s.tope == null };
+        paso("cima", 2, tr(`¿tope == nullptr? ${s.tope == null ? "Sí: la pila está vacía." : "No."}`,
+          `top == nullptr? ${s.tope == null ? "Yes: the stack is empty." : "No."}`));
         if (s.tope == null) {
-          s.vis = { vars: { cantidad: s.cantidad }, nuloTope: true, error: true };
-          paso("cima", 3, "Una pila vacía no tiene cima: se lanza std::underflow_error.", "error");
+          s.vis = { vars, nuloTope: true, error: true };
+          paso("cima", 3, tr("Una pila vacía no tiene cima: se lanza std::underflow_error.", "An empty stack has no top: std::underflow_error is thrown."), "error");
           return;
         }
-        s.vis = { vars: { cantidad: s.cantidad }, encontrado: s.tope, flecha: "tope", salida: s.nodos[s.tope].v };
-        paso("cima", 5, `return tope->valor: ${s.nodos[s.tope].v}. Un solo salto desde tope, sin sacar nada: O(1).`, "exito");
+        s.vis = { vars, encontrado: s.tope, flecha: "tope", salida: s.nodos[s.tope].v };
+        paso("cima", 5, tr(`return tope->valor: ${s.nodos[s.tope].v}. Un solo salto desde tope, sin sacar nada: O(1).`,
+          `return top->value: ${s.nodos[s.tope].v}. A single hop from top, without removing anything: O(1).`), "exito");
       },
     },
   };
@@ -365,7 +460,7 @@
         `<marker id="punta-pila-${n}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
         `<marker id="punta-pila-activa-${n}" class="activa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
         "</defs>";
-      lienzo.append(svg, el("div", { class: "lcabeza" }, el("span", { class: "lcabeza-nombre", text: "tope" }), el("span", { class: "sig" })));
+      lienzo.append(svg, el("div", { class: "lcabeza" }, el("span", { class: "lcabeza-nombre", text: N.tope }), el("span", { class: "sig" })));
     }
     escenario.replaceChildren(el("div", { class: "info-pila", "data-alto-estable": true }), el("div", { class: "desliza-pila" }, el("div", { class: "marco-pila" }, lienzo)));
     return lienzo;
@@ -445,7 +540,7 @@
     const malo = vis.salida === "false";
     escenario.querySelector(".info-pila").replaceChildren(
       DS.variables(vis.vars || {}, vis.cambio),
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
   }
 
   function dibujarStl(lienzo, s, vis) {
@@ -455,7 +550,7 @@
     const altoCelda = 32;
     const base = 8 + altoCelda + 8 + cap * paso + 10;
     // El nombre va centrado debajo del vaso: x deja lugar para que no se corte.
-    vaso(lienzo, { x: 60, base, cap, ids: s.pila, vals: s.vals, vis, nombre: "std::stack<int> pila", vivos, etiquetaCima: "top()", paso, altoCelda });
+    vaso(lienzo, { x: 60, base, cap, ids: s.pila, vals: s.vals, vis, nombre: `std::stack<int> ${N.pila}`, vivos, etiquetaCima: "top()", paso, altoCelda });
     limpiar(lienzo, vivos);
     return { ancho: 60 + ANCHO + 20 + 90, alto: base + 24 };
   }
@@ -484,7 +579,7 @@
       vivos.add("marca-c");
     }
     const desde = vis.desde != null ? posicion(vis.desde) : null;
-    vaso(lienzo, { x: x0 + 40, base, cap: s.cap, ids: s.pila, vals: s.vals, vis, nombre: "abiertos", vivos, desde, etiquetaCima: "top()" });
+    vaso(lienzo, { x: x0 + 40, base, cap: s.cap, ids: s.pila, vals: s.vals, vis, nombre: N.abiertos, vivos, desde, etiquetaCima: "top()" });
     limpiar(lienzo, vivos);
     return { ancho: Math.max(x0 + s.texto.length * paso + 14, x0 + 40 + ANCHO + 20 + 90), alto: base + 30 };
   }
@@ -644,7 +739,7 @@
     }, opciones.cfg));
   }
 
-  const VALOR = { id: "valor", etiqueta: "Valor", min: 0, max: 99, aleatorio: true };
+  const VALOR = { id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, aleatorio: true };
   const op = (id) => Object.assign({ id }, OPS[id]);
 
   // Paso 1: std::stack.
@@ -654,7 +749,8 @@
       entradas: [VALOR],
       estadoInicial: () => estadoStl([4, 8, 15]),
       operaciones: ["push", "top", "pop"].map(op),
-      mensajeInicial: "Como en main(): se apilaron 4, 8 y 15. Prueba también top() y pop() con la pila vacía.",
+      mensajeInicial: tr("Como en main(): se apilaron 4, 8 y 15. Prueba también top() y pop() con la pila vacía.",
+        "As in main(): 4, 8 and 15 were pushed. Also try top() and pop() on an empty stack."),
     },
   });
 
@@ -662,10 +758,11 @@
   visualizador("vis-parentesis", {
     claves: ["estanBalanceados"],
     cfg: {
-      entradas: [{ id: "texto", etiqueta: "texto", opciones: [["{a[b(c)]}", "{a[b(c)]}"], ["([)]", "([)]"], ["(()", "(()"], ["())", "())"]] }],
+      entradas: [{ id: "texto", etiqueta: N.texto, opciones: [["{a[b(c)]}", "{a[b(c)]}"], ["([)]", "([)]"], ["(()", "(()"], ["())", "())"]] }],
       estadoInicial: ({ texto }) => estadoParentesis(texto),
       operaciones: [op("estanBalanceados")],
-      mensajeInicial: ({ texto }) => `texto = "${texto}". Pulsa el botón y mira cómo cada cierre se compara con la cima. Prueba los cuatro textos.`,
+      mensajeInicial: ({ texto }) => tr(`texto = "${texto}". Pulsa el botón y mira cómo cada cierre se compara con la cima. Prueba los cuatro textos.`,
+        `text = "${texto}". Press the button and watch how each closer is compared with the top. Try all four texts.`),
     },
   });
 
@@ -676,7 +773,8 @@
       entradas: [VALOR],
       estadoInicial: () => estadoEnlazada([4, 8]),
       operaciones: [op("apilar")],
-      mensajeInicial: "La pila tiene 8 arriba y 4 abajo. Apila un valor y fíjate en el orden de los dos punteros.",
+      mensajeInicial: tr("La pila tiene 8 arriba y 4 abajo. Apila un valor y fíjate en el orden de los dos punteros.",
+        "The stack has 8 on top and 4 below. Push a value and watch the order of the two pointers."),
     },
   });
 
@@ -685,22 +783,25 @@
     cfg: {
       estadoInicial: () => estadoEnlazada([4, 8, 15]),
       operaciones: [op("desapilar")],
-      mensajeInicial: "Desapila tres veces: los valores salen al revés de como entraron. Después prueba con la pila vacía.",
+      mensajeInicial: tr("Desapila tres veces: los valores salen al revés de como entraron. Después prueba con la pila vacía.",
+        "Pop three times: the values come out in the reverse order they went in. Then try it on an empty stack."),
     },
   });
 
   visualizador("vis-cima", {
     claves: ["cima"],
     cfg: {
-      entradas: [{ id: "inicial", etiqueta: "Pila inicial", opciones: [["llena", "15, 8, 4"], ["vacia", "vacía"]] }],
+      entradas: [{ id: "inicial", etiqueta: tr("Pila inicial", "Initial stack"), opciones: [["llena", "15, 8, 4"], ["vacia", tr("vacía", "empty")]] }],
       estadoInicial: ({ inicial }) => estadoEnlazada(inicial === "vacia" ? [] : [4, 8, 15]),
       operaciones: [op("cima")],
-      mensajeInicial: ({ inicial }) => (inicial === "vacia" ? "La pila está vacía: tope es nullptr." : "Lee la cima: no se saca nada. Prueba también con la pila vacía."),
+      mensajeInicial: ({ inicial }) => (inicial === "vacia"
+        ? tr("La pila está vacía: tope es nullptr.", "The stack is empty: top is nullptr.")
+        : tr("Lee la cima: no se saca nada. Prueba también con la pila vacía.", "Read the top: nothing is removed. Also try it on an empty stack.")),
     },
   });
 
   // Todo junto: las dos versiones, con los mismos botones.
-  const VERSION = { id: "version", etiqueta: "Versión", opciones: [["enlazada", "PilaEnlazada"], ["stl", "std::stack"]] };
+  const VERSION = { id: "version", etiqueta: tr("Versión", "Version"), opciones: [["enlazada", CLASE], ["stl", "std::stack"]] };
   const segun = (stl, enlazada) => (s, args, paso) => (s.modo === "stl" ? OPS[stl] : OPS[enlazada]).ejecutar(s, args, paso);
   visualizador("vis-todo", {
     claves: ["apilar", "desapilar", "cima", "push", "top", "pop"],
@@ -709,13 +810,13 @@
       estadoInicial: ({ version }) => (version === "stl" ? estadoStl([4, 8, 15]) : estadoEnlazada([4, 8, 15])),
       codigoInicial: ({ version }) => (version === "stl" ? "push" : "apilar"),
       operaciones: [
-        { id: "meter", etiqueta: ({ version }) => (version === "stl" ? "push(valor)" : "apilar(valor)"), usa: ["valor"], ejecutar: segun("push", "apilar") },
-        { id: "sacar", etiqueta: ({ version }) => (version === "stl" ? "pop()" : "desapilar()"), ejecutar: segun("pop", "desapilar") },
-        { id: "mirar", etiqueta: ({ version }) => (version === "stl" ? "top()" : "cima()"), ejecutar: segun("top", "cima") },
+        { id: "meter", etiqueta: ({ version }) => (version === "stl" ? OPS.push.etiqueta : OPS.apilar.etiqueta), usa: ["valor"], ejecutar: segun("push", "apilar") },
+        { id: "sacar", etiqueta: ({ version }) => (version === "stl" ? "pop()" : OPS.desapilar.etiqueta), ejecutar: segun("pop", "desapilar") },
+        { id: "mirar", etiqueta: ({ version }) => (version === "stl" ? "top()" : OPS.cima.etiqueta), ejecutar: segun("top", "cima") },
       ],
       mensajeInicial: ({ version }) => (version === "stl"
-        ? "std::stack con 4, 8 y 15. Cambia la versión para comparar con PilaEnlazada."
-        : "PilaEnlazada con 4, 8 y 15 (15 es la cima). Cambia la versión para comparar con std::stack."),
+        ? tr("std::stack con 4, 8 y 15. Cambia la versión para comparar con PilaEnlazada.", "std::stack with 4, 8 and 15. Change the version to compare with LinkedStack.")
+        : tr("PilaEnlazada con 4, 8 y 15 (15 es la cima). Cambia la versión para comparar con std::stack.", "LinkedStack with 4, 8 and 15 (15 is the top). Change the version to compare with std::stack.")),
     },
   });
 })();
