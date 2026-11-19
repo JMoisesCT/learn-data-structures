@@ -20,6 +20,7 @@ ejemplos/cpp/              Programas C++ completos, uno por tema (las páginas l
 ejemplos/cpp/en/           Los mismos programas en inglés, línea por línea
 docs/                      Notas del proyecto (p. ej. inspiración para el rediseño visual)
 docs/glosario-ingles.md    Nombres en inglés de las funciones y variables de los ejemplos
+docs/traduccion-ingles.md  Plan de traducción: tareas de cada tema
 docs/img/                  Imágenes del README
 scripts/
   compilar-ejemplos.sh     Compila y ejecuta todos los ejemplos, en los dos idiomas (con sanitizadores)

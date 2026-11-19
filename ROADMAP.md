@@ -31,7 +31,7 @@ No hay temas nuevos pendientes: lo siguiente es traducir los temas al inglés (t
 
 ## Traducción al inglés
 
-Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`), en este orden. Cómo se hace: CONTRIBUTING.md, "Versión en inglés".
+Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`), en este orden. Cómo se hace: CONTRIBUTING.md, "Versión en inglés". Las tareas de cada tema (archivo en inglés, nombres propuestos y lo que hay que revisar) están en [docs/traduccion-ingles.md](docs/traduccion-ingles.md).
 
 | Tema | En inglés |
 | --- | --- |
