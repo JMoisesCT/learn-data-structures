@@ -1,0 +1,50 @@
+# Plan de traducción al inglés
+
+Tareas para tener todo el sitio en inglés. La versión en inglés ya funciona (selector EN / ES, portada en `en/`, motor con `DS.tr`) y cada tema se traduce en **su propio PR**, en el orden de la tabla de abajo. Cómo se hace un tema: CONTRIBUTING.md, "Versión en inglés". El estado de cada tema se anota también en ROADMAP.md ("Traducción al inglés").
+
+## Qué incluye traducir un tema
+
+Para cada tema, en el mismo PR (`[<Tema>] Agregar la lección en inglés`, rama `tema/<slug>-ingles`):
+
+1. `ejemplos/cpp/en/<archivo>.cpp`: el `.cpp` de español traducido **línea por línea** (identificadores, comentarios, mensajes de error y salidas de `main`). Compila sin advertencias y su salida tiene sentido en inglés.
+2. `temas/<slug>/<slug>.js` con `DS.tr`:
+   - **Código:** `CODIGO` en los dos idiomas, con las mismas claves y las mismas líneas.
+   - **Mensajes:** los de cada `paso(...)`, `mensajeInicial` y los errores de "lleno" o "vacío".
+   - **Controles:** etiquetas de botones y entradas, opciones de las listas y títulos del código (`TITULOS`).
+   - **Lo que se dibuja:** nombres de variables, punteros y marcas, títulos de filas y ejes, "devuelve", leyendas, `title` y `aria-label`.
+   - **Widgets propios del tema** (carreras, experimentos, comparadores).
+   - Los números con formato (`toLocaleString`) usan el idioma de la página.
+   - Si conviene, los nombres que se dibujan se traducen al pintar (como `nombre()` en Notación algorítmica), así los estados quedan iguales en los dos idiomas.
+3. `en/temas/<slug>/index.html`: la lección completa con los mismos pasos e `id`, preguntas con su explicación en cada opción, tabla de complejidad, comando de compilación y ejercicios.
+4. `DS.TEMAS`: `en.archivo`. Glosario (`docs/glosario-ingles.md`): los nombres nuevos. ROADMAP.md: el tema como hecho.
+5. **Pruebas** en los dos idiomas (ver CLAUDE.md, "Antes de cada push"). En inglés los textos suelen ser más cortos, pero no siempre: hay que medir otra vez que cada paso quepa a 1280 × 800, en especial las preguntas que van junto al código y los mensajes más largos de cada operación.
+
+## Tareas por tema
+
+Los nombres en inglés son una propuesta: se confirman al traducir el tema y pasan al glosario. "Líneas JS" da una idea del tamaño del trabajo.
+
+| # | Tema | Archivo en inglés | Nombres principales (español → inglés) | Ojo con | Líneas JS | Estado |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Pila | `stack.cpp` | `PilaEnlazada` → `LinkedStack`; `apilar`/`desapilar`/`cima` → `push`/`pop`/`peek` | — | 822 | Hecho |
+| 2 | Notación algorítmica | `algorithmic_notation.cpp` | `obtener`/`sumar`/`hayRepetidos` → `get`/`sum`/`hasDuplicates`; `contarPresentes` → `countPresent`; `pasos` → `steps` | — | 1303 | Hecho |
+| 3 | Recursión | `recursion.cpp` | `sumaDigitos` → `digitSum`; `imprimirDigitos`/`imprimirAlReves` → `printDigits`/`printReversed`; `invertir` → `reverseDigits`; `aBase` → `toBase`; `DIGITOS` → `DIGITS`; `esPalindromo` → `isPalindrome`; `potencia` → `power`; `fibonacciMemo` | Las palabras de `esPalindromo` (`reconocer`, `recorrer`, `radar`, `abba`, `sala`) cumplen papeles distintos: un palíndromo largo, uno que falla recién en el medio, uno par, uno que falla enseguida. En inglés hacen falta palabras con esos mismos papeles (por ejemplo `racecar` o `noon`), y revisar que los mensajes y las preguntas sigan siendo ciertos | 1085 | Pendiente |
+| 4 | Lambdas en C++ | `lambdas.cpp` | `elevarAlCuadrado` → `square`; `capturaPorValor` → `captureByValue`; `sumarConReferencia` → `sumWithReference`; `sumaDeCuadrados` → `sumOfSquares`; `usarSumador` → `useAdder`; `contarMayores` → `countGreater`; `primerMultiplo` → `firstMultiple`; `ordenarDescendente`/`ordenarParesPrimero`/`ordenarPorCercania` → `sortDescending`/`sortEvensFirst`/`sortByCloseness` | Las capturas (`[factor]`, `[&total]`) se ven en la pila de llamadas: traducir también esos nombres | 950 | Pendiente |
+| 5 | Vector dinámico | `dynamic_array.cpp` | `VectorDinamico` → `DynamicArray`; `obtener` → `get`; `agregarAlFinal` → `pushBack`; `redimensionar` → `resize`; `insertar` → `insert`; `eliminarEn` → `removeAt`; `buscar` → `find`; `capacidad` → `capacity` | El experimento de costo amortizado (duplicar contra sumar 1) | 665 | Pendiente |
+| 6 | Lista enlazada | `linked_list.cpp` | Los del glosario: `ListaEnlazada` → `LinkedList`, `nodoEn` → `nodeAt`, `insertarAlInicio` → `insertAtFront`… | El comparador de costos contra el vector; Pila ya enlaza a `insertAtFront` y `nodeAt` | 1109 | Pendiente |
+| 7 | Lista doblemente enlazada | `doubly_linked_list.cpp` | `ListaDoble` → `DoublyLinkedList`; `anterior` → `prev`; `desenganchar` → `unlink`; `eliminarAlInicio`/`eliminarAlFinal` → `removeFront`/`removeBack`; `imprimirAlReves` → `printBackward` | Las etiquetas de los punteros dentro de cada nodo | 805 | Pendiente |
+| 8 | Lista circular | `circular_list.cpp` | `ListaCircular` → `CircularList`; `ultimo`/`primero` → `last`/`first`; `rotar` → `rotate`; `eliminarPrimero` → `removeFirst`; `unTurno` → `takeTurn` | Los nombres del ejemplo round-robin | 681 | Pendiente |
+| 9 | Cola | `queue.cpp` | `ColaEnlazada` → `LinkedQueue`; `encolar`/`desencolar`/`frente` → `enqueue`/`dequeue`/`front`; `usarQueue` → `useQueue`; `josefo` → `josephus` | — | 701 | Pendiente |
+| 10 | Ordenamientos elementales | `elementary_sorting.cpp` | `estaOrdenado` → `isSorted`; `huboIntercambio` → `swapped` (los sorts ya están en inglés) | La carrera con n = 10, 100 y 1000 y los contadores | 906 | Pendiente |
+| 11 | Merge sort y quicksort | `merge_sort_quicksort.cpp` | `mezclar` → `merge`; `particionar` → `partition`; `particionarAleatorio` → `randomPartition`; `quickSortAleatorio` → `randomQuickSort`; `mergeSortIterativo` → `iterativeMergeSort`; `bajo`/`alto` → `low`/`high` | El árbol de llamadas y la carrera hasta n = 10 000 | 1048 | Pendiente |
+| 12 | Ordenamientos sin comparaciones | `non_comparison_sorting.cpp` | `contarYReescribir` → `countAndRewrite`; `conteo` → `count`; `salida` → `output`; `cubeta` → `bucket`; `ordenarPorDigito` → `sortByDigit` | El contador "comparaciones = 0" y las filas con nombre | 886 | Pendiente |
+| 13 | Montículo y heapsort | `heap.cpp` | Las funciones ya están en inglés (`maxHeapify`, `insertMax`…); traducir variables y comentarios | Poco texto de código: el trabajo está en los mensajes | 797 | Pendiente |
+| 14 | Tabla hash | `hash_table.cpp` | `TablaHashEncadenada`/`TablaHashAbierta` → `ChainedHashTable`/`OpenAddressingHashTable`; `hashDivision` → `divisionHash`, `hashMultiplicacion` → `multiplicationHash`, `hashCuadradoMedio` → `midSquareHash`, `hashPlegado` → `foldingHash`, `hashSumaLetras` → `letterSumHash`, `hashPolinomial` → `polynomialHash`; `factorCarga` → `loadFactor`; `esPrimo`/`siguientePrimo` → `isPrime`/`nextPrime` | Las palabras del paso de texto (`amor`, `roma`, `mora`, `ramo`… son anagramas a propósito: con suma de letras chocan). En inglés hacen falta anagramas que choquen igual (por ejemplo `listen`, `silent`, `enlist`, `tinsel`), y revisar que los pasos y las preguntas sigan siendo ciertos | 1132 | Pendiente |
+| 15 | Búsqueda binaria | `binary_search.cpp` | `busquedaBinaria` → `binarySearch`; `busquedaRecursiva` → `recursiveSearch`; `contarApariciones` → `countOccurrences`; `raizEntera` → `integerSqrt`; `izq`/`medio`/`der` → `left`/`mid`/`right` (`lowerBound` y `upperBound` ya están en inglés) | El juego de cartas y la recta de los `int` con el desbordamiento | 1123 | Pendiente |
+| 16 | Árbol binario de búsqueda | `binary_search_tree.cpp` | `ArbolBinarioBusqueda` → `BinarySearchTree`; `izq`/`der` → `left`/`right`; `recorridoInorden`/`Preorden`/`Postorden` → `inorderTraversal`/`preorderTraversal`/`postorderTraversal`; `liberar` → `destroy`; `padre` → `parent` | Las etiquetas `izq`/`der` dentro de cada nodo | 955 | Pendiente |
+| 17 | Árbol AVL | `avl_tree.cpp` y `avl_tree_left_minus_right.cpp` | `ArbolAVL` → `AVLTree`; `factorBalance` → `balanceFactor`; `rotarDerecha`/`rotarIzquierda` → `rotateRight`/`rotateLeft`; `rebalancear` → `rebalance`; `insertarEn`/`eliminarDe` → `insertInto`/`removeFrom`; `alturaTotal` → `treeHeight` | Tiene **variantes**: las dos convenciones del factor de balance necesitan su `.cpp` en inglés y `variantes` con `archivo` y `codigo` en los dos idiomas; el interruptor y su texto también | 1460 | Pendiente |
+| 18 | Grafos | `graph.cpp` | `Grafo` → `Graph`; `agregarArista` → `addEdge`; `distancias` → `distances`; `dfsRecursivo` → `recursiveDfs`; `visitar` → `visit`; `contarComponentes` → `countComponents`; `validar` → `validate`; `visitado` → `visited`; `islas` → `islands` | Las fichas que viajan entre grafo, lista y cola o pila llevan nombres de estructuras | 852 | Pendiente |
+
+## Pendientes generales
+
+- Cuando todos los temas estén traducidos: quitar de `en/index.html` la nota "topics marked *in Spanish for now*", revisar si siguen haciendo falta la marca `solo-espanol` y `ajustarEnlacesSinTraducir`, y traducir `README.md` en un `README.en.md` si el dueño lo pide.
+- Las páginas usan títulos y descripciones (`<title>`, `<meta name="description">`) propios en cada idioma; los enlaces `hreflang` entre versiones todavía no están (necesitan URLs absolutas).
