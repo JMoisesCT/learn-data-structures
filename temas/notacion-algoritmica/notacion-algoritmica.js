@@ -174,6 +174,15 @@
     return s;
   }
 
+  // Al escribir otro n, el arreglo se dibuja de inmediato con ese tamaño; la
+  // gráfica conserva los puntos de las ejecuciones anteriores.
+  function cambiarN(s, n) {
+    const nuevo = Object.assign({}, s, { vis: {} });
+    preparar(nuevo, s.op, n, "sin");
+    nuevo.enCurso = false;
+    return nuevo;
+  }
+
   function preparar(s, op, n, caso) {
     s.op = op;
     s.n = n;
@@ -939,7 +948,14 @@
     });
   }
 
-  const entradaN = (valor, max) => ({ id: "n", etiqueta: "n", min: 1, max, valor });
+  const entradaN = (valor, max) => ({
+    id: "n", etiqueta: "n", min: 1, max, valor,
+    alCambiar: (s, { n }) => ({
+      estado: cambiarN(s, n),
+      mensaje: tr(`n = ${n}: ahora el arreglo tiene ${n} elemento(s). Pulsa la operación para contar sus pasos; los puntos de la gráfica se conservan.`,
+        `n = ${n}: the array now has ${n} element(s). Press the operation to count its steps; the points on the chart are kept.`),
+    }),
+  });
   const CASO = { id: "caso", etiqueta: "", reinicia: false, opciones: [
     ["sin", tr("sin repetidos", "no duplicates")], ["inicio", tr("repetido al inicio", "duplicate at the start")], ["final", tr("repetido al final", "duplicate at the end")]] };
   const OBJETIVO = (max, valor) => ({ id: "objetivo", etiqueta: nombre("objetivo"), min: -99, max, valor });
