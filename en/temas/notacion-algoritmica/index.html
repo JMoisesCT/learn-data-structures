@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Algorithmic notation (Big-O) · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson on big O notation: what O(1), O(log n), O(n), O(n log n), O(n²) and O(2ⁿ) mean, with interactive charts, animations that count every step and C++ examples.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="notacion-algoritmica">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Algorithmic notation</div>
+      <h1>Algorithmic notation (Big-O)</h1>
+      <p class="resumen">The language for comparing algorithms: it doesn't measure seconds, it tells <strong>how the work grows</strong> when the data grows.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Counting steps">
+        <h2>Count steps, not seconds</h2>
+        <p>Counting <strong>steps</strong> (comparing, adding, reading a cell) doesn't depend on the computer, only on the algorithm and on the <strong>input size</strong> <code>n</code>. Big O notation answers: <strong>if <code>n</code> grows, how do the steps grow?</strong> Move <code>n</code> and compare.</p>
+        <div id="carrera"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With <code>n²</code> steps, if <code>n</code> goes from 1000 to 2000, how many steps does it take?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That would happen with O(n). With n², twice n gets squared: (2n)² = 4n².">Twice as many</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="(2n)² = 4n²: from one million steps to four million. Look at the «If you double n» column of the table.">Four times as many</button>
+            <button type="button" class="opcion" data-explicacion="Adding a fixed amount when n doubles is what O(log n) does, which adds 1 step. With n², doubling n multiplies the steps by 4.">1000 more steps</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="constante" data-titulo="O(1): constant">
+        <h2>O(1): always the same</h2>
+        <p>Reading <code>data[i]</code> in an array is <strong>one step</strong>, whether there are 5 elements or 5 million: the cell's address is computed with a calculation. That is called <strong>constant time</strong>, O(1).</p>
+        <p>In the program, each function does <code>steps++</code> on every basic operation. Each <code>steps++</code> drops a <strong>dot</strong> under the cell it touched, and each run leaves a point on the chart on the right. Run it with several different <code>n</code>.</p>
+        <div id="vis-constante"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">A function always takes 3 steps, no matter what <code>n</code> is. What is its complexity?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The 3 is a constant and doesn't depend on n. Big-O ignores constants: what matters is whether it grows with n.">O(3)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="3 steps, 100 steps or 1 step: if it doesn't depend on n, it is O(1). «Constant» doesn't mean «a single step», but «it doesn't grow».">O(1)</button>
+            <button type="button" class="opcion" data-explicacion="O(n) would mean that with twice the data it takes twice the steps. Here it is always 3.">O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="lineal" data-titulo="O(n): linear">
+        <h2>O(n): one iteration per element</h2>
+        <p>To add up an array there is no choice but to <strong>look at each element once</strong>. A <code>for</code> loop of <code>n</code> iterations with fixed work inside takes <code>n</code> steps: with twice the data, twice the steps. It is <strong>linear time</strong>, O(n). On the chart, the points form a straight line.</p>
+        <div id="vis-lineal"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">A function walks through the array twice in a row: first to find the maximum and then to find the minimum. What is its complexity?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="It takes 2n steps, and the 2 is a constant: it is still a straight line. Two loops one after the other add up (n + n), they don't multiply.">O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Loops multiply only when one is inside the other. One after the other, they add up: n + n = 2n.">O(n²)</button>
+            <button type="button" class="opcion" data-explicacion="It is true that it takes 2n steps, but in Big-O constants are dropped: O(2n) is written O(n).">O(2n), and it is different from O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cuadratica" data-titulo="O(n²): quadratic">
+        <h2>O(n²): everyone against everyone</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>To know whether there are duplicates without sorting, you compare <strong>every pair</strong>: a <code>for</code> loop inside another. That is <code>n·(n − 1)/2</code> pairs (one cell per pair in the table), almost <code>n²/2</code>: with twice the data, <strong>four times</strong> the work. It is <strong>O(n²)</strong>.</p>
+          </div>
+          <div>
+            <p>Also try <em>duplicate at the start</em>: it finishes right away. That is the <strong>best case</strong>; when we say «it is O(n²)» we usually mean the <strong>worst case</strong>, the one with no duplicates at all.</p>
+          </div>
+        </div>
+        <div id="vis-cuadratica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">hasDuplicates makes <code>n·(n − 1)/2 = n²/2 − n/2</code> comparisons. Why do we say it is O(n²) and not O(n²/2)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It does make half of n², but that doesn't change how it grows: when n doubles, n²/2 is also multiplied by 4.">Because it actually makes n² comparisons</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The ½ is a constant and n/2 is a term smaller than n². When n is large, n² is what rules: only the fastest-growing term stays, without its constant.">Because constants and smaller terms are dropped</button>
+            <button type="button" class="opcion" data-explicacion="The worst case is precisely when there are no duplicates, and that is when it makes the n·(n − 1)/2 comparisons.">Because it is the best case</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="logaritmica" data-titulo="O(log n): logarithmic">
+        <h2>O(log n): split in half</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>If the data is <strong>sorted</strong>, binary search looks at the middle one and discards <strong>the half</strong> that cannot contain the target, and repeats. <code>n</code> can be split in half about <code>log₂ n</code> times until it reaches 1.</p>
+          </div>
+          <div>
+            <p>Like guessing a number from 1 to 100 with «higher» or «lower» hints: 7 questions are enough. With twice the data, <strong>one more iteration</strong>. It is <strong>O(log n)</strong>, almost as good as O(1).</p>
+          </div>
+        </div>
+        <div id="vis-logaritmica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">At most, how many iterations does binary search take on a sorted array of one million elements?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That is linear search, which looks one by one. Binary search discards half on each iteration.">One million</button>
+            <button type="button" class="opcion" data-explicacion="Half would be if it discarded a single element per iteration from each side. It discards half of the range each time.">Half a million</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="2²⁰ = 1,048,576, so 20 halvings are enough to get down to 1 element: about 20 iterations. And with a billion it would be only 30!">About 20</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="n-log-n" data-titulo="O(n log n)">
+        <h2>O(n log n): loops that multiply</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>A loop <strong>inside</strong> another <strong>multiplies</strong> their costs. <code>countPresent</code> does <code>n</code> binary searches of about <code>log n</code> steps: <code>n</code> columns of dots of height <code>log n</code>, <strong>n · log n</strong> in total.</p>
+          </div>
+          <div>
+            <p>It is the complexity of the good sorting algorithms, such as <a href="../monticulo/#heapsort">heapsort</a> or merge sort: a little more than O(n), far less than O(n²).</p>
+          </div>
+        </div>
+        <div id="vis-nlogn"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">A <code>for</code> loop of <code>n</code> iterations has another <code>for</code> loop of <code>n</code> iterations inside. What if the inner one always had only 10 iterations?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="n × n = n² would be with an inner loop of n iterations. With a fixed 10, the inner one is O(1).">O(n²)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="n iterations × 10 steps = 10n, and the 10 is a constant: O(n). What multiplies are the costs, and the inner one doesn't grow with n.">O(n)</button>
+            <button type="button" class="opcion" data-explicacion="For log n to show up, the inner loop would have to split something in half on each iteration.">O(n log n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="reglas" data-titulo="Drop what doesn't matter">
+        <h2>The rules: keep what grows fastest</h2>
+        <p>A real algorithm almost never takes exactly <code>n²</code> steps: it takes something like <code>3n² + 5n + 20</code>. Big-O keeps the <strong>fastest-growing term</strong> and drops its <strong>constant</strong>, because when <code>n</code> is large the rest goes unnoticed. Move <code>n</code>:</p>
+        <div id="widget-reglas"></div>
+        <div class="dos-columnas">
+          <div class="nota">The rules: <strong>constants are dropped</strong> (O(3n) = O(n)), <strong>the largest term stays</strong> (O(n² + n) = O(n²)), <strong>steps one after another add up</strong> (O(n + n) = O(n)) and <strong>nested ones multiply</strong> (O(n · n) = O(n²)).</div>
+          <div class="pregunta">
+            <p class="pregunta-enunciado">What is the complexity of <code>5n + 2n² + 1000</code> steps?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-explicacion="1000 looks big, but it is constant: with n = 1000, 2n² is already two million.">O(1000)</button>
+              <button type="button" class="opcion" data-explicacion="5n grows, but 2n² grows faster: with a large n, 5n is a smaller and smaller part of the total.">O(n)</button>
+              <button type="button" class="opcion" data-correcta data-explicacion="The fastest-growing term is 2n²; without its constant, n². The others become negligible when n is large.">O(n²)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>All on the same chart</h2>
+        <p>The five functions with the same <code>n</code> (up to <strong>64</strong>): run each one, increase <code>n</code> and repeat.</p>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexities and times">
+        <h2>The complexity classes, from best to worst</h2>
+        <p>Times on a computer that does <strong>100 million steps per second</strong>:</p>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Class</th><th>When n doubles</th><th>n = 1000</th><th>n = 1,000,000</th><th>Examples on this site</th></tr></thead>
+            <tbody>
+              <tr><td class="o-grande bueno">O(1)</td><td>same</td><td>10 ns</td><td>10 ns</td><td><code>get(i)</code> on the <a href="../vector-dinamico/">dynamic array</a>, pushing onto a <a href="../pila/">stack</a></td></tr>
+              <tr><td class="o-grande bueno">O(log n)</td><td>+1 step</td><td>100 ns</td><td>200 ns</td><td>binary search, inserting into and extracting from a <a href="../monticulo/">heap</a></td></tr>
+              <tr><td class="o-grande">O(n)</td><td>×2</td><td>10 µs</td><td>10 ms</td><td>searching an unsorted <a href="../vector-dinamico/#buscar">array</a> or <a href="../lista-enlazada/">list</a></td></tr>
+              <tr><td class="o-grande">O(n log n)</td><td>a little more than ×2</td><td>100 µs</td><td>0.2 s</td><td><a href="../monticulo/#heapsort">heapsort</a>, merge sort, <code>std::sort</code></td></tr>
+              <tr><td class="o-grande malo">O(n²)</td><td>×4</td><td>10 ms</td><td>almost 3 hours</td><td>comparing every pair, bubble sort, insertion sort</td></tr>
+              <tr><td class="o-grande malo">O(2ⁿ)</td><td>gets squared</td><td>longer than the age of the universe</td><td>don't even try</td><td>recursive <code>fibonacci</code> (in the full program)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li>Big-O talks about <strong>how the work grows</strong>, not exactly how long it takes: with a small <code>n</code>, a simple O(n²) can beat a complicated O(n log n).</li>
+          <li>The <strong>worst case</strong> is given almost always, because it is a guarantee. Sometimes people talk about the average case (the hash table is O(1) on average) or the <a href="../vector-dinamico/#amortizado">amortized</a> cost (appending to the end of a vector).</li>
+          <li>The same goes for <strong>memory</strong>: an algorithm that makes a copy of the array uses O(n) extra memory.</li>
+          <li>To be precise: O is an <strong>upper bound</strong> («it doesn't grow faster than»). Ω is the lower bound and Θ, both at once. In practice, when someone says «it is O(n)», they almost always mean Θ(n).</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it: it prints a table with the steps of each function for n = 10, 100, 1000 and 10,000, so you can see each class grow with real numbers.</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra algorithmic_notation.cpp -o algorithmic_notation &amp;&amp; ./algorithmic_notation</span></pre>
+        <div data-codigo-completo="en/algorithmic_notation.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>int maximum(const int data[], int n)</code> with its <code>steps</code> counter. What is its complexity? Check it by adding it to the table in <code>main()</code>.</li>
+          <li>What is the complexity of this loop? <code>for (int i = 1; i &lt; n; i *= 2)</code>. And if it had a <code>for (int j = 0; j &lt; n; j++)</code> inside?</li>
+          <li>Change the inner loop of <code>hasDuplicates</code> so that it starts at <code>j = 0</code> (skipping <code>j == i</code>). How many comparisons does it make now? Does its Big-O change?</li>
+          <li>Write a version of <code>fibonacci</code> with a loop that keeps the last two values. Count its steps for n = 25 and compare them with the 242,785 of the recursive one.</li>
+          <li>If you sort the array first (O(n log n)) and then compare only neighbors (O(n)), what is the complexity of <code>hasDuplicates</code>?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/notacion-algoritmica/notacion-algoritmica.js"></script>
+</body>
+</html>
