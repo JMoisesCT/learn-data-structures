@@ -279,6 +279,88 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
   font-size: 1rem;
 }
 
+/* Selector de idioma: "EN" en español, "ES" en inglés (ver botonIdioma). */
+.boton-idioma {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 34px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  color: var(--texto);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+a.boton-idioma:hover { border-color: var(--acento); color: var(--acento); }
+.boton-idioma.no-disponible { color: var(--inactivo); border-style: dashed; cursor: not-allowed; }
+
+/* Temas que en inglés todavía se leen en español (menú y portada). */
+.nav .solo-espanol {
+  margin-left: 0.4rem;
+  padding: 0 0.3rem;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+}
+
+.etiqueta.solo-espanol { font-family: inherit; border-style: dashed; }
+
+/* Sugerencia de idioma según el navegador: flota bajo el encabezado y no
+   empuja la lección hacia abajo. */
+.encabezado .contenedor { position: relative; }
+
+.sugerencia-idioma {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 0.6rem 0.6rem 0.6rem 0.9rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  font-size: 0.92rem;
+  animation: menu-abre 0.2s ease;
+}
+
+/* La flecha apunta al selector (--flecha la calcula sugerirIdioma). */
+.sugerencia-idioma::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: var(--flecha, 60px);
+  width: 12px;
+  height: 12px;
+  background: var(--superficie);
+  border-left: 1px solid var(--borde);
+  border-top: 1px solid var(--borde);
+  transform: rotate(45deg);
+}
+
+.sugerencia-idioma .boton { padding: 0.3rem 0.75rem; text-decoration: none; }
+/* Con el menú de temas abierto, la sugerencia no lo tapa. */
+.encabezado:has(.menu-temas[open]) .sugerencia-idioma { display: none; }
+
+.sugerencia-cerrar {
+  background: none;
+  border: none;
+  color: var(--texto-suave);
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+}
+
 /* ---------- Portada ---------- */
 
 .portada {

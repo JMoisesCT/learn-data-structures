@@ -4,6 +4,8 @@ Lecciones interactivas para entender las estructuras de datos **viendo qué pasa
 
 ### 👉 [Abrir el sitio](https://jmoisesct.github.io/learn-data-structures/)
 
+También en inglés: [Learn Data Structures](https://jmoisesct.github.io/learn-data-structures/en/) (los temas se están traduciendo; el selector **EN / ES** está en el encabezado).
+
 ![Lección de insertion sort: la clave sube, los mayores se corren a la derecha y la clave cae en el hueco, con la línea de C++ resaltada](docs/img/insertion-sort.gif)
 
 Las ideas sirven para cualquier lenguaje; por ahora los ejemplos están en C++.

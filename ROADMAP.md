@@ -27,7 +27,32 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 ## Pendientes
 
-No hay temas pendientes. Algunas ideas, todavía sin decidir: árbol rojo-negro, trie, caminos con pesos (Dijkstra, con un montículo) y orden topológico.
+No hay temas nuevos pendientes: lo siguiente es traducir los temas al inglés (tabla de abajo). Algunas ideas, todavía sin decidir: árbol rojo-negro, trie, caminos con pesos (Dijkstra, con un montículo) y orden topológico.
+
+## Traducción al inglés
+
+Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`), en este orden. Cómo se hace: CONTRIBUTING.md, "Versión en inglés".
+
+| Tema | En inglés |
+| --- | --- |
+| Pila | Pendiente |
+| Notación algorítmica (Big-O) | Pendiente |
+| Recursión | Pendiente |
+| Lambdas en C++ | Pendiente |
+| Vector dinámico | Pendiente |
+| Lista enlazada simple | Pendiente |
+| Lista doblemente enlazada | Pendiente |
+| Lista circular | Pendiente |
+| Cola | Pendiente |
+| Ordenamientos elementales | Pendiente |
+| Merge sort y quicksort | Pendiente |
+| Ordenamientos sin comparaciones | Pendiente |
+| Montículo (min-heap / max-heap) y heapsort | Pendiente |
+| Tabla hash | Pendiente |
+| Búsqueda binaria | Pendiente |
+| Árbol binario de búsqueda | Pendiente |
+| Árbol AVL | Pendiente |
+| Grafos | Pendiente |
 
 ## Mejoras hechas
 
@@ -41,6 +66,7 @@ No hay temas pendientes. Algunas ideas, todavía sin decidir: árbol rojo-negro,
 - **Convención del factor de balance en el AVL**: un interruptor en la lección (der − izq por defecto, o izq − der como en muchos libros) cambia a la vez el texto, las preguntas, el código y la animación de cada visualizador y el código completo, y se recuerda entre visitas. Cada convención tiene su `.cpp` (`arbol_avl.cpp` y `arbol_avl_izq_menos_der.cpp`); el motor acepta `variantes` en `DS.tema` y `verificar-fragmentos.mjs` revisa que los dos archivos solo difieran en esos fragmentos.
 - **Crédito del autor**: el pie de todas las páginas dice "Hecho por Moisés C." (con enlace a su GitHub), en letra pequeña y gris a la derecha; en las lecciones solo aparece en el último paso, como el resto del pie.
 - **README para visitantes**: explica de qué trata el sitio, con un GIF de una lección y los temas agrupados con una descripción corta; la estructura del repositorio y la configuración de GitHub Pages pasaron a CONTRIBUTING.md.
+- **Versión en inglés**: el sitio también está en inglés bajo `en/`, con la portada traducida y los títulos y resúmenes de todos los temas en inglés. Selector **EN / ES** en el encabezado (misma página y mismo paso en el otro idioma, y se recuerda la elección); si el navegador está en otro idioma, una sugerencia flotante una vez por visita, sin redirigir solo. El motor (`DS.tr`) tiene sus textos en los dos idiomas, los temas sin traducir enlazan a la versión en español, y el CI compila y revisa también el código en inglés (`ejemplos/cpp/en/`), con las mismas líneas que el de español.
 - **Licencia**: MIT para el código (`LICENSE`) y CC BY 4.0 para los textos, la documentación y las imágenes (`LICENSE-CONTENIDO`), explicado en el README.
 
 ## Ideas para el sitio
