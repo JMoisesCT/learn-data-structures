@@ -853,7 +853,14 @@
   ];
   const elegirLista = { id: "lista", etiqueta: "numeros", opciones: LISTAS };
   const desdeLista = (valores) => estadoDesde(valores.lista ? valores.lista.split(",").map(Number) : []);
-  const criterio = { id: "criterio", etiqueta: "Orden", opciones: Object.entries(CRITERIOS).map(([id, c]) => [id, c.texto]), reinicia: false };
+  // Elegir otro criterio muestra enseguida la función con su lambda.
+  const criterio = {
+    id: "criterio", etiqueta: "Orden", opciones: Object.entries(CRITERIOS).map(([id, c]) => [id, c.texto]),
+    alCambiar: (s, { criterio: c }) => ({
+      codigo: CRITERIOS[c].codigo,
+      mensaje: `Criterio ${CRITERIOS[c].texto}: la lambda ${CRITERIOS[c].firma} decide quién va primero. Pulsa ${CRITERIOS[c].etiqueta} para ordenar con ella.`,
+    }),
+  };
   const codigoCriterio = (valores) => CRITERIOS[valores.criterio].codigo;
 
   visualizador("vis-simple", {

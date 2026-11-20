@@ -836,7 +836,15 @@
   // ------------------------------------------------------------------
 
   const VALOR = { id: "valor", etiqueta: "Valor", min: 0, max: 99, valor: 60 };
-  const TIPO = { id: "tipo", etiqueta: "Recorrido", opciones: Object.entries(RECORRIDOS).map(([k, t]) => [k, t.nombre]), valor: "inorden", reinicia: false };
+  // Elegir otro recorrido muestra enseguida su código, en qué orden visita y qué botón lo ejecuta.
+  const PARTES = { izq: "el subárbol izquierdo", nodo: "el nodo", der: "el subárbol derecho" };
+  const TIPO = {
+    id: "tipo", etiqueta: "Recorrido", opciones: Object.entries(RECORRIDOS).map(([k, t]) => [k, t.nombre]), valor: "inorden",
+    alCambiar: (s, { tipo }) => ({
+      codigo: tipo,
+      mensaje: `${RECORRIDOS[tipo].nombre}: primero ${RECORRIDOS[tipo].orden.map((x) => PARTES[x]).join(", después ")}. Pulsa ${RECORRIDOS[tipo].publica}() para verlo.`,
+    }),
+  };
 
   const OPS = {
     buscar: { etiqueta: "buscar(valor)", usa: ["valor"], ejecutar(s, { valor }, paso) { s.salida = null; animarBuscar(s, valor, paso); } },

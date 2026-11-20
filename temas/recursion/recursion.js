@@ -1012,7 +1012,7 @@
       codigo: Object.fromEntries(opciones.ops.map((id) => [OPS[id].codigo, CODIGO[OPS[id].codigo]])),
       tituloCodigo: (clave) => `${clave}()`,
       mensajeInicial: opciones.mensajeInicial,
-      estadoInicial: estadoVacio,
+      estadoInicial: opciones.estadoInicial || estadoVacio,
       entradas: opciones.entradas,
       operaciones: opciones.ops.map((id) => Object.assign({ id }, opciones.adaptar ? opciones.adaptar(id) : OPS[id])),
     });
@@ -1020,6 +1020,12 @@
 
   const numero = (id, etiqueta, valor, min, max) => ({ id, etiqueta, valor, min, max });
   const PALABRAS = ["reconocer", "recorrer", "radar", "abba", "sala", "x", ""];
+  // Estado inicial de esPalindromo: el texto ya a la vista, sin llamadas.
+  function conLetras(palabra) {
+    const s = estadoVacio();
+    s.letras = { letras: palabra.split("").map((c, i) => ({ id: `l${i}`, v: c })), pares: {} };
+    return s;
+  }
 
   visualizador("vis-suma", {
     ops: ["sumaDigitos"],
@@ -1047,7 +1053,17 @@
 
   visualizador("vis-palindromo", {
     ops: ["esPalindromo"],
-    entradas: [{ id: "palabra", etiqueta: "texto", opciones: PALABRAS.map((p) => [p, p ? `"${p}"` : "\"\" (vacío)"]), reinicia: false }],
+    entradas: [{
+      id: "palabra", etiqueta: "texto", opciones: PALABRAS.map((p) => [p, p ? `"${p}"` : "\"\" (vacío)"]),
+      // El texto elegido se ve enseguida, letra por letra.
+      alCambiar: (s, { palabra }) => ({
+        estado: conLetras(palabra),
+        mensaje: palabra.length > 1
+          ? `texto = "${palabra}": ${palabra.length} letras. Cada llamada compara la primera y la última que quedan, y se mete hacia adentro.`
+          : `texto = "${palabra}": con ${palabra.length ? "una letra" : "el texto vacío"} no hay parejas que comparar. Es un caso base.`,
+      }),
+    }],
+    estadoInicial: ({ palabra }) => conLetras(palabra),
     mensajeInicial: "Elige un texto: cada llamada compara una pareja de letras, de afuera hacia adentro.",
   });
 

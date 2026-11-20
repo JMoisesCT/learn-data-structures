@@ -777,7 +777,15 @@
     codigoInicial: (valores) => valores.algoritmo,
     tituloCodigo: (clave) => `${clave}()`,
     entradas: [
-      { id: "algoritmo", etiqueta: "Algoritmo", opciones: OPCIONES_ALGORITMO, valor: "insertionSort", reinicia: false },
+      {
+        id: "algoritmo", etiqueta: "Algoritmo", opciones: OPCIONES_ALGORITMO, valor: "insertionSort",
+        // Elegir otro algoritmo muestra enseguida su código, con el mismo arreglo.
+        alCambiar: (s, { algoritmo }) => {
+          const estado = Object.assign({}, s);
+          prepararCorrida(estado, algoritmo);
+          return { estado, codigo: algoritmo, mensaje: `Pulsa ${algoritmo}(v) para ordenar este arreglo con él. Si ya está ordenado, verás su mejor caso; Reiniciar trae otro.` };
+        },
+      },
       { id: "arreglo", etiqueta: "Arreglo", opciones: [["azar", "Al azar"], ["casi", "Casi ordenado"], ["reves", "Al revés"], ["repetidos", "Con repetidos"]] },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS_TODO[valores.arreglo](), valores.algoritmo),

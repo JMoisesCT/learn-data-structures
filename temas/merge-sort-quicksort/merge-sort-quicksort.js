@@ -840,7 +840,16 @@
     codigo: fragmentos("quickSort", "quickSortAleatorio", "particionarAleatorio", "particionar"),
     codigoInicial: (valores) => valores.version,
     entradas: [
-      { id: "version", etiqueta: "", opciones: [["quickSort", "Pivote: el último"], ["quickSortAleatorio", "Pivote: al azar"]], reinicia: false },
+      {
+        id: "version", etiqueta: "", opciones: [["quickSort", "Pivote: el último"], ["quickSortAleatorio", "Pivote: al azar"]],
+        // Elegir el pivote muestra enseguida la versión que va a correr.
+        alCambiar: (s, { version }) => ({
+          codigo: version,
+          mensaje: version === "quickSort"
+            ? "quickSort usa como pivote el último del rango: con el arreglo ya ordenado es el mayor, y cada partición deja todo de un lado."
+            : "quickSortAleatorio elige un pivote al azar y lo pone al final antes de particionar: así casi nunca cae en el peor caso.",
+        }),
+      },
       { id: "arreglo", etiqueta: "", opciones: [["ordenado", "Ya ordenado"], ["reves", "Al revés"], ["azar", "Al azar"]] },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo]().slice(0, 7), { filasArbol: 7 }),
