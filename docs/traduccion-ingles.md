@@ -9,7 +9,7 @@ Para cada tema, en el mismo PR (`[<Tema>] Agregar la lección en inglés`, rama 
 1. `ejemplos/cpp/en/<archivo>.cpp`: el `.cpp` de español traducido **línea por línea** (identificadores, comentarios, mensajes de error y salidas de `main`). Compila sin advertencias y su salida tiene sentido en inglés.
 2. `temas/<slug>/<slug>.js` con `DS.tr`:
    - **Código:** `CODIGO` en los dos idiomas, con las mismas claves y las mismas líneas.
-   - **Mensajes:** los de cada `paso(...)`, `mensajeInicial` y los errores de "lleno" o "vacío".
+   - **Mensajes:** los de cada `paso(...)`, `mensajeInicial`, los que devuelve `alCambiar` de las entradas y los errores de "lleno" o "vacío". Algunos temas todavía sin traducir ya tienen mensajes de `alCambiar` solo en español (recorridos del ABB, criterio de Lambdas, pivote de Quicksort, algoritmo de Ordenamientos elementales, palabra de Recursión): pasan a `DS.tr` al traducir el tema.
    - **Controles:** etiquetas de botones y entradas, opciones de las listas y títulos del código (`TITULOS`).
    - **Lo que se dibuja:** nombres de variables, punteros y marcas, títulos de filas y ejes, "devuelve", leyendas, `title` y `aria-label`.
    - **Widgets propios del tema** (carreras, experimentos, comparadores).

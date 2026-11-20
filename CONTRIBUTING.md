@@ -86,7 +86,7 @@ python3 -m http.server 8000           # desde la raíz: revisar en el navegador
 
 Las tres primeras son las mismas que corre el CI.
 
-Prueba cada operación de la animación, incluidos los casos de error (estructura vacía, llena, posición inválida), en pantalla ancha y en móvil (~390 px), en modo claro y oscuro, y en los dos idiomas si el tema tiene versión en inglés.
+Prueba cada operación de la animación, incluidos los casos de error (estructura vacía, llena, posición inválida), en pantalla ancha y en móvil (~390 px), en modo claro y oscuro, y en los dos idiomas si el tema tiene versión en inglés. Cambia también cada opción de cada lista y cada número: el dibujo o el código tienen que reflejarlo apenas se elige.
 
 ## Cómo agregar un tema nuevo
 
