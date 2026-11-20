@@ -37,6 +37,12 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Notación algorítmica | `obtener` / `sumar` / `hayRepetidos` | `get` / `sum` / `hasDuplicates` |
 | Notación algorítmica | `busquedaBinaria` / `objetivo` / `medio` | `binarySearch` / `target` / `mid` |
 | Notación algorítmica | `contarPresentes` / `consultas` / `encontrados` | `countPresent` / `queries` / `found` |
+| Recursión | `sumaDigitos` / `imprimirDigitos` / `imprimirAlReves` | `digitSum` / `printDigits` / `printReversed` |
+| Recursión | `invertir` / `acumulado` | `reverseDigits` / `accumulated` |
+| Recursión | `aBase` / `DIGITOS` | `toBase` / `DIGITS` |
+| Recursión | `esPalindromo` / `palabra` | `isPalindrome` / `word` |
+| Recursión | `potencia` / `exponente` / `mitad` | `power` / `exponent` / `half` |
+| Recursión | `fibonacci` / `fibonacciMemo` / `memo` | `fibonacci` / `fibonacciMemo` / `memo` |
 | Pila | `PilaEnlazada` | `LinkedStack` |
 | Pila | `apilar` / `desapilar` / `cima` | `push` / `pop` / `peek` |
 | Pila | `tope` (puntero a la cima) | `top` |

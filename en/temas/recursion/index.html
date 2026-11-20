@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursion · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what recursion is, base case and recursive case, the call stack, extracting digits (adding, printing and reversing them), base conversion, palindromes, fast power and the Fibonacci call tree with and without memory. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="recursion">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Recursion</div>
+      <h1>Recursion</h1>
+      <p class="resumen">A recursive function <strong>calls itself with a smaller problem</strong> until it reaches one that answers itself. That is how trees and heaps are traversed: heapify, the binary tree traversals and merge sort all use it.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="A function that calls itself">
+        <h2>A function that calls itself</h2>
+        <div class="dos-columnas">
+          <p>The <strong>base case</strong> is answered without a call (a single digit). The <strong>recursive case</strong> calls itself with something smaller: <code>n / 10</code> removes its last digit, <code>n % 10</code>.</p>
+          <p>Each call opens <strong>its own frame</strong> on the stack, with its own <code>n</code>. When the base case is reached, the answers go back up and each frame finishes its sum.</p>
+        </div>
+        <div id="vis-suma"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How many frames does the stack reach with <code>digitSum(90817)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="One per digit: 90817, 9081, 908, 90 and 9. The one for 9 is the base case.">5</button>
+            <button type="button" class="opcion" data-explicacion="The frames don't depend on the value of the digits (9 + 0 + 8 + 1 + 7 = 25), but on how many there are.">25</button>
+            <button type="button" class="opcion" data-explicacion="The calls don't run one after another in the same frame: each one waits for the one below, so they are all on the stack at the same time.">1, it is reused</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="antes-despues" data-titulo="Before or after the call">
+        <h2>Does the work go before or after the call?</h2>
+        <p>Whatever goes <strong>before</strong> the call is done <strong>on the way down</strong>; whatever goes <strong>after</strong> it, <strong>on the way back</strong> and in reverse order. These two functions only move the <code>cout</code>, and that is why they print the digits in opposite orders.</p>
+        <div id="vis-imprimir"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>printDigits(507)</code> print?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That is printReversed: it prints on the way down, starting with the last digit.">7 0 5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The cout comes after the call: first it goes down to printDigits(5), which prints 5, and on the way back each frame prints its own: 0 and then 7.">5 0 7</button>
+            <button type="button" class="opcion" data-explicacion="The 0 isn't skipped: 50 ≥ 10, so printDigits(50) calls printDigits(5) and then prints 50 % 10 = 0.">5 7</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="acumulador" data-titulo="Carrying the result down">
+        <h2>Carrying the result down</h2>
+        <p>Instead of waiting for the answer to finish a calculation, <code>reverseDigits</code> passes the partial result as a parameter: <code>accumulated</code> grows on the way down and, at the base case, it is already the answer. On the way back nobody touches it. When the recursive call is the last thing done, it is called <strong>tail recursion</strong>.</p>
+        <div id="vis-invertir"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>reverseDigits(1200, 0)</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="An int doesn't keep leading zeros: 0·10 + 0 is still 0.">0021</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The two zeros go in first: accumulated goes through 0, 0, 2 and 21. Leading zeros don't exist in a number.">21</button>
+            <button type="button" class="opcion" data-explicacion="The base case is n == 0, not n < 10: the last digit is processed too.">12</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">When the call below comes back, what is left for each <code>reverseDigits</code> frame to do?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="return reverseDigits(…) returns exactly what it receives. That's why it is easy to turn into a while loop, and many compilers do it on their own.">Nothing: it returns what it received</button>
+            <button type="button" class="opcion" data-explicacion="That is what digitSum does: it still adds n % 10 on the way back.">Add its digit</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="cambio-base" data-titulo="Base conversion">
+        <h2>Base conversion: the remainders are the digits</h2>
+        <div class="dos-columnas">
+          <p>Divide <code>n</code> by the base: the <strong>remainder</strong> is the last digit and the <strong>quotient</strong> holds the ones in front. Each frame appends its digit <strong>after</strong> what the call below returns, so they end up in order.</p>
+          <p><code>DIGITS</code> is the text <code>"0123456789ABCDEF"</code>: at position k is the symbol worth k (<code>DIGITS[10]</code> is the char <code>'A'</code>). <code>std::string(1, c)</code> builds a string with <strong>1 copy</strong> of the char <code>c</code>, because <code>toBase</code> returns <code>std::string</code>.</p>
+        </div>
+        <div id="vis-base"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>toBase(255, 16)</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="255 ÷ 16 = 15, remainder 15: 'F'. And toBase(15, 16) is the base case: 'F'. Together, &quot;FF&quot;.">"FF"</button>
+            <button type="button" class="opcion" data-explicacion="That is 255 in base 10. In base 16 each digit is worth up to 15 (F).">"255"</button>
+            <button type="button" class="opcion" data-explicacion="That is 255 in base 2: eight ones. In base 16 two digits are enough.">"11111111"</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What would happen if the last line were <code>return DIGITS[n % base] + toBase(n / base, base);</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The order of a string addition does matter: it joins text, it doesn't add numbers.">The same</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The last digit would end up in front: toBase(13, 2) would give &quot;1011&quot; instead of &quot;1101&quot;.">The digits would come out reversed</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="palindromo" data-titulo="Two base cases: palindromes">
+        <h2>Two base cases: palindromes</h2>
+        <p>A palindrome reads the same forwards and backwards. <code>isPalindrome</code> compares the letters at the ends, <code>i</code> and <code>j</code>; if they are equal, it asks the same question about the text inside. It has <strong>two base cases</strong>: <code>i</code> and <code>j</code> crossed (everything matched) or there is a mismatch.</p>
+        <div id="vis-palindromo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How many calls does <code>isPalindrome</code> make with <code>"remember"</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="r = r, e = e and in the third call m ≠ b: it returns false without looking at the rest.">3</button>
+            <button type="button" class="opcion" data-explicacion="It doesn't reach the middle: it stops at the first mismatch (m ≠ b).">5, up to the middle</button>
+            <button type="button" class="opcion" data-explicacion="Each call compares two letters at once, one from each end.">8, one per letter</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In <code>digitSum</code>, what happens if you delete the base case, <code>if (n &lt; 10)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="n / 10 reaches 0, but digitSum(0) calls digitSum(0) again, and so on forever.">It returns 0 when it reaches <code>n = 0</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Without a base case it never stops calling itself: the stack grows until it runs out of memory (stack overflow) and the program crashes.">The stack grows until it overflows</button>
+            <button type="button" class="opcion" data-explicacion="It compiles without problems: the compiler doesn't know whether the recursion ends. The error shows up when you run it.">It doesn't compile</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="potencia" data-titulo="Fast power">
+        <h2>Fast power: halving the exponent</h2>
+        <p>With a <code>for</code> loop, <code>2<sup>10</sup></code> needs 9 multiplications. But <code>2<sup>10</sup> = (2<sup>5</sup>)²</code> and <code>2<sup>5</sup> = (2<sup>2</sup>)² × 2</code>: if each call <strong>cuts the exponent in half</strong>, there are only about log₂ n calls. The key is to compute <code>half</code> <strong>once</strong> and multiply it by itself.</p>
+        <div id="vis-potencia"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How many calls does <code>power(2, 1000)</code> make?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That is what a for loop would do, or a recursion that lowers the exponent by 1.">1000</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="1000, 500, 250, 125, 62, 31, 15, 7, 3, 1 and 0: the exponent is halved in each one, so there are about log₂ 1000 ≈ 10 (plus the base case). Mind you, 2¹⁰⁰⁰ doesn't fit in a long long.">11</button>
+            <button type="button" class="opcion" data-explicacion="It isn't O(1): there is still one call for each time the exponent is halved.">1</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">And if instead of <code>half * half</code> you wrote <code>power(base, exponent / 2) * power(base, exponent / 2)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Each call would make two, which would make four… The call tree would have about 2·exponent nodes: it is O(n) again, just like the for loop.">It would be O(exponent) again</button>
+            <button type="button" class="opcion" data-explicacion="The result would be the same, but the cost wouldn't: the same thing would be computed twice at every level.">The same, just longer to write</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="fibonacci" data-titulo="Fibonacci: the call tree">
+        <h2>Fibonacci: when recursion repeats work</h2>
+        <div class="dos-columnas">
+          <p><code>fibonacci(n)</code> makes <strong>two calls</strong>, so they form a tree, and the branches ask for the same thing many times (in red): it is O(2ⁿ).</p>
+          <p>With <strong>memory</strong> (<code>memo</code>), each value is computed once; when it is asked for again, it is returned right away and that branch is pruned: O(n).</p>
+        </div>
+        <div id="vis-fibonacci"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Without memo, how many times is <code>fibonacci(2)</code> called inside <code>fibonacci(5)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That is what happens with memo: after the first time, it is read from memo[2].">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Once inside fibonacci(4) → fibonacci(3), once more inside fibonacci(4) and once inside fibonacci(3), the right branch of the root.">3</button>
+            <button type="button" class="opcion" data-explicacion="fibonacci(5) doesn't call fibonacci(2) directly, but its children do.">0</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>Every function with the call stack in view. <code>b</code> is the base of <code>toBase</code> or the exponent of <code>power</code>.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and when to use it">
+        <h2>Complexity and when to use recursion</h2>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>Function</th><th>Time</th><th>Stack</th><th>Why</th></tr></thead>
+              <tbody>
+                <tr><td><code>digitSum</code>, <code>print…</code>, <code>reverseDigits</code></td><td class="o-grande bueno">O(d)</td><td>O(d)</td><td>One call per digit (d ≈ log₁₀ n).</td></tr>
+                <tr><td><code>toBase</code></td><td class="o-grande bueno">O(log<sub>b</sub>&nbsp;n)</td><td>O(log<sub>b</sub>&nbsp;n)</td><td>Each call divides n by the base.</td></tr>
+                <tr><td><code>isPalindrome</code></td><td class="o-grande malo">O(n)</td><td>O(n)</td><td>One call per pair of letters.</td></tr>
+                <tr><td><code>power</code></td><td class="o-grande bueno">O(log&nbsp;e)</td><td>O(log&nbsp;e)</td><td>The exponent is halved.</td></tr>
+                <tr><td><code>fibonacci</code></td><td class="o-grande malo">O(2ⁿ)</td><td>O(n)</td><td>It repeats work: n = 40 makes more than 300 million calls.</td></tr>
+                <tr><td><code>fibonacciMemo</code></td><td class="o-grande bueno">O(n)</td><td>O(n)</td><td>Each value is computed once.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>The stack costs too</strong>: each call in progress takes up a frame. The stack is only a few MB, so a recursion one million levels deep overflows even if it is O(n).</li>
+            <li><strong>Each call must get closer to the base case</strong> (n / 10, exponent / 2, i + 1 and j - 1). Otherwise, it never ends.</li>
+            <li><strong>Use it</strong> when the problem splits into smaller identical problems: trees, heaps, divide and conquer (merge sort, binary search), backtracking.</li>
+            <li><strong>Prefer a loop</strong> for very long simple traversals, and add memory when branches repeat calculations.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra recursion.cpp -o recursion &amp;&amp; ./recursion</span></pre>
+        <div data-codigo-completo="en/recursion.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write a recursive <code>int countDigits(int n)</code>. What is its base case?</li>
+          <li>Write <code>bool containsDigit(int n, int d)</code>, which says whether the digit <code>d</code> appears in <code>n</code>. How many base cases does it need?</li>
+          <li>Do the inverse of <code>toBase</code>: <code>int toDecimal(const std::string&amp; digits, int base)</code>. Hint: the value of <code>"1101"</code> is <code>toDecimal("110") * 2 + 1</code>.</li>
+          <li>Write Euclid's greatest common divisor: <code>gcd(a, b) = a</code> if <code>b == 0</code>, and otherwise <code>gcd(b, a % b)</code>. Is it tail recursion?</li>
+          <li>Change <code>power</code> so that it computes <code>base<sup>exponent</sup> % m</code> without overflowing (apply <code>% m</code> after each multiplication).</li>
+          <li>Count the calls of <code>fibonacci(n)</code> for n = 10, 20 and 30 with a global counter. How much does it grow each time n goes up by 1?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/recursion/recursion.js"></script>
+</body>
+</html>
