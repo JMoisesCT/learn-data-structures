@@ -95,6 +95,7 @@
         titulo: "Linked list",
         resumen: "Nodes connected by pointers. Inserting at the front is instant; searching requires a traversal.",
         etiquetas: ["O(1) front", "O(n) search"],
+        archivo: "linked_list.cpp",
       },
     },
     {

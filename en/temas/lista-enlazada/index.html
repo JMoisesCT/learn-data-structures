@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linked list · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a singly linked list is (like std::forward_list), why reaching a position costs O(n) (nodeAt), how nodes are inserted at the front, in the middle and at the back, found and removed by changing pointers, and when it beats an array. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="lista-enlazada">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Linked list</div>
+      <h1>Linked list</h1>
+      <p class="resumen">Nodes <strong>scattered around memory</strong>, each with a value and a <strong>pointer</strong> to the next one: the idea behind <code>std::forward_list</code>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Nodes and pointers">
+        <h2>Nodes that point to each other</h2>
+        <div class="dos-columnas">
+          <div>
+            <pre class="codigo"><span class="linea"><span class="tk-clave">struct</span> <span class="tk-tipo">Node</span> {</span><span class="linea">    <span class="tk-tipo">int</span> value;</span><span class="linea">    <span class="tk-tipo">Node</span>* next;  <span class="tk-comentario">// nullptr if it's the last one</span></span><span class="linea">};</span></pre>
+          </div>
+          <div>
+            <p>Like a treasure hunt: each node says where the next one is. They are created with <code>new</code> <strong>wherever there is room</strong> and the list only keeps <code>head</code>: reaching <code>pos</code> costs <strong><code>pos</code> jumps</strong>. That's what <code>nodeAt(pos)</code> does, and <code>get</code>, <code>insertAt</code> and <code>removeAt</code> use it: <strong>O(n)</strong>.</p>
+          </div>
+        </div>
+        <div id="vis-obtener"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How many times does <code>current = current-&gt;next</code> run in <code>nodeAt(3)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That would be the case if the address could be calculated, as in an array. Here the addresses follow no order.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="One jump per earlier node: from position 0 to 1, from 1 to 2 and from 2 to 3.">3</button>
+            <button type="button" class="opcion" data-explicacion="current already starts at the head (position 0): no jump is needed to reach it.">4</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="inicio" data-titulo="insertAtFront">
+        <h2><code>insertAtFront</code>: two pointers and done</h2>
+        <p>The node is created, made to point to the current first one, and <code>head</code> moves to it. It doesn't matter whether the list has 3 nodes or a million: it's always the same steps, <strong>O(1)</strong>. (In an array, inserting at the front shifts every element.)</p>
+        <div id="vis-inicio"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What happens if you swap the order and do <code>head = newNode</code> <em>before</em> <code>newNode-&gt;next = head</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The order does matter: each line uses what the previous one left in head.">Nothing, it's the same</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="newNode->next = head would copy newNode's own address: the node would point to itself, and nobody would remember where the rest of the list was. Those nodes would be lost in memory (a leak).">The rest of the list is lost</button>
+            <button type="button" class="opcion" data-explicacion="It compiles and runs without errors: C++ doesn't warn you. That's why you have to think about the order of the assignments.">It doesn't compile</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar-en" data-titulo="insertAt">
+        <h2><code>insertAt(pos, value)</code>: reach the previous node and hook in</h2>
+        <p>For the new node to end up at position <code>pos</code>, the <strong>previous</strong> node (the one at <code>pos - 1</code>) has to point to it. <code>nodeAt(pos - 1)</code> takes us to that node; after that, hooking in is just two pointers. If <code>pos</code> is 0 there is no previous node, and <code>insertAtFront</code> is reused.</p>
+        <div id="vis-insertar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why ask for <code>nodeAt(pos - 1)</code> and not <code>nodeAt(pos)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It's the same jumps plus one; the problem isn't speed but where it stops.">Because it's faster</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="What changes is the next of the previous node. If we stopped at the one at pos, there would be no way to go back one node: pointers only go forward.">Because the previous node's next has to change, and you can't go back</button>
+            <button type="button" class="opcion" data-explicacion="nodeAt accepts any position; with pos it would give the node that will end up after the new one.">Because nodeAt(pos) would fail</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With 4 nodes (positions 0 to 3), is <code>insertAt(4, x)</code> valid?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="pos == size means “after the last one”: the previous node is node 3, and the new one goes at the end. That's why the condition is pos &gt; size and not pos &gt;= size. This is how insertAtBack reuses it.">Yes: it inserts at the end</button>
+            <button type="button" class="opcion" data-explicacion="To read or remove, position 4 doesn't exist. But to insert, “at position 4” is right after the last one.">No: position 4 doesn't exist</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="final" data-titulo="insertAtBack">
+        <h2><code>insertAtBack</code>: one line, but O(n)</h2>
+        <p>The end is position <code>size</code>, so <code>insertAtBack</code> just calls <code>insertAt(size, value)</code>, which calls <code>nodeAt(size - 1)</code>. The code is short, but <code>nodeAt</code> still walks the list to the last node: it's still <strong>O(n)</strong>. Watch the call stack above the drawing.</p>
+        <div id="vis-final"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How could you make <code>insertAtBack</code> O(1)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The nodes aren't contiguous: no calculation leads to the last one.">By calculating the last node's address</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="With a tail pointer to the last node, tail->next = newNode and tail = newNode are enough, without calling nodeAt. In exchange, it also has to be updated when removing the last node or inserting into an empty list. That's how the linked queue does it.">By also keeping a <code>tail</code> pointer</button>
+            <button type="button" class="opcion" data-explicacion="Inserting at the front is still O(1), but the node would end up at the other end: it wouldn't be the same list.">By inserting at the front instead</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Find">
+        <h2><code>find(value)</code>: node by node</h2>
+        <p><code>current</code> moves forward from the head comparing each value. If it reaches <code>nullptr</code>, the list is over and the value isn't there. In the worst case it checks every node: <strong>O(n)</strong>.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If the list were <strong>sorted</strong>, would binary search work like in an array?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Binary search starts by looking at the middle element, and in a list reaching the middle already costs n/2 jumps.">Yes, it would be O(log n)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="To look at the middle one you have to walk to it: each step of binary search costs O(n) jumps. The only thing the order helps with is stopping early once you pass the value you're looking for.">No: reaching the middle is already O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Yes, you can gain something: if the values are sorted, once you pass the one you're looking for you know it isn't there and can stop.">Yes, and it would even be O(1)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Remove">
+        <h2><code>remove(value)</code>: unhook and free</h2>
+        <p>To take a node out, the <strong>previous</strong> node has to point to the one after the deleted node. Since pointers go in only one direction, <code>current</code> stops one node early and looks at <code>current-&gt;next</code>. Then <code>delete</code> frees the memory. Deleting the head is a separate case: it has no previous node, so <code>head</code> moves.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does the loop look at <code>current-&gt;next-&gt;value</code> instead of stopping at the node that has the value?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It checks the same nodes; the difference is where current stops.">To check fewer nodes</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="If current stopped at the node to delete, there would be no way to go back to the previous one to change its next: pointers only go forward.">Because the previous node's next has to change, and you can't go back</button>
+            <button type="button" class="opcion" data-explicacion="delete works with any valid pointer. The problem is reconnecting the list.">Because delete needs the previous node</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What happens if you forget the <code>delete temp</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The list looks fine, because nobody reaches that node anymore. That's exactly why the bug goes unnoticed.">The list breaks</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The node still takes up memory, but there is no pointer left to free it: it's a memory leak. This project's CI compiles with AddressSanitizer to catch them.">A memory leak</button>
+            <button type="button" class="opcion" data-explicacion="C++ has no garbage collector: whatever is created with new has to be freed with delete.">Nothing, it frees itself</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar-en" data-titulo="removeAt">
+        <h2><code>removeAt(pos)</code>: delete by position</h2>
+        <p>It's the same idea as <code>insertAt</code>: <code>nodeAt(pos - 1)</code> takes us to the previous node, which now points past the deleted one. Before the <code>delete</code>, the value is saved to return it. Here the valid positions go from <code>0</code> to <code>size - 1</code>.</p>
+        <div id="vis-eliminar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does <code>int value = temp-&gt;value</code> go <em>before</em> <code>delete temp</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="After the delete, the node's memory isn't ours anymore: reading temp-&gt;value would be undefined behavior (sometimes it works, sometimes it doesn't). AddressSanitizer reports it as heap-use-after-free.">Because after the <code>delete</code> the node no longer exists</button>
+            <button type="button" class="opcion" data-explicacion="delete doesn't touch temp: temp still holds the same address. What you can't do anymore is use that address.">Because <code>delete</code> sets <code>temp</code> to <code>nullptr</code></button>
+            <button type="button" class="opcion" data-explicacion="The order matters: after the delete, reading the node is a bug, even if the compiler doesn't warn you.">The order doesn't matter</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="comparar" data-titulo="List or array?">
+        <h2>List or array?</h2>
+        <p>Neither is better at everything. Pick an operation and change the number of elements: each bar is the work each structure does (green: the one that does less).</p>
+        <div id="comparador"></div>
+        <div class="nota">The list shines when you insert or delete <strong>at the front</strong> or next to a node you already have at hand. For anything that needs to reach a position, the array wins, and almost always when traversing too, thanks to the cache.</div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">A program receives tasks and always handles the most recent one first (it adds and removes on the same side). What's the better choice?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="An array works too, if it adds and removes at the end. But if it did so at the front, it would shift everything on every operation.">Only an array</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="It's a stack: with the list you insert and remove at the head in O(1); with an array, at the end, also in O(1). What doesn't work well is an array working at the front.">Either one, if you use it from the right end</button>
+            <button type="button" class="opcion" data-explicacion="Nothing needs to be traversed: everything happens at one end.">Neither: both are O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>All the operations together: which ones call <code>nodeAt</code> (and walk nodes) and which ones only change pointers?</p>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th>In <code>std::forward_list</code></th><th>Time</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>nodeAt(pos)</code> / <code>get(pos)</code></td><td><code>std::next(l.begin(), pos)</code></td><td class="o-grande malo">O(n)</td><td>There are no indexes: it takes <code>pos</code> jumps.</td></tr>
+              <tr><td><code>insertAtFront</code></td><td><code>l.push_front(x)</code></td><td class="o-grande bueno">O(1)</td><td>One node is created and two pointers change.</td></tr>
+              <tr><td><code>insertAt(pos, x)</code></td><td><code>l.insert_after(prev, x)</code></td><td class="o-grande malo">O(n)</td><td>Reaching the previous node: <code>pos - 1</code> jumps. Hooking in: O(1).</td></tr>
+              <tr><td><code>insertAtBack</code></td><td>Doesn't exist (<code>std::list</code> has it)</td><td class="o-grande malo">O(n)</td><td>Walks to the last node (O(1) with a <code>tail</code> pointer).</td></tr>
+              <tr><td><code>find(x)</code></td><td><code>std::find(l.begin(), l.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Node by node from the head.</td></tr>
+              <tr><td><code>remove(x)</code></td><td><code>l.remove(x)</code> (removes all)</td><td class="o-grande malo">O(n)</td><td>The previous node has to be found; deleting is O(1).</td></tr>
+              <tr><td><code>removeAt(pos)</code></td><td><code>l.erase_after(prev)</code></td><td class="o-grande malo">O(n)</td><td>Like <code>insertAt</code>: reach the previous node and skip the node.</td></tr>
+              <tr><td>After a known node</td><td><code>l.insert_after(it, x)</code> / <code>l.erase_after(it)</code></td><td class="o-grande bueno">O(1)</td><td>Only pointers change, without walking.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li>Use it when you insert and remove a lot <strong>at the front</strong>, or next to nodes you have already located (for example, with a saved iterator).</li>
+          <li>It's the basis of other structures: <a href="../pila/">stacks</a>, <a href="../cola/">queues</a>, graph adjacency lists and the buckets of a <a href="../tabla-hash/">hash table with chaining</a>.</li>
+          <li>A not-so-obvious advantage: inserting or deleting nodes <strong>doesn't move the others</strong>, so pointers to other nodes stay valid (in an array, after a resize, they don't).</li>
+          <li>Avoid it if you access by position or traverse a lot: <code>std::vector</code> is usually faster thanks to the cache, and uses less memory per element. Measure before choosing.</li>
+          <li><code>std::list</code> is the <strong>doubly linked</strong> version: each node also points to the previous one, so it can be traversed in both directions and a node can be deleted without looking for its previous node.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra linked_list.cpp -o linked_list &amp;&amp; ./linked_list</span></pre>
+        <div data-codigo-completo="en/linked_list.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Add a <code>tail</code> pointer to the last node so that <code>insertAtBack</code> is O(1) without calling <code>nodeAt</code>. Which other methods do you have to update?</li>
+          <li>Write <code>void set(int pos, int value)</code> using <code>nodeAt</code>. What do you do if it returns <code>nullptr</code>?</li>
+          <li>Write <code>void reverse()</code> that turns the list around by changing only pointers, without creating nodes. (Hint: you need three pointers: previous, current and next.)</li>
+          <li>Change <code>remove</code> so that it deletes <strong>every</strong> occurrence of the value, like <code>std::forward_list::remove</code>.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/lista-enlazada/lista-enlazada.js"></script>
+</body>
+</html>

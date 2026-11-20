@@ -40,7 +40,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Recursión | Hecho: lección, pila de marcos, árbol de llamadas de Fibonacci, animaciones y `ejemplos/cpp/en/recursion.cpp` (`digitSum`, `printDigits`, `reverseDigits`, `toBase`, `isPalindrome` con `racecar` y `remember`, `power`) |
 | Lambdas en C++ | Hecho: lección, pila de marcos con capturas y flechas, animaciones y `ejemplos/cpp/en/lambdas.cpp` (`computeSquare`, `captureByValue`, `sumWithReference`, `sumOfSquares`, `useAdder`/`makeAdder`, `countGreater`, `firstMultiple`, `sortDescending`, `sortByCloseness`, `sortEvensFirst`) |
 | Vector dinámico | Hecho: lección, experimento de costo amortizado, animaciones y `ejemplos/cpp/en/dynamic_array.cpp` (`DynamicArray` con `get`, `pushBack`, `resize`, `insert`, `removeAt` y `find`) |
-| Lista enlazada simple | Pendiente |
+| Lista enlazada simple | Hecho: lección, comparador de costos contra el vector, animaciones y `ejemplos/cpp/en/linked_list.cpp` (`LinkedList` con `nodeAt`, `get`, `insertAtFront`, `insertAt`, `insertAtBack`, `find`, `remove` y `removeAt`) |
 | Lista doblemente enlazada | Pendiente |
 | Lista circular | Pendiente |
 | Cola | Pendiente |

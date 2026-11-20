@@ -1,8 +1,9 @@
 // Lección de la lista enlazada, en pasos. Los fragmentos de código deben
-// coincidir línea por línea con ejemplos/cpp/lista_enlazada.cpp
-// (scripts/verificar-fragmentos.mjs lo revisa).
+// coincidir línea por línea con ejemplos/cpp/lista_enlazada.cpp, y en
+// inglés con ejemplos/cpp/en/linked_list.cpp (scripts/verificar-fragmentos.mjs
+// lo revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const MAXIMO = 9; // límite solo para que la animación quepa en pantalla (dos filas)
   const MARGEN = 14;
   const X_LISTA = 100; // x del primer nodo: a la izquierda va la variable cabeza
@@ -15,10 +16,11 @@
   const DIRECCIONES = [0x3a0, 0x1c8, 0x5f0, 0x2b8, 0x748, 0x0d0, 0x630, 0x418, 0x290, 0x7e0, 0x158, 0x6a8];
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/lista_enlazada.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/lista_enlazada.cpp y de
+  // ejemplos/cpp/en/linked_list.cpp, con las mismas líneas)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     nodoEn: `
       Nodo* nodoEn(int pos) const {
           if (pos < 0) {
@@ -119,7 +121,121 @@
           tamano--;
           return valor;
       }`,
-  };
+  }, {
+    nodoEn: `
+      Node* nodeAt(int pos) const {
+          if (pos < 0) {
+              return nullptr;
+          }
+          Node* current = head;
+          for (int i = 0; i < pos && current != nullptr; i++) {
+              current = current->next;
+          }
+          return current;
+      }`,
+    obtener: `
+      int get(int pos) const {
+          Node* node = nodeAt(pos);
+          if (node == nullptr) {
+              throw std::out_of_range("invalid position");
+          }
+          return node->value;
+      }`,
+    insertarAlInicio: `
+      void insertAtFront(int value) {
+          Node* newNode = new Node(value);
+          newNode->next = head;
+          head = newNode;
+          size++;
+      }`,
+    insertarEn: `
+      void insertAt(int pos, int value) {
+          if (pos < 0 || pos > size) {
+              throw std::out_of_range("invalid position");
+          }
+          if (pos == 0) {
+              insertAtFront(value);
+              return;
+          }
+          Node* prev = nodeAt(pos - 1);
+          Node* newNode = new Node(value);
+          newNode->next = prev->next;
+          prev->next = newNode;
+          size++;
+      }`,
+    insertarAlFinal: `
+      void insertAtBack(int value) {
+          insertAt(size, value);
+      }`,
+    buscar: `
+      bool find(int value) const {
+          Node* current = head;
+          while (current != nullptr) {
+              if (current->value == value) {
+                  return true;
+              }
+              current = current->next;
+          }
+          return false;
+      }`,
+    eliminar: `
+      bool remove(int value) {
+          if (head == nullptr) {
+              return false;
+          }
+          if (head->value == value) {
+              Node* temp = head;
+              head = head->next;
+              delete temp;
+              size--;
+              return true;
+          }
+          Node* current = head;
+          while (current->next != nullptr && current->next->value != value) {
+              current = current->next;
+          }
+          if (current->next == nullptr) {
+              return false;
+          }
+          Node* temp = current->next;
+          current->next = temp->next;
+          delete temp;
+          size--;
+          return true;
+      }`,
+    eliminarEn: `
+      int removeAt(int pos) {
+          if (pos < 0 || pos >= size) {
+              throw std::out_of_range("invalid position");
+          }
+          Node* temp;
+          if (pos == 0) {
+              temp = head;
+              head = head->next;
+          } else {
+              Node* prev = nodeAt(pos - 1);
+              temp = prev->next;
+              prev->next = temp->next;
+          }
+          int value = temp->value;
+          delete temp;
+          size--;
+          return value;
+      }`,
+  });
+
+  const CLASE = tr("ListaEnlazada", "LinkedList");
+  // Nombre de cada función en el idioma de la página (las claves quedan en español).
+  const F = tr(
+    { nodoEn: "nodoEn", obtener: "obtener", insertarAlInicio: "insertarAlInicio", insertarEn: "insertarEn", insertarAlFinal: "insertarAlFinal", buscar: "buscar", eliminar: "eliminar", eliminarEn: "eliminarEn" },
+    { nodoEn: "nodeAt", obtener: "get", insertarAlInicio: "insertAtFront", insertarEn: "insertAt", insertarAlFinal: "insertAtBack", buscar: "find", eliminar: "remove", eliminarEn: "removeAt" });
+
+  // Nombres del C++ que se dibujan (variables y punteros). Los estados usan
+  // los de español y se traducen al pintar, así son iguales en los dos idiomas.
+  const NOMBRES = { cabeza: "head", tamano: "size", valor: "value", nuevo: "newNode", anterior: "prev", actual: "current", nodo: "node" };
+  const ident = (k) => tr(k, NOMBRES[k] || k);
+  const traducirVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [ident(k), v]));
+  const siNo = (si) => (si ? tr("Sí.", "Yes.") : tr("No.", "No."));
 
   // Funciones que llama cada operación: su código también tiene que estar
   // en el visualizador para mostrarlo durante la llamada.
@@ -172,22 +288,30 @@
   // de las direcciones, por la dirección a la que apunta.
   function nombre(s, id) {
     if (id == null) return "nullptr";
-    return s.direcciones ? `${hex(s.nodos[id].dir)} (el ${s.nodos[id].v})` : `el nodo ${s.nodos[id].v}`;
+    const v = s.nodos[id].v;
+    return s.direcciones ? `${hex(s.nodos[id].dir)} (${tr("el", "the")} ${v})` : tr(`el nodo ${v}`, `node ${v}`);
   }
 
   // Lo que muestra "devuelve" cuando una función retorna un puntero.
-  const puntero = (s, id) => (id == null ? "nullptr" : s.direcciones ? hex(s.nodos[id].dir) : `nodo ${s.nodos[id].v}`);
+  const puntero = (s, id) => (id == null ? "nullptr" : s.direcciones ? hex(s.nodos[id].dir) : `${tr("nodo", "node")} ${s.nodos[id].v}`);
   const valorSig = (s, id) => (s.nodos[id].sig == null ? "nullptr" : s.nodos[s.nodos[id].sig].v);
 
   // Lo que costó llegar al nodo anterior con nodoEn.
   const costoLlegar = (saltos) => (saltos === 0
-    ? "Aquí el anterior era la cabeza (0 saltos), pero en general llegar a él cuesta pos - 1 saltos: O(n)."
-    : `Lo que costó fue llegar al anterior: ${saltos} salto(s), O(n).`);
+    ? tr("Aquí el anterior era la cabeza (0 saltos), pero en general llegar a él cuesta pos - 1 saltos: O(n).",
+      "Here the previous node was the head (0 jumps), but in general reaching it costs pos - 1 jumps: O(n).")
+    : tr(`Lo que costó fue llegar al anterior: ${saltos} salto(s), O(n).`, `What cost something was reaching the previous node: ${saltos} jump(s), O(n).`));
+
+  // Por qué hay que guardar la cabeza en temp antes de moverla.
+  const GUARDAR_CABEZA = () => tr(
+    "temp = cabeza: guardamos su dirección. Si moviéramos cabeza primero, ya nadie sabría dónde está este nodo para liberarlo.",
+    "temp = head: we keep its address. If we moved head first, nobody would know where this node is anymore to free it.");
 
   function limiteAlcanzado(s, clave, paso) {
     if (Object.keys(s.nodos).length < MAXIMO) return false;
     s.vis = { error: true };
-    paso(clave, 2, `Para que la animación quepa en pantalla, la lista llega hasta ${MAXIMO} nodos. Elimina alguno o pulsa Reiniciar.`, "error");
+    paso(clave, 2, tr(`Para que la animación quepa en pantalla, la lista llega hasta ${MAXIMO} nodos. Elimina alguno o pulsa Reiniciar.`,
+      `Up to ${MAXIMO} nodes, so the animation fits on screen: remove some or press Reset.`), "error");
     return true;
   }
 
@@ -208,22 +332,25 @@
 
   // nodoEn(pos): devuelve el id del nodo o null.
   function animarNodoEn(s, pos, paso, pila) {
-    const llamadas = pila.concat(`nodoEn(${pos})`);
+    const llamadas = pila.concat(`${F.nodoEn}(${pos})`);
     const ver = (o) => { s.vis = Object.assign({ pila: llamadas, vars: { pos } }, o); };
     ver({});
-    paso("nodoEn", 2, `Entramos a nodoEn(${pos}). ¿pos < 0? ${pos < 0 ? "Sí." : "No."}`);
+    paso("nodoEn", 2, tr(`Entramos a nodoEn(${pos}). ¿pos < 0? ${siNo(pos < 0)}`, `We enter nodeAt(${pos}). pos < 0? ${siNo(pos < 0)}`));
     if (pos < 0) {
       ver({ salida: "nullptr" });
-      paso("nodoEn", 3, "No existe una posición negativa: return nullptr, y quien llamó decide qué hacer.");
+      paso("nodoEn", 3, tr("No existe una posición negativa: return nullptr, y quien llamó decide qué hacer.",
+        "There is no negative position: return nullptr, and the caller decides what to do."));
       return null;
     }
     s.ptrs.actual = s.cabeza;
     ver({ activo: s.cabeza, flecha: "cabeza" });
     paso("nodoEn", 5, s.cabeza == null
-      ? "La lista está vacía: actual empieza en nullptr."
+      ? tr("La lista está vacía: actual empieza en nullptr.", "The list is empty: current starts at nullptr.")
       : pos === 0
-        ? `actual empieza en la cabeza (${nombre(s, s.cabeza)}), que ya es la posición 0: no hace falta saltar.`
-        : `No hay cuenta que diga dónde está el nodo ${pos}: lo único que conocemos es cabeza. actual empieza ahí (${nombre(s, s.cabeza)}).`);
+        ? tr(`actual empieza en la cabeza (${nombre(s, s.cabeza)}), que ya es la posición 0: no hace falta saltar.`,
+          `current starts at the head (${nombre(s, s.cabeza)}), which is already position 0: no jump needed.`)
+        : tr(`No hay cuenta que diga dónde está el nodo ${pos}: lo único que conocemos es cabeza. actual empieza ahí (${nombre(s, s.cabeza)}).`,
+          `No calculation tells us where node ${pos} is: all we know is head. current starts there (${nombre(s, s.cabeza)}).`));
     let i = 0;
     const revisados = [];
     while (i < pos && s.ptrs.actual != null) {
@@ -231,116 +358,135 @@
       revisados.push(desde);
       s.ptrs.actual = s.nodos[desde].sig;
       ver({ vars: { pos, i }, activo: s.ptrs.actual, flecha: desde, revisados: revisados.slice() });
-      paso("nodoEn", 7, `i = ${i} < ${pos}: seguimos la flecha de ${s.nodos[desde].v}. actual = actual->siguiente → ${nombre(s, s.ptrs.actual)}. Van ${i + 1} salto(s).`);
+      paso("nodoEn", 7, tr(`i = ${i} < ${pos}: seguimos la flecha de ${s.nodos[desde].v}. actual = actual->siguiente → ${nombre(s, s.ptrs.actual)}. Van ${i + 1} salto(s).`,
+        `i = ${i} < ${pos}: we follow ${s.nodos[desde].v}'s arrow. current = current->next → ${nombre(s, s.ptrs.actual)}. ${i + 1} jump(s) so far.`));
       i++;
     }
     const id = s.ptrs.actual;
     ver({ vars: { pos, i }, activo: id, revisados });
     paso("nodoEn", 6, id != null
-      ? `i == pos: llegamos a la posición ${pos} después de ${pos} salto(s).`
-      : `actual es nullptr: la lista se terminó después de ${i} nodo(s), antes de llegar a la posición ${pos}.`);
+      ? tr(`i == pos: llegamos a la posición ${pos} después de ${pos} salto(s).`, `i == pos: we reached position ${pos} after ${pos} jump(s).`)
+      : tr(`actual es nullptr: la lista se terminó después de ${i} nodo(s), antes de llegar a la posición ${pos}.`,
+        `current is nullptr: the list ended after ${i} node(s), before reaching position ${pos}.`));
     ver({ vars: { pos, i }, encontrado: id, revisados, salida: puntero(s, id) });
     paso("nodoEn", 9, id == null
-      ? "return nullptr: esa posición no existe."
-      : `return actual: devuelve el nodo mismo (su dirección), no solo su valor. Con él, quien llamó puede leerlo o cambiar su siguiente.`);
+      ? tr("return nullptr: esa posición no existe.", "return nullptr: that position doesn't exist.")
+      : tr("return actual: devuelve el nodo mismo (su dirección), no solo su valor. Con él, quien llamó puede leerlo o cambiar su siguiente.",
+        "return current: it returns the node itself (its address), not just its value. With it, the caller can read it or change its next."));
     delete s.ptrs.actual;
     return id;
   }
 
   function animarAlInicio(s, valor, paso, pila) {
-    const llamadas = pila.concat(`insertarAlInicio(${valor})`);
+    const llamadas = pila.concat(`${F.insertarAlInicio}(${valor})`);
     const ver = (o, cambio) => { s.vis = Object.assign({ pila: llamadas, vars: { valor, tamano: s.tamano }, cambio }, o); };
     const id = crearNodo(s, valor, { ancla: -0.5 });
     s.ptrs.nuevo = id;
     ver({ activo: id });
-    paso("insertarAlInicio", 2, `new Nodo(${valor}): el nodo aparece donde haya memoria libre${s.direcciones ? ` (${hex(s.nodos[id].dir)})` : ""}. Su siguiente es nullptr y todavía nadie apunta a él.`);
+    const donde = s.direcciones ? ` (${hex(s.nodos[id].dir)})` : "";
+    paso("insertarAlInicio", 2, tr(`new Nodo(${valor}): el nodo aparece donde haya memoria libre${donde}. Su siguiente es nullptr y todavía nadie apunta a él.`,
+      `new Node(${valor}): the node appears wherever there is free memory${donde}. Its next is nullptr and nobody points to it yet.`));
     s.nodos[id].sig = s.cabeza;
     ver({ activo: id, flecha: id });
     paso("insertarAlInicio", 3, s.cabeza == null
-      ? "nuevo->siguiente = cabeza: la lista estaba vacía, así que sigue siendo nullptr."
-      : `nuevo->siguiente = cabeza: el nodo nuevo apunta al que hoy es el primero (${s.nodos[s.cabeza].v}). Así el resto de la lista no se pierde.`);
+      ? tr("nuevo->siguiente = cabeza: la lista estaba vacía, así que sigue siendo nullptr.", "newNode->next = head: the list was empty, so it is still nullptr.")
+      : tr(`nuevo->siguiente = cabeza: el nodo nuevo apunta al que hoy es el primero (${s.nodos[s.cabeza].v}). Así el resto de la lista no se pierde.`,
+        `newNode->next = head: the new node points to the current first one (${s.nodos[s.cabeza].v}). That way the rest of the list isn't lost.`));
     s.cabeza = id;
     ver({ activo: id, flecha: "cabeza" });
-    paso("insertarAlInicio", 4, `cabeza = nuevo: la lista ahora empieza en ${valor}.`);
+    paso("insertarAlInicio", 4, tr(`cabeza = nuevo: la lista ahora empieza en ${valor}.`, `head = newNode: the list now starts at ${valor}.`));
     s.tamano++;
     ver({ activo: id }, ["tamano"]);
-    paso("insertarAlInicio", 5, `tamano++: ahora hay ${s.tamano} nodo(s). Ningún nodo se copió ni se movió en memoria: siempre son los mismos pasos, O(1).`, "exito");
+    paso("insertarAlInicio", 5, tr(`tamano++: ahora hay ${s.tamano} nodo(s). Ningún nodo se copió ni se movió en memoria: siempre son los mismos pasos, O(1).`,
+      `size++: now there are ${s.tamano} node(s). No node was copied or moved in memory: it's always the same steps, O(1).`), "exito");
     delete s.ptrs.nuevo;
   }
 
   function animarInsertarEn(s, pos, valor, paso, pila) {
-    const llamadas = pila.concat(`insertarEn(${pos}, ${valor})`);
+    const llamadas = pila.concat(`${F.insertarEn}(${pos}, ${valor})`);
     const ver = (o, cambio) => { s.vis = Object.assign({ pila: llamadas, vars: { pos, valor, tamano: s.tamano }, cambio }, o); };
     const valida = pos >= 0 && pos <= s.tamano;
     ver({});
-    paso("insertarEn", 2, `¿pos está entre 0 y tamano (${s.tamano})? ${!valida ? "No." : pos === s.tamano ? "Sí: pos == tamano también vale, significa «después del último»." : "Sí."}`);
+    paso("insertarEn", 2, tr(`¿pos está entre 0 y tamano (${s.tamano})? ${!valida ? "No." : pos === s.tamano ? "Sí: pos == tamano también vale, significa «después del último»." : "Sí."}`,
+      `Is pos between 0 and size (${s.tamano})? ${!valida ? "No." : pos === s.tamano ? "Yes: pos == size is allowed too, it means “after the last one”." : "Yes."}`));
     if (!valida) {
       ver({ error: true, posMala: pos });
-      paso("insertarEn", 3, `Se puede insertar de la posición 0 a la ${s.tamano}; ${pos} queda afuera. Se lanza std::out_of_range y no se crea ningún nodo.`, "error");
+      paso("insertarEn", 3, tr(`Se puede insertar de la posición 0 a la ${s.tamano}; ${pos} queda afuera. Se lanza std::out_of_range y no se crea ningún nodo.`,
+        `You can insert from position 0 to ${s.tamano}; ${pos} is outside. std::out_of_range is thrown and no node is created.`), "error");
       return;
     }
-    paso("insertarEn", 5, `¿pos == 0? ${pos === 0 ? "Sí: el nodo nuevo será la cabeza, y la cabeza no tiene nodo anterior." : "No: hay un nodo anterior al que engancharlo."}`);
+    paso("insertarEn", 5, tr(`¿pos == 0? ${pos === 0 ? "Sí: el nodo nuevo será la cabeza, y la cabeza no tiene nodo anterior." : "No: hay un nodo anterior al que engancharlo."}`,
+      `pos == 0? ${pos === 0 ? "Yes: the new node will be the head, and the head has no previous node." : "No: there is a previous node to hook it onto."}`));
     if (pos === 0) {
-      paso("insertarEn", 6, "Ese caso ya lo resuelve insertarAlInicio: lo reutilizamos.");
+      paso("insertarEn", 6, tr("Ese caso ya lo resuelve insertarAlInicio: lo reutilizamos.", "insertAtFront already handles that case: we reuse it."));
       animarAlInicio(s, valor, paso, llamadas);
       ver({ activo: s.cabeza });
-      paso("insertarEn", 7, "return: insertarAlInicio ya hizo todo, en O(1).", "exito");
+      paso("insertarEn", 7, tr("return: insertarAlInicio ya hizo todo, en O(1).", "return: insertAtFront already did everything, in O(1)."), "exito");
       return;
     }
-    paso("insertarEn", 9, `Para enganchar el nodo nuevo hay que cambiar el siguiente del nodo ANTERIOR, el de la posición ${pos - 1}. Se lo pedimos a nodoEn(${pos - 1}).`);
+    paso("insertarEn", 9, tr(`Para enganchar el nodo nuevo hay que cambiar el siguiente del nodo ANTERIOR, el de la posición ${pos - 1}. Se lo pedimos a nodoEn(${pos - 1}).`,
+      `To hook in the new node we have to change the next of the PREVIOUS node, the one at position ${pos - 1}. We ask nodeAt(${pos - 1}) for it.`));
     const anterior = animarNodoEn(s, pos - 1, paso, llamadas);
     s.ptrs.anterior = anterior;
     ver({ activo: anterior });
-    paso("insertarEn", 9, `nodoEn devolvió ${nombre(s, anterior)}: anterior apunta a él.`);
+    paso("insertarEn", 9, tr(`nodoEn devolvió ${nombre(s, anterior)}: anterior apunta a él.`, `nodeAt returned ${nombre(s, anterior)}: prev points to it.`));
     const id = crearNodo(s, valor, { ancla: pos - 0.5 });
     s.ptrs.nuevo = id;
     ver({ activo: id, mirado: anterior });
-    paso("insertarEn", 10, `new Nodo(${valor}): el nodo aparece suelto, junto a donde va a quedar. Todavía nadie apunta a él.`);
+    paso("insertarEn", 10, tr(`new Nodo(${valor}): el nodo aparece suelto, junto a donde va a quedar. Todavía nadie apunta a él.`,
+      `new Node(${valor}): the node appears on its own, next to where it will go. Nobody points to it yet.`));
     const siguiente = s.nodos[anterior].sig;
     s.nodos[id].sig = siguiente;
     ver({ activo: id, mirado: anterior, flecha: id, nulo: siguiente == null ? id : null });
     paso("insertarEn", 11, siguiente == null
-      ? "nuevo->siguiente = anterior->siguiente: anterior era el último, así que el nuevo también apunta a nullptr."
-      : `nuevo->siguiente = anterior->siguiente: el nuevo apunta a ${s.nodos[siguiente].v}. Va primero: si antes cambiáramos anterior->siguiente, se perdería el camino hacia ${s.nodos[siguiente].v}.`);
+      ? tr("nuevo->siguiente = anterior->siguiente: anterior era el último, así que el nuevo también apunta a nullptr.",
+        "newNode->next = prev->next: prev was the last one, so the new node also points to nullptr.")
+      : tr(`nuevo->siguiente = anterior->siguiente: el nuevo apunta a ${s.nodos[siguiente].v}. Va primero: si antes cambiáramos anterior->siguiente, se perdería el camino hacia ${s.nodos[siguiente].v}.`,
+        `newNode->next = prev->next: the new node points to ${s.nodos[siguiente].v}. This goes first: if we changed prev->next before, the way to ${s.nodos[siguiente].v} would be lost.`));
     s.nodos[anterior].sig = id;
     ver({ activo: id, flecha: anterior });
-    paso("insertarEn", 12, `anterior->siguiente = nuevo: ${s.nodos[anterior].v} ahora apunta al nuevo y el ${valor} queda en la posición ${pos}.${siguiente == null ? "" : " Los nodos de después no se movieron en memoria: solo cambió su posición en la lista."}`);
+    paso("insertarEn", 12, tr(`anterior->siguiente = nuevo: ${s.nodos[anterior].v} ahora apunta al nuevo y el ${valor} queda en la posición ${pos}.${siguiente == null ? "" : " Los nodos de después no se movieron en memoria: solo cambió su posición en la lista."}`,
+      `prev->next = newNode: ${s.nodos[anterior].v} now points to the new node and ${valor} ends up at position ${pos}.${siguiente == null ? "" : " The nodes after it didn't move in memory: only their position in the list changed."}`));
     s.tamano++;
     ver({ activo: id }, ["tamano"]);
-    paso("insertarEn", 13, `tamano++. Enlazar fueron dos punteros, O(1). ${costoLlegar(pos - 1)}`, "exito");
+    paso("insertarEn", 13, tr(`tamano++. Enlazar fueron dos punteros, O(1). ${costoLlegar(pos - 1)}`, `size++. Linking was two pointers, O(1). ${costoLlegar(pos - 1)}`), "exito");
     delete s.ptrs.nuevo;
     delete s.ptrs.anterior;
   }
 
   const OPS = {
     obtener: {
-      etiqueta: "obtener(pos)",
+      etiqueta: tr("obtener(pos)", "get(pos)"),
       usa: ["pos"],
       ejecutar(s, { pos }, paso) {
-        const pila = [`obtener(${pos})`];
+        const pila = [`${F.obtener}(${pos})`];
         s.vis = { vars: { pos } };
-        paso("obtener", 2, `obtener no recorre la lista por su cuenta: le pide a nodoEn(${pos}) el nodo de esa posición.`);
+        paso("obtener", 2, tr(`obtener no recorre la lista por su cuenta: le pide a nodoEn(${pos}) el nodo de esa posición.`,
+          `get doesn't walk the list itself: it asks nodeAt(${pos}) for the node at that position.`));
         const id = animarNodoEn(s, pos, paso, pila);
         s.ptrs.nodo = id;
         s.vis = { vars: { pos }, activo: id };
-        paso("obtener", 2, id == null ? "nodoEn devolvió nullptr: nodo = nullptr." : `nodoEn devolvió ${nombre(s, id)}: nodo apunta a él.`);
-        paso("obtener", 3, `¿nodo == nullptr? ${id == null ? "Sí." : "No."}`);
+        paso("obtener", 2, id == null
+          ? tr("nodoEn devolvió nullptr: nodo = nullptr.", "nodeAt returned nullptr: node = nullptr.")
+          : tr(`nodoEn devolvió ${nombre(s, id)}: nodo apunta a él.`, `nodeAt returned ${nombre(s, id)}: node points to it.`));
+        paso("obtener", 3, tr(`¿nodo == nullptr? ${siNo(id == null)}`, `node == nullptr? ${siNo(id == null)}`));
         if (id == null) {
           s.vis = { vars: { pos }, error: true };
           paso("obtener", 4, pos < 0
-            ? "No existe una posición negativa. Se lanza std::out_of_range y la lista no cambia."
-            : `No hay nodo en la posición ${pos}. Se lanza std::out_of_range y la lista no cambia.`, "error");
+            ? tr("No existe una posición negativa. Se lanza std::out_of_range y la lista no cambia.", "There is no negative position. std::out_of_range is thrown and the list doesn't change.")
+            : tr(`No hay nodo en la posición ${pos}. Se lanza std::out_of_range y la lista no cambia.`, `There is no node at position ${pos}. std::out_of_range is thrown and the list doesn't change.`), "error");
           terminar(s);
           return;
         }
         s.vis = { vars: { pos }, encontrado: id, salida: s.nodos[id].v };
-        paso("obtener", 6, `return nodo->valor: ${s.nodos[id].v}. En el vector sería una cuenta y un salto; aquí fueron ${pos} salto(s), uno por cada nodo anterior: O(n).`, "exito");
+        paso("obtener", 6, tr(`return nodo->valor: ${s.nodos[id].v}. En el vector sería una cuenta y un salto; aquí fueron ${pos} salto(s), uno por cada nodo anterior: O(n).`,
+          `return node->value: ${s.nodos[id].v}. In an array it would be one calculation and one jump; here it took ${pos} jump(s), one per earlier node: O(n).`), "exito");
         terminar(s);
       },
     },
 
     insertarAlInicio: {
-      etiqueta: "insertarAlInicio(valor)",
+      etiqueta: tr("insertarAlInicio(valor)", "insertAtFront(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         if (limiteAlcanzado(s, "insertarAlInicio", paso)) return;
@@ -350,7 +496,7 @@
     },
 
     insertarEn: {
-      etiqueta: "insertarEn(pos, valor)",
+      etiqueta: tr("insertarEn(pos, valor)", "insertAt(pos, value)"),
       usa: ["pos", "valor"],
       ejecutar(s, { pos, valor }, paso) {
         if (limiteAlcanzado(s, "insertarEn", paso)) return;
@@ -360,209 +506,233 @@
     },
 
     insertarAlFinal: {
-      etiqueta: "insertarAlFinal(valor)",
+      etiqueta: tr("insertarAlFinal(valor)", "insertAtBack(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         if (limiteAlcanzado(s, "insertarAlFinal", paso)) return;
         const n = s.tamano;
         s.vis = { vars: { valor, tamano: n } };
-        paso("insertarAlFinal", 2, `El final es la posición tamano (${n}): justo después del último nodo. insertarAlFinal solo llama a insertarEn(${n}, ${valor}).`);
-        animarInsertarEn(s, n, valor, paso, [`insertarAlFinal(${valor})`]);
+        paso("insertarAlFinal", 2, tr(`El final es la posición tamano (${n}): justo después del último nodo. insertarAlFinal solo llama a insertarEn(${n}, ${valor}).`,
+          `The end is position size (${n}): right after the last node. insertAtBack just calls insertAt(${n}, ${valor}).`));
+        animarInsertarEn(s, n, valor, paso, [`${F.insertarAlFinal}(${valor})`]);
         s.vis = { vars: { valor, tamano: s.tamano } };
         paso("insertarAlFinal", 3, n === 0
-          ? "Con la lista vacía, tamano era 0: insertarEn delegó en insertarAlInicio y no hubo nada que recorrer."
-          : `Es una sola línea, pero no es gratis: nodoEn dio ${n - 1} salto(s) para llegar al último. Sigue siendo O(n).`, "exito");
+          ? tr("Con la lista vacía, tamano era 0: insertarEn delegó en insertarAlInicio y no hubo nada que recorrer.",
+            "With the list empty, size was 0: insertAt handed it to insertAtFront and there was nothing to walk.")
+          : tr(`Es una sola línea, pero no es gratis: nodoEn dio ${n - 1} salto(s) para llegar al último. Sigue siendo O(n).`,
+            `It's a single line, but it isn't free: nodeAt made ${n - 1} jump(s) to reach the last one. It's still O(n).`), "exito");
         terminar(s);
       },
     },
 
     buscar: {
-      etiqueta: "buscar(valor)",
+      etiqueta: tr("buscar(valor)", "find(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         s.ptrs = { actual: s.cabeza };
         s.vis = { vars: { valor }, activo: s.cabeza, flecha: "cabeza" };
-        paso("buscar", 2, s.cabeza == null ? "La lista está vacía: actual empieza en nullptr." : "actual empieza en la cabeza.");
+        paso("buscar", 2, s.cabeza == null
+          ? tr("La lista está vacía: actual empieza en nullptr.", "The list is empty: current starts at nullptr.")
+          : tr("actual empieza en la cabeza.", "current starts at the head."));
         const revisados = [];
         while (s.ptrs.actual != null) {
           const id = s.ptrs.actual;
           const v = s.nodos[id].v;
           s.vis = { vars: { valor }, activo: id, revisados: revisados.slice() };
-          paso("buscar", 4, `actual no es nullptr. ¿actual->valor (${v}) == ${valor}? ${v === valor ? "¡Sí!" : "No."}`);
+          paso("buscar", 4, tr(`actual no es nullptr. ¿actual->valor (${v}) == ${valor}? ${v === valor ? "¡Sí!" : "No."}`,
+            `current isn't nullptr. current->value (${v}) == ${valor}? ${v === valor ? "Yes!" : "No."}`));
           if (v === valor) {
             s.vis = { vars: { valor }, encontrado: id, revisados: revisados.slice(), salida: "true" };
-            paso("buscar", 5, `return true. Revisamos ${revisados.length + 1} nodo(s).`, "exito");
+            paso("buscar", 5, tr(`return true. Revisamos ${revisados.length + 1} nodo(s).`, `return true. We checked ${revisados.length + 1} node(s).`), "exito");
             terminar(s);
             return;
           }
           revisados.push(id);
           s.ptrs.actual = s.nodos[id].sig;
           s.vis = { vars: { valor }, activo: s.ptrs.actual, flecha: id, revisados: revisados.slice() };
-          paso("buscar", 7, `actual = actual->siguiente → ${nombre(s, s.ptrs.actual)}.`);
+          paso("buscar", 7, tr(`actual = actual->siguiente → ${nombre(s, s.ptrs.actual)}.`, `current = current->next → ${nombre(s, s.ptrs.actual)}.`));
         }
         s.vis = { vars: { valor }, revisados };
-        paso("buscar", 3, "actual es nullptr: se terminó la lista.");
+        paso("buscar", 3, tr("actual es nullptr: se terminó la lista.", "current is nullptr: the list is over."));
         s.vis = { vars: { valor }, revisados, salida: "false" };
         paso("buscar", 9, revisados.length
-          ? `return false: ${valor} no está. Hubo que revisar los ${revisados.length} nodos; en el peor caso es O(n).`
-          : "return false: en una lista vacía no hay nada que revisar.", "error");
+          ? tr(`return false: ${valor} no está. Hubo que revisar los ${revisados.length} nodos; en el peor caso es O(n).`,
+            `return false: ${valor} isn't there. We had to check all ${revisados.length} nodes; in the worst case it's O(n).`)
+          : tr("return false: en una lista vacía no hay nada que revisar.", "return false: in an empty list there is nothing to check."), "error");
         terminar(s);
       },
     },
 
     eliminar: {
-      etiqueta: "eliminar(valor)",
+      etiqueta: tr("eliminar(valor)", "remove(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         const vars = () => ({ valor, tamano: s.tamano });
         s.vis = { vars: vars(), flecha: "cabeza", nulo: s.cabeza == null ? "cabeza" : null };
-        paso("eliminar", 2, `¿cabeza == nullptr? ${s.cabeza == null ? "Sí." : "No."}`);
+        paso("eliminar", 2, tr(`¿cabeza == nullptr? ${siNo(s.cabeza == null)}`, `head == nullptr? ${siNo(s.cabeza == null)}`));
         if (s.cabeza == null) {
           s.vis = { vars: vars(), nulo: "cabeza", error: true, salida: "false" };
-          paso("eliminar", 3, "La lista está vacía: no hay nada que eliminar. return false.", "error");
+          paso("eliminar", 3, tr("La lista está vacía: no hay nada que eliminar. return false.", "The list is empty: there is nothing to remove. return false."), "error");
           return;
         }
         const primero = s.cabeza;
+        const v0 = s.nodos[primero].v;
         s.vis = { vars: vars(), activo: primero };
-        paso("eliminar", 5, `¿cabeza->valor (${s.nodos[primero].v}) == ${valor}? ${s.nodos[primero].v === valor ? "Sí: hay que borrar el primero." : "No."}`);
+        paso("eliminar", 5, tr(`¿cabeza->valor (${v0}) == ${valor}? ${v0 === valor ? "Sí: hay que borrar el primero." : "No."}`,
+          `head->value (${v0}) == ${valor}? ${v0 === valor ? "Yes: we have to delete the first one." : "No."}`));
 
-        if (s.nodos[primero].v === valor) {
+        if (v0 === valor) {
           s.ptrs = { temp: primero };
           s.vis = { vars: vars(), condenado: primero };
-          paso("eliminar", 6, "temp = cabeza: guardamos su dirección. Si moviéramos cabeza primero, ya nadie sabría dónde está este nodo para liberarlo.");
+          paso("eliminar", 6, GUARDAR_CABEZA());
           s.nodos[primero].reserva = 0;
           s.cabeza = s.nodos[primero].sig;
           s.vis = { vars: vars(), condenado: primero, flecha: "cabeza" };
-          paso("eliminar", 7, `cabeza = cabeza->siguiente: la lista ahora empieza en ${s.cabeza == null ? "nullptr (quedó vacía)" : s.nodos[s.cabeza].v}. El ${valor} quedó afuera, pero sigue ocupando memoria.`);
+          paso("eliminar", 7, tr(`cabeza = cabeza->siguiente: la lista ahora empieza en ${s.cabeza == null ? "nullptr (quedó vacía)" : s.nodos[s.cabeza].v}. El ${valor} quedó afuera, pero sigue ocupando memoria.`,
+            `head = head->next: the list now starts at ${s.cabeza == null ? "nullptr (it's empty)" : s.nodos[s.cabeza].v}. ${valor} is left out, but it still takes up memory.`));
           delete s.nodos[primero];
           s.ptrs = {};
           s.vis = { vars: vars() };
-          paso("eliminar", 8, "delete temp: liberamos la memoria del nodo. Los demás nodos no se tocaron.");
+          paso("eliminar", 8, tr("delete temp: liberamos la memoria del nodo. Los demás nodos no se tocaron.", "delete temp: we free the node's memory. The other nodes weren't touched."));
           s.tamano--;
           s.vis = { vars: vars(), cambio: ["tamano"] };
-          paso("eliminar", 9, `tamano--: quedan ${s.tamano} nodo(s).`);
+          paso("eliminar", 9, tr(`tamano--: quedan ${s.tamano} nodo(s).`, `size--: ${s.tamano} node(s) left.`));
           s.vis = { vars: vars(), salida: "true" };
-          paso("eliminar", 10, "return true. Sin recorrer nada: borrar el primero es O(1).", "exito");
+          paso("eliminar", 10, tr("return true. Sin recorrer nada: borrar el primero es O(1).", "return true. Without walking anything: deleting the first one is O(1)."), "exito");
           terminar(s);
           return;
         }
 
         s.ptrs = { actual: primero };
         s.vis = { vars: vars(), activo: primero };
-        paso("eliminar", 12, "Para desenganchar un nodo hay que cambiar el siguiente del nodo ANTERIOR. actual va a buscar ese anterior, empezando por la cabeza.");
+        paso("eliminar", 12, tr("Para desenganchar un nodo hay que cambiar el siguiente del nodo ANTERIOR. actual va a buscar ese anterior, empezando por la cabeza.",
+          "To unhook a node we have to change the next of the PREVIOUS node. current goes looking for that previous node, starting at the head."));
         const revisados = [];
         for (;;) {
           const id = s.ptrs.actual;
           const sig = s.nodos[id].sig;
           if (sig == null) {
             s.vis = { vars: vars(), activo: id, nulo: id, revisados: revisados.slice() };
-            paso("eliminar", 13, `actual->siguiente es nullptr: llegamos al último sin encontrar ${valor}.`);
+            paso("eliminar", 13, tr(`actual->siguiente es nullptr: llegamos al último sin encontrar ${valor}.`, `current->next is nullptr: we reached the last one without finding ${valor}.`));
             break;
           }
           s.vis = { vars: vars(), activo: id, mirado: sig, flecha: id, revisados: revisados.slice() };
           if (s.nodos[sig].v === valor) {
-            paso("eliminar", 13, `actual->siguiente->valor es ${valor}: actual (${s.nodos[id].v}) es el anterior. Paramos.`);
+            paso("eliminar", 13, tr(`actual->siguiente->valor es ${valor}: actual (${s.nodos[id].v}) es el anterior. Paramos.`,
+              `current->next->value is ${valor}: current (${s.nodos[id].v}) is the previous node. We stop.`));
             break;
           }
-          paso("eliminar", 13, `actual->siguiente->valor es ${s.nodos[sig].v}, no ${valor}: seguimos.`);
+          paso("eliminar", 13, tr(`actual->siguiente->valor es ${s.nodos[sig].v}, no ${valor}: seguimos.`, `current->next->value is ${s.nodos[sig].v}, not ${valor}: we keep going.`));
           revisados.push(id);
           s.ptrs.actual = sig;
           s.vis = { vars: vars(), activo: sig, flecha: id, revisados: revisados.slice() };
-          paso("eliminar", 14, `actual = actual->siguiente → ${nombre(s, sig)}.`);
+          paso("eliminar", 14, tr(`actual = actual->siguiente → ${nombre(s, sig)}.`, `current = current->next → ${nombre(s, sig)}.`));
         }
 
         const anterior = s.ptrs.actual;
         if (s.nodos[anterior].sig == null) {
           s.vis = { vars: vars(), nulo: anterior, revisados: revisados.concat(anterior), error: true, salida: "false" };
-          paso("eliminar", 17, `${valor} no está en la lista. return false y la lista no cambia.`, "error");
+          paso("eliminar", 17, tr(`${valor} no está en la lista. return false y la lista no cambia.`, `${valor} isn't in the list. return false and the list doesn't change.`), "error");
           terminar(s);
           return;
         }
         s.vis = { vars: vars(), activo: anterior, mirado: s.nodos[anterior].sig };
-        paso("eliminar", 16, "actual->siguiente no es nullptr: el valor sí está.");
+        paso("eliminar", 16, tr("actual->siguiente no es nullptr: el valor sí está.", "current->next isn't nullptr: the value is there."));
         const temp = s.nodos[anterior].sig;
         s.ptrs.temp = temp;
         s.vis = { vars: vars(), activo: anterior, condenado: temp };
-        paso("eliminar", 19, `temp = actual->siguiente: temp marca el nodo ${valor}, el que vamos a borrar.`);
+        paso("eliminar", 19, tr(`temp = actual->siguiente: temp marca el nodo ${valor}, el que vamos a borrar.`, `temp = current->next: temp marks node ${valor}, the one we are going to delete.`));
         s.nodos[temp].reserva = cadena(s).indexOf(temp);
         s.nodos[anterior].sig = s.nodos[temp].sig;
         s.vis = { vars: vars(), activo: anterior, condenado: temp, flecha: anterior };
-        paso("eliminar", 20, `actual->siguiente = temp->siguiente: ${s.nodos[anterior].v} salta por encima de ${valor} y apunta a ${valorSig(s, anterior)}. Ya no se llega a ${valor} desde la cabeza.`);
+        paso("eliminar", 20, tr(`actual->siguiente = temp->siguiente: ${s.nodos[anterior].v} salta por encima de ${valor} y apunta a ${valorSig(s, anterior)}. Ya no se llega a ${valor} desde la cabeza.`,
+          `current->next = temp->next: ${s.nodos[anterior].v} jumps over ${valor} and points to ${valorSig(s, anterior)}. ${valor} can no longer be reached from the head.`));
         delete s.nodos[temp];
         s.ptrs = { actual: anterior };
         s.vis = { vars: vars(), activo: anterior };
-        paso("eliminar", 21, "delete temp: liberamos la memoria del nodo. Ningún otro nodo se movió en memoria: solo cambió un puntero.");
+        paso("eliminar", 21, tr("delete temp: liberamos la memoria del nodo. Ningún otro nodo se movió en memoria: solo cambió un puntero.",
+          "delete temp: we free the node's memory. No other node moved in memory: only one pointer changed."));
         s.tamano--;
         s.vis = { vars: vars(), activo: anterior, cambio: ["tamano"] };
-        paso("eliminar", 22, `tamano--: quedan ${s.tamano} nodo(s).`);
+        paso("eliminar", 22, tr(`tamano--: quedan ${s.tamano} nodo(s).`, `size--: ${s.tamano} node(s) left.`));
         s.vis = { vars: vars(), salida: "true" };
-        paso("eliminar", 23, "return true. El borrado en sí es O(1); lo caro fue encontrar el anterior: O(n).", "exito");
+        paso("eliminar", 23, tr("return true. El borrado en sí es O(1); lo caro fue encontrar el anterior: O(n).",
+          "return true. The deletion itself is O(1); the expensive part was finding the previous node: O(n)."), "exito");
         terminar(s);
       },
     },
 
     eliminarEn: {
-      etiqueta: "eliminarEn(pos)",
+      etiqueta: tr("eliminarEn(pos)", "removeAt(pos)"),
       usa: ["pos"],
       ejecutar(s, { pos }, paso) {
-        const pila = [`eliminarEn(${pos})`];
+        const pila = [`${F.eliminarEn}(${pos})`];
         let valor;
         const ver = (o, cambio) => { s.vis = Object.assign({ vars: valor == null ? { pos, tamano: s.tamano } : { pos, tamano: s.tamano, valor }, cambio }, o); };
         const valida = pos >= 0 && pos < s.tamano;
         ver({ nulo: s.cabeza == null ? "cabeza" : null });
         paso("eliminarEn", 2, s.tamano === 0
-          ? "¿pos está entre 0 y tamano - 1? tamano es 0: no hay ninguna posición válida."
-          : `¿pos está entre 0 y tamano - 1 (${s.tamano - 1})? ${valida ? "Sí." : "No."}`);
+          ? tr("¿pos está entre 0 y tamano - 1? tamano es 0: no hay ninguna posición válida.", "Is pos between 0 and size - 1? size is 0: there is no valid position.")
+          : tr(`¿pos está entre 0 y tamano - 1 (${s.tamano - 1})? ${siNo(valida)}`, `Is pos between 0 and size - 1 (${s.tamano - 1})? ${siNo(valida)}`));
         if (!valida) {
           ver({ error: true, posMala: pos, nulo: s.cabeza == null ? "cabeza" : null });
           paso("eliminarEn", 3, s.tamano === 0
-            ? "La lista está vacía: no hay nodo que eliminar. Se lanza std::out_of_range."
-            : `No hay nodo en la posición ${pos}: van de 0 a ${s.tamano - 1}. Se lanza std::out_of_range y la lista no cambia.`, "error");
+            ? tr("La lista está vacía: no hay nodo que eliminar. Se lanza std::out_of_range.", "The list is empty: there is no node to remove. std::out_of_range is thrown.")
+            : tr(`No hay nodo en la posición ${pos}: van de 0 a ${s.tamano - 1}. Se lanza std::out_of_range y la lista no cambia.`,
+              `There is no node at position ${pos}: they go from 0 to ${s.tamano - 1}. std::out_of_range is thrown and the list doesn't change.`), "error");
           terminar(s);
           return;
         }
-        paso("eliminarEn", 6, `¿pos == 0? ${pos === 0 ? "Sí: se borra la cabeza, que no tiene nodo anterior." : "No: hay que cambiar el siguiente del nodo anterior."}`);
+        paso("eliminarEn", 6, tr(`¿pos == 0? ${pos === 0 ? "Sí: se borra la cabeza, que no tiene nodo anterior." : "No: hay que cambiar el siguiente del nodo anterior."}`,
+          `pos == 0? ${pos === 0 ? "Yes: the head is deleted, and it has no previous node." : "No: we have to change the next of the previous node."}`));
         let temp;
         if (pos === 0) {
           temp = s.cabeza;
           s.ptrs.temp = temp;
           ver({ condenado: temp });
-          paso("eliminarEn", 7, "temp = cabeza: guardamos su dirección. Si moviéramos cabeza primero, ya nadie sabría dónde está este nodo para liberarlo.");
+          paso("eliminarEn", 7, GUARDAR_CABEZA());
           s.nodos[temp].reserva = 0;
           s.cabeza = s.nodos[temp].sig;
           ver({ condenado: temp, flecha: "cabeza", nulo: s.cabeza == null ? "cabeza" : null });
-          paso("eliminarEn", 8, `cabeza = cabeza->siguiente: la lista ahora empieza en ${s.cabeza == null ? "nullptr (quedó vacía)" : s.nodos[s.cabeza].v}. El nodo quedó afuera, pero sigue ocupando memoria.`);
+          paso("eliminarEn", 8, tr(`cabeza = cabeza->siguiente: la lista ahora empieza en ${s.cabeza == null ? "nullptr (quedó vacía)" : s.nodos[s.cabeza].v}. El nodo quedó afuera, pero sigue ocupando memoria.`,
+            `head = head->next: the list now starts at ${s.cabeza == null ? "nullptr (it's empty)" : s.nodos[s.cabeza].v}. The node is left out, but it still takes up memory.`));
         } else {
-          paso("eliminarEn", 10, `nodoEn(${pos - 1}) nos lleva al nodo anterior al que vamos a borrar.`);
+          paso("eliminarEn", 10, tr(`nodoEn(${pos - 1}) nos lleva al nodo anterior al que vamos a borrar.`, `nodeAt(${pos - 1}) takes us to the node before the one we are going to delete.`));
           const anterior = animarNodoEn(s, pos - 1, paso, pila);
           s.ptrs.anterior = anterior;
           ver({ activo: anterior });
-          paso("eliminarEn", 10, `nodoEn devolvió ${nombre(s, anterior)}: anterior apunta a él.`);
+          paso("eliminarEn", 10, tr(`nodoEn devolvió ${nombre(s, anterior)}: anterior apunta a él.`, `nodeAt returned ${nombre(s, anterior)}: prev points to it.`));
           temp = s.nodos[anterior].sig;
           s.ptrs.temp = temp;
           ver({ activo: anterior, condenado: temp });
-          paso("eliminarEn", 11, `temp = anterior->siguiente: temp marca el nodo ${s.nodos[temp].v}, el de la posición ${pos}.`);
+          paso("eliminarEn", 11, tr(`temp = anterior->siguiente: temp marca el nodo ${s.nodos[temp].v}, el de la posición ${pos}.`,
+            `temp = prev->next: temp marks node ${s.nodos[temp].v}, the one at position ${pos}.`));
           s.nodos[temp].reserva = cadena(s).indexOf(temp);
           s.nodos[anterior].sig = s.nodos[temp].sig;
           ver({ activo: anterior, condenado: temp, flecha: anterior, nulo: s.nodos[anterior].sig == null ? anterior : null });
-          paso("eliminarEn", 12, `anterior->siguiente = temp->siguiente: ${s.nodos[anterior].v} salta por encima de ${s.nodos[temp].v} y apunta a ${valorSig(s, anterior)}.`);
+          paso("eliminarEn", 12, tr(`anterior->siguiente = temp->siguiente: ${s.nodos[anterior].v} salta por encima de ${s.nodos[temp].v} y apunta a ${valorSig(s, anterior)}.`,
+            `prev->next = temp->next: ${s.nodos[anterior].v} jumps over ${s.nodos[temp].v} and points to ${valorSig(s, anterior)}.`));
         }
         valor = s.nodos[temp].v;
         ver({ condenado: temp }, ["valor"]);
-        paso("eliminarEn", 14, `int valor = temp->valor: guardamos el ${valor} para devolverlo. Después del delete ya no se puede leer.`);
+        paso("eliminarEn", 14, tr(`int valor = temp->valor: guardamos el ${valor} para devolverlo. Después del delete ya no se puede leer.`,
+          `int value = temp->value: we keep ${valor} to return it. After the delete it can't be read anymore.`));
         delete s.nodos[temp];
         delete s.ptrs.temp;
         ver({});
-        paso("eliminarEn", 15, "delete temp: liberamos la memoria del nodo. Los demás no se movieron.");
+        paso("eliminarEn", 15, tr("delete temp: liberamos la memoria del nodo. Los demás no se movieron.", "delete temp: we free the node's memory. The others didn't move."));
         s.tamano--;
         ver({}, ["tamano"]);
-        paso("eliminarEn", 16, `tamano--: quedan ${s.tamano} nodo(s).`);
+        paso("eliminarEn", 16, tr(`tamano--: quedan ${s.tamano} nodo(s).`, `size--: ${s.tamano} node(s) left.`));
         ver({ salida: valor });
-        paso("eliminarEn", 17, `return ${valor}. ${pos === 0 ? "Borrar la cabeza es O(1)." : `Desenganchar es O(1). ${costoLlegar(pos - 1)}`}`, "exito");
+        paso("eliminarEn", 17, `return ${valor}. ${pos === 0
+          ? tr("Borrar la cabeza es O(1).", "Deleting the head is O(1).")
+          : `${tr("Desenganchar es O(1).", "Unhooking is O(1).")} ${costoLlegar(pos - 1)}`}`, "exito");
         terminar(s);
       },
     },
   };
+
 
 
   // ------------------------------------------------------------------
@@ -572,7 +742,8 @@
   // id para que se deslice con transiciones CSS.
   // ------------------------------------------------------------------
 
-  const pasoX = (s) => (s.direcciones ? 136 : 100);
+  const pasoX = (s) => (s.direcciones ? 120 : 100);
+  const ANCHO_NULO = 72; // la caja "nullptr" (y la marca de pos que se pasa del final)
   const anchoNodo = (s) => (s.direcciones ? 94 : 78);
   const bajada = (s) => ALTO_NODO + (s.direcciones ? 62 : 48); // de una fila a sus nodos sueltos
   // Entre dos filas: el carril de la flecha que salta de fila y las marcas de los punteros.
@@ -589,7 +760,15 @@
     return Math.max(3, Math.floor((ancho - X_LISTA - MARGEN - anchoNodo(s)) / pasoX(s)) + 1);
   }
 
-  function posiciones(s, cols, conNulo) {
+  // Si la última fila está llena, ¿cabe el nullptr a su derecha? Es más angosto
+  // que un nodo: así no abre una fila solo para él (en el paso 1, con las
+  // direcciones, caben 4 nodos por fila y la fila nueva no entraba en pantalla).
+  function cabeNuloAlLado(lienzo, s, cols) {
+    const ancho = lienzo.closest(".desliza-lista").getBoundingClientRect().width;
+    return !!ancho && X_LISTA + cols * pasoX(s) + ANCHO_NULO + MARGEN <= ancho;
+  }
+
+  function posiciones(s, cols, conNulo, nuloAlLado) {
     const fila = cadena(s);
     const enFila = new Set(fila);
     // Un nodo recién desenganchado guarda su lugar hasta el delete.
@@ -616,7 +795,10 @@
     }
 
     // Cada fila empieza debajo de la anterior y de sus nodos sueltos.
-    let filas = conNulo ? filaDe(lugares.length) + 1 : 1;
+    // El nullptr va en el lugar que sigue al último nodo o, si la fila está
+    // llena y cabe, a la derecha de esa misma fila.
+    const alLado = nuloAlLado && lugares.length > 0 && lugares.length % cols === 0;
+    let filas = conNulo && !alLado ? filaDe(lugares.length) + 1 : 1;
     const conSueltos = [];
     for (const { k, abajo } of Object.values(lugar)) {
       filas = Math.max(filas, filaDe(k) + 1);
@@ -630,7 +812,8 @@
     for (const [id, { k, abajo }] of Object.entries(lugar)) pos[id] = Object.assign(en(k, abajo), { suelto: !enFila.has(id) });
     const ultima = filas - 1;
     const alto = tops[ultima] + (conSueltos[ultima] ? bajada(s) + ALTO_NODO + 34 : ALTO_NODO + (s.direcciones ? 28 : s.indices ? 24 : 14));
-    return { pos, nulo: en(lugares.length, false), alto, indice: new Map(fila.map((id, k) => [id, k])) };
+    const nulo = alLado ? { x: X_LISTA + cols * pasoX(s), y: tops[filaDe(lugares.length - 1)], abajo: false } : en(lugares.length, false);
+    return { pos, nulo, alto, indice: new Map(fila.map((id, k) => [id, k])) };
   }
 
   let lienzos = 0;
@@ -643,7 +826,7 @@
       `<marker id="punta-lista-${n}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       `<marker id="punta-lista-activa-${n}" class="activa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       "</defs>";
-    const cabeza = el("div", { class: "lcabeza", "data-pieza": "cabeza" }, el("span", { class: "lcabeza-nombre", text: "cabeza" }), el("span", { class: "sig" }));
+    const cabeza = el("div", { class: "lcabeza", "data-pieza": "cabeza" }, el("span", { class: "lcabeza-nombre", text: ident("cabeza") }), el("span", { class: "sig" }));
     const nulo = el("div", { class: "lnulo", text: "nullptr" });
     const lienzo = el("div", { class: "lienzo-enlazada", "data-n": n }, svg, cabeza, nulo);
     // Las variables quedan fijas; si el dibujo no cabe, solo él hace scroll.
@@ -654,10 +837,12 @@
   if (typeof window !== "undefined") {
     window.addEventListener("resize", () => {
       for (const lienzo of document.querySelectorAll(".lienzo-enlazada")) {
-        // Si cambia cuántos nodos caben por fila, se acomodan de nuevo.
+        // Si cambia cuántos nodos caben por fila (o si el nullptr cabe al
+        // lado de una fila llena), se acomodan de nuevo.
         const s = lienzo._estado;
         if (!s || !lienzo.closest(".desliza-lista").clientWidth) continue; // paso oculto
-        if (columnas(lienzo, s) !== Number(lienzo.dataset.columnas)) dibujar(lienzo.closest(".escenario"), s);
+        const cols = columnas(lienzo, s);
+        if (cols !== Number(lienzo.dataset.columnas) || String(cabeNuloAlLado(lienzo, s, cols)) !== lienzo.dataset.nuloAlLado) dibujar(lienzo.closest(".escenario"), s);
         else {
           escalar(lienzo);
           // Si se dibujó con el paso oculto, los nodos no tenían posición: las flechas se trazan ahora.
@@ -779,6 +964,8 @@
     const dx = pasoX(s);
     const cols = columnas(lienzo, s);
     lienzo.dataset.columnas = cols;
+    const nuloAlLado = cabeNuloAlLado(lienzo, s, cols);
+    lienzo.dataset.nuloAlLado = nuloAlLado;
     lienzo._estado = s;
     lienzo.classList.toggle("con-direcciones", s.direcciones);
 
@@ -787,18 +974,18 @@
     const malo = vis.salida === "false" || vis.salida === "nullptr";
     escenario.querySelector(".info-lista").replaceChildren(
       vis.pila && vis.pila.length > 1
-        ? el("div", { class: "pila-llamadas", "aria-label": "Llamadas en curso" },
+        ? el("div", { class: "pila-llamadas", "aria-label": tr("Llamadas en curso", "Calls in progress") },
           vis.pila.flatMap((texto, k) => [k ? "›" : "", el("span", { class: "llamada", text: texto })]))
         : "",
-      DS.variables(vis.vars || {}, vis.cambio),
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
+      DS.variables(traducirVars(vis.vars || {}), (vis.cambio || []).map(ident)),
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
 
     // ¿Algún puntero local vale nullptr, o pos se pasó del final? Entonces se
     // ve el "nullptr" al final.
     const nombres = ORDEN_PUNTEROS.filter((k) => s.ptrs[k] !== undefined);
     const posMala = vis.posMala != null ? vis.posMala : null;
     const algunoNulo = nombres.some((k) => s.ptrs[k] == null) || (posMala != null && posMala >= 0);
-    const { pos, nulo: fin, alto: altoNodos, indice } = posiciones(s, cols, algunoNulo);
+    const { pos, nulo: fin, alto: altoNodos, indice } = posiciones(s, cols, algunoNulo, nuloAlLado);
     const alto = posMala != null ? Math.max(altoNodos, (posMala < 0 ? Y_FILA : fin.y) + ALTO_NODO + 28) : altoNodos;
     const nulo = lienzo.querySelector(".lnulo");
     nulo.style.left = `${fin.x}px`;
@@ -864,7 +1051,7 @@
         lienzo.append(marca);
       }
       const ancla = lugar.nulo ? 34 : 23; // centro del campo valor (o del nullptr)
-      marca.textContent = lugar.abajo ? `↑ ${k}` : `${k} ↓`;
+      marca.textContent = lugar.abajo ? `↑ ${ident(k)}` : `${ident(k)} ↓`;
       marca.style.left = `${lugar.x + ancla}px`;
       marca.style.top = lugar.abajo
         ? `${lugar.y + ALTO_NODO + 4 + nivel * 14 + (s.direcciones ? 14 : 0)}px`
@@ -892,7 +1079,7 @@
     for (const marca of lienzo.querySelectorAll(".lpuntero[data-nombre]")) if (!nombres.includes(marca.dataset.nombre)) retirar(marca);
 
     // Tamaño del dibujo y sacudida si hubo un error.
-    const derecha = Math.max(fin.x + (algunoNulo ? 80 : 0), ...Object.values(pos).map((p) => p.x + dx));
+    const derecha = Math.max(fin.x + (algunoNulo ? ANCHO_NULO : 0), ...Object.values(pos).map((p) => p.x + dx));
     const ancho = Math.max(320, derecha + MARGEN);
     lienzo.style.width = `${ancho}px`;
     lienzo.style.height = `${alto}px`;
@@ -928,7 +1115,7 @@
       incremental: true,
       dibujar,
       codigo: Object.fromEntries(opciones.ops.flatMap((id) => [id, ...(LLAMA[id] || [])]).map((id) => [id, CODIGO[id]])),
-      tituloCodigo: (clave) => `ListaEnlazada::${clave}()`,
+      tituloCodigo: (clave) => `${CLASE}::${F[clave]}()`,
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial,
       entradas: opciones.entradas,
@@ -936,7 +1123,7 @@
     });
   }
 
-  const VALOR = { id: "valor", etiqueta: "Valor", min: 0, max: 99, aleatorio: true };
+  const VALOR = { id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, aleatorio: true };
   const POSICION = { id: "pos", etiqueta: "pos", min: -3, max: 12, valor: 2 };
 
   // Paso 1: obtener(pos) con nodoEn, y las direcciones de memoria a la vista.
@@ -944,7 +1131,8 @@
     ops: ["obtener"],
     entradas: [POSICION],
     estadoInicial: () => estadoDesde([3, 7, 12, 20], { direcciones: true }),
-    mensajeInicial: "Bajo cada nodo, su dirección; en su siguiente, la del próximo. Prueba pos = 2, 0 y 6.",
+    mensajeInicial: tr("Bajo cada nodo, su dirección; en su siguiente, la del próximo. Prueba pos = 2, 0 y 6.",
+      "Under each node, its address; in its next, the address of the following one. Try pos = 2, 0 and 6."),
   });
 
   // Pasos 2 a 7: una operación cada uno.
@@ -952,44 +1140,50 @@
     ops: ["insertarAlInicio"],
     entradas: [VALOR],
     estadoInicial: () => estadoDesde([7, 12]),
-    mensajeInicial: "La lista tiene 7 y 12. Inserta un valor al inicio y fíjate en el orden de los dos punteros.",
+    mensajeInicial: tr("La lista tiene 7 y 12. Inserta un valor al inicio y fíjate en el orden de los dos punteros.",
+      "The list has 7 and 12. Insert a value at the front and watch the order of the two pointers."),
   });
 
   visualizador("vis-insertar-en", {
     ops: ["insertarEn"],
     entradas: [POSICION, VALOR],
     estadoInicial: () => estadoDesde([3, 7, 12, 20], { indices: true }),
-    mensajeInicial: "Debajo de cada nodo está su posición. Inserta en pos = 2 (entre 7 y 12); prueba también pos = 0, pos = 4 (el final) y pos = 6.",
+    mensajeInicial: tr("Debajo de cada nodo está su posición. Inserta en pos = 2 (entre 7 y 12); prueba también pos = 0, pos = 4 (el final) y pos = 6.",
+      "Under each node is its position. Insert at pos = 2 (between 7 and 12); also try pos = 0, pos = 4 (the end) and pos = 6."),
   });
 
   visualizador("vis-final", {
     ops: ["insertarAlFinal"],
-    entradas: [VALOR, { id: "inicial", etiqueta: "Lista inicial", opciones: [["llena", "3 → 7 → 12"], ["vacia", "vacía"]] }],
+    entradas: [VALOR, { id: "inicial", etiqueta: tr("Lista inicial", "Starting list"), opciones: [["llena", "3 → 7 → 12"], ["vacia", tr("vacía", "empty")]] }],
     estadoInicial: ({ inicial }) => estadoDesde(inicial === "vacia" ? [] : [3, 7, 12], { indices: true }),
     mensajeInicial: ({ inicial }) => inicial === "vacia"
-      ? "La lista está vacía: tamano es 0. Inserta al final para ver qué hace insertarEn(0, valor)."
-      : "Inserta al final: mira la pila de llamadas arriba del dibujo y cuenta los saltos de nodoEn. Prueba también con la lista vacía.",
+      ? tr("La lista está vacía: tamano es 0. Inserta al final para ver qué hace insertarEn(0, valor).",
+        "The list is empty: size is 0. Insert at the back to see what insertAt(0, value) does.")
+      : tr("Inserta al final: mira la pila de llamadas arriba del dibujo y cuenta los saltos de nodoEn. Prueba también con la lista vacía.",
+        "Insert at the back: watch the call stack above the drawing and count nodeAt's jumps. Also try it with the empty list."),
   });
 
   visualizador("vis-buscar", {
     ops: ["buscar"],
-    entradas: [{ id: "valor", etiqueta: "Valor", min: 0, max: 99, valor: 12 }],
+    entradas: [{ id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, valor: 12 }],
     estadoInicial: () => estadoDesde([3, 7, 12, 20]),
-    mensajeInicial: "Busca 12; después un valor que no esté (por ejemplo 99).",
+    mensajeInicial: tr("Busca 12; después un valor que no esté (por ejemplo 99).", "Find 12; then a value that isn't there (for example 99)."),
   });
 
   visualizador("vis-eliminar", {
     ops: ["eliminar"],
-    entradas: [{ id: "valor", etiqueta: "Valor", min: 0, max: 99, valor: 12 }],
+    entradas: [{ id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, valor: 12 }],
     estadoInicial: () => estadoDesde([3, 7, 12, 20]),
-    mensajeInicial: "Elimina 12 (en medio), después 3 (la cabeza) y un valor que no esté.",
+    mensajeInicial: tr("Elimina 12 (en medio), después 3 (la cabeza) y un valor que no esté.",
+      "Remove 12 (in the middle), then 3 (the head) and a value that isn't there."),
   });
 
   visualizador("vis-eliminar-en", {
     ops: ["eliminarEn"],
     entradas: [Object.assign({}, POSICION, { valor: 1 })],
     estadoInicial: () => estadoDesde([3, 7, 12, 20], { indices: true }),
-    mensajeInicial: "Elimina la posición 1 (el 7); prueba también pos = 0 y pos = 4, que ya no existe.",
+    mensajeInicial: tr("Elimina la posición 1 (el 7); prueba también pos = 0 y pos = 4, que ya no existe.",
+      "Remove position 1 (the 7); also try pos = 0 and pos = 4, which doesn't exist."),
   });
 
   // Todas las operaciones juntas.
@@ -997,7 +1191,8 @@
     ops: ["insertarAlInicio", "insertarEn", "insertarAlFinal", "buscar", "eliminar", "eliminarEn", "obtener"],
     entradas: [VALOR, Object.assign({}, POSICION, { valor: 1 })],
     estadoInicial: () => estadoDesde([3, 7, 12], { indices: true }),
-    mensajeInicial: "La lista de main() después de las tres primeras líneas: 3 → 7 → 12. Combina operaciones: pos solo se usa en insertarEn, eliminarEn y obtener.",
+    mensajeInicial: tr("La lista de main() después de las tres primeras líneas: 3 → 7 → 12. Combina operaciones: pos solo se usa en insertarEn, eliminarEn y obtener.",
+      "The list from main() after its first three lines: 3 → 7 → 12. Combine operations: pos is only used by insertAt, removeAt and get."),
   });
 
   // ------------------------------------------------------------------
@@ -1007,58 +1202,62 @@
   const COMPARACIONES = [
     {
       id: "inicio",
-      titulo: "Insertar al inicio",
-      vector: (n) => [n + 1, `corre ${fmt(n)} elementos y escribe 1`],
-      lista: () => [3, "crea un nodo y cambia 2 punteros"],
-      texto: "La lista gana siempre: no importa cuántos nodos haya detrás.",
+      titulo: tr("Insertar al inicio", "Insert at the front"),
+      vector: (n) => [n + 1, tr(`corre ${fmt(n)} elementos y escribe 1`, `shifts ${fmt(n)} elements and writes 1`)],
+      lista: () => [3, tr("crea un nodo y cambia 2 punteros", "creates a node and changes 2 pointers")],
+      texto: tr("La lista gana siempre: no importa cuántos nodos haya detrás.", "The list always wins: it doesn't matter how many nodes come after."),
     },
     {
       id: "final",
-      titulo: "Insertar al final",
-      vector: () => [1, "escribe en datos[tamano] (O(1) amortizado)"],
-      lista: (n) => [n + 1, `recorre ${fmt(n)} nodos y cambia 1 puntero`],
-      texto: "El vector gana. La lista empataría si guardara un puntero al último nodo (ejercicio del final).",
+      titulo: tr("Insertar al final", "Insert at the back"),
+      vector: () => [1, tr("escribe en datos[tamano] (O(1) amortizado)", "writes to data[size] (amortized O(1))")],
+      lista: (n) => [n + 1, tr(`recorre ${fmt(n)} nodos y cambia 1 puntero`, `walks ${fmt(n)} nodes and changes 1 pointer`)],
+      texto: tr("El vector gana. La lista empataría si guardara un puntero al último nodo (ejercicio del final).",
+        "The array wins. The list would tie if it kept a pointer to the last node (exercise at the end)."),
     },
     {
       id: "medio",
-      titulo: "Leer la posición n / 2",
-      vector: () => [1, "una cuenta y un salto"],
-      lista: (n) => [Math.floor(n / 2), `${fmt(Math.floor(n / 2))} saltos de nodo en nodo`],
-      texto: "El vector gana: es su gran ventaja, el acceso por índice.",
+      titulo: tr("Leer la posición n / 2", "Read position n / 2"),
+      vector: () => [1, tr("una cuenta y un salto", "one calculation and one jump")],
+      lista: (n) => [Math.floor(n / 2), tr(`${fmt(Math.floor(n / 2))} saltos de nodo en nodo`, `${fmt(Math.floor(n / 2))} jumps from node to node`)],
+      texto: tr("El vector gana: es su gran ventaja, el acceso por índice.", "The array wins: it's its big advantage, access by index."),
     },
     {
       id: "eliminar",
-      titulo: "Eliminar el primero",
-      vector: (n) => [n - 1, `corre ${fmt(n - 1)} elementos a la izquierda`],
-      lista: () => [2, "mueve cabeza y hace delete"],
-      texto: "La lista gana. (Si ya tienes el nodo anterior, borrar en medio también es O(1).)",
+      titulo: tr("Eliminar el primero", "Remove the first one"),
+      vector: (n) => [n - 1, tr(`corre ${fmt(n - 1)} elementos a la izquierda`, `shifts ${fmt(n - 1)} elements to the left`)],
+      lista: () => [2, tr("mueve cabeza y hace delete", "moves head and calls delete")],
+      texto: tr("La lista gana. (Si ya tienes el nodo anterior, borrar en medio también es O(1).)",
+        "The list wins. (If you already have the previous node, deleting in the middle is O(1) too.)"),
     },
     {
       id: "buscar",
-      titulo: "Buscar (peor caso)",
-      vector: (n) => [n, `revisa ${fmt(n)} casillas`],
-      lista: (n) => [n, `revisa ${fmt(n)} nodos`],
-      texto: "Empate en la cuenta, pero en la práctica el vector es varias veces más rápido: sus datos están juntos y el procesador los trae a la caché en bloque; los nodos están dispersos.",
+      titulo: tr("Buscar (peor caso)", "Find (worst case)"),
+      vector: (n) => [n, tr(`revisa ${fmt(n)} casillas`, `checks ${fmt(n)} slots`)],
+      lista: (n) => [n, tr(`revisa ${fmt(n)} nodos`, `checks ${fmt(n)} nodes`)],
+      texto: tr("Empate en la cuenta, pero en la práctica el vector es varias veces más rápido: sus datos están juntos y el procesador los trae a la caché en bloque; los nodos están dispersos.",
+        "A tie on paper, but in practice the array is several times faster: its data sits together and the processor brings it into the cache in blocks; the nodes are scattered."),
     },
     {
       id: "memoria",
-      titulo: "Memoria usada",
+      titulo: tr("Memoria usada", "Memory used"),
       unidad: "bytes",
-      vector: (n) => [4 * n, `${fmt(4 * n)} bytes: 4 por int (más la capacidad libre)`],
-      lista: (n) => [16 * n, `${fmt(16 * n)} bytes: int + puntero + relleno, 16 por nodo`],
-      texto: "Cada nodo paga además su puntero (8 bytes en un sistema de 64 bits) y el relleno de alineación.",
+      vector: (n) => [4 * n, tr(`${fmt(4 * n)} bytes: 4 por int (más la capacidad libre)`, `${fmt(4 * n)} bytes: 4 per int (plus the free capacity)`)],
+      lista: (n) => [16 * n, tr(`${fmt(16 * n)} bytes: int + puntero + relleno, 16 por nodo`, `${fmt(16 * n)} bytes: int + pointer + padding, 16 per node`)],
+      texto: tr("Cada nodo paga además su puntero (8 bytes en un sistema de 64 bits) y el relleno de alineación.",
+        "Each node also pays for its pointer (8 bytes on a 64-bit system) and the alignment padding."),
     },
   ];
 
   function fmt(n) {
-    return n.toLocaleString("es");
+    return n.toLocaleString(tr("es", "en"));
   }
 
   function montarComparador() {
     const caja = document.getElementById("comparador");
     if (!caja) return;
     let elegida = COMPARACIONES[0];
-    const rango = el("input", { type: "range", min: 0, max: 3, step: 1, value: 2, "aria-label": "Cantidad de elementos" });
+    const rango = el("input", { type: "range", min: 0, max: 3, step: 1, value: 2, "aria-label": tr("Cantidad de elementos", "Number of elements") });
     const tamanos = [10, 100, 1000, 100000];
     const etiquetaN = el("b");
     const botones = COMPARACIONES.map((c) => el("button", { type: "button", text: c.titulo, onclick: () => { elegida = c; pintar(); } }));
@@ -1071,8 +1270,8 @@
         el("div", { class: "barra-comparador" }, relleno), cifra, detalle);
       return { fila, relleno, cifra, detalle };
     };
-    const bVector = barra("vector");
-    const bLista = barra("lista");
+    const bVector = barra(tr("vector", "array"));
+    const bLista = barra(tr("lista", "list"));
     const conclusion = el("p", { class: "resumen-costo", "aria-live": "polite" });
 
     function pintar() {
@@ -1082,12 +1281,12 @@
       const [cv, dv] = elegida.vector(n);
       const [cl, dl] = elegida.lista(n);
       const maximo = Math.max(cv, cl);
-      const unidad = elegida.unidad || "pasos";
+      const [uno, varios] = elegida.unidad ? ["byte", "bytes"] : tr(["paso", "pasos"], ["step", "steps"]);
       for (const [b, costo, detalle, otro] of [[bVector, cv, dv, cl], [bLista, cl, dl, cv]]) {
         b.relleno.style.width = `${Math.max(1.5, (costo / maximo) * 100)}%`;
         b.relleno.classList.toggle("gana", costo < otro);
         b.relleno.classList.toggle("pierde", costo > otro);
-        b.cifra.textContent = `${fmt(costo)} ${costo === 1 ? unidad.replace(/s$/, "") : unidad}`;
+        b.cifra.textContent = `${fmt(costo)} ${costo === 1 ? uno : varios}`;
         b.detalle.textContent = detalle;
       }
       conclusion.textContent = elegida.texto;
@@ -1097,9 +1296,9 @@
     caja.classList.add("panel", "comparador");
     caja.append(
       el("div", { class: "controles" },
-        el("div", { class: "selector-modo selector-comparador", role: "group", "aria-label": "Operación" }, botones)),
+        el("div", { class: "selector-modo selector-comparador", role: "group", "aria-label": tr("Operación", "Operation") }, botones)),
       el("div", { class: "cuerpo-comparador" },
-        el("label", { class: "tamano-comparador" }, "Elementos: n = ", etiquetaN, rango),
+        el("label", { class: "tamano-comparador" }, tr("Elementos: n = ", "Elements: n = "), etiquetaN, rango),
         bVector.fila, bLista.fila),
       conclusion);
     pintar();
