@@ -37,6 +37,7 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Lista enlazada | `obtener(i)` | `get(i)` |
 | Lista enlazada | `insertarAlInicio` / `insertarAlFinal` / `insertarEn` | `insertAtFront` / `insertAtBack` / `insertAt` |
 | Lista enlazada | `buscar` / `eliminar` / `eliminarEn` | `find` / `remove` / `removeAt` |
+| Lista enlazada | `tamano` (variable) / `actual` / `anterior` (variable local) / `nodo` / `lista` | `size` / `current` / `prev` / `node` / `list` |
 | Lambdas | `elevarAlCuadrado` / `cuadrado` / `resultado` | `computeSquare` / `square` / `result` |
 | Lambdas | `capturaPorValor` / `multiplicar` | `captureByValue` / `multiply` |
 | Lambdas | `sumarConReferencia` / `numeros` / `acumular` | `sumWithReference` / `numbers` / `addToTotal` |
