@@ -1,17 +1,19 @@
 // Lección de recursión, en pasos. Los fragmentos de código deben coincidir
-// línea por línea con ejemplos/cpp/recursion.cpp
-// (scripts/verificar-fragmentos.mjs lo revisa).
+// línea por línea con ejemplos/cpp/recursion.cpp, y en inglés con
+// ejemplos/cpp/en/recursion.cpp (scripts/verificar-fragmentos.mjs lo
+// revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const SVG = "http://www.w3.org/2000/svg";
   const DURACION = 450;
   const DIGITOS = "0123456789ABCDEF";
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/recursion.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/recursion.cpp y de
+  // ejemplos/cpp/en/recursion.cpp, con las mismas líneas)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     sumaDigitos: `
       int sumaDigitos(int n) {
           if (n < 10) {
@@ -89,7 +91,94 @@
           memo[n] = fibonacciMemo(n - 1, memo) + fibonacciMemo(n - 2, memo);
           return memo[n];
       }`,
-  };
+  }, {
+    sumaDigitos: `
+      int digitSum(int n) {
+          if (n < 10) {
+              return n;
+          }
+          return digitSum(n / 10) + n % 10;
+      }`,
+    imprimirDigitos: `
+      void printDigits(int n) {
+          if (n >= 10) {
+              printDigits(n / 10);
+          }
+          std::cout << n % 10 << ' ';
+      }`,
+    imprimirAlReves: `
+      void printReversed(int n) {
+          std::cout << n % 10 << ' ';
+          if (n >= 10) {
+              printReversed(n / 10);
+          }
+      }`,
+    invertir: `
+      int reverseDigits(int n, int accumulated) {
+          if (n == 0) {
+              return accumulated;
+          }
+          return reverseDigits(n / 10, accumulated * 10 + n % 10);
+      }`,
+    aBase: `
+      std::string toBase(int n, int base) {
+          if (n < 0 || base < 2 || base > 16) {
+              throw std::invalid_argument("n must be >= 0 and the base between 2 and 16");
+          }
+          if (n < base) {
+              return std::string(1, DIGITS[n]);
+          }
+          return toBase(n / base, base) + DIGITS[n % base];
+      }`,
+    esPalindromo: `
+      bool isPalindrome(const std::string& text, int i, int j) {
+          if (i >= j) {
+              return true;
+          }
+          if (text[i] != text[j]) {
+              return false;
+          }
+          return isPalindrome(text, i + 1, j - 1);
+      }`,
+    potencia: `
+      long long power(long long base, int exponent) {
+          if (exponent == 0) {
+              return 1;
+          }
+          long long half = power(base, exponent / 2);
+          if (exponent % 2 == 0) {
+              return half * half;
+          }
+          return half * half * base;
+      }`,
+    fibonacci: `
+      long long fibonacci(int n) {
+          if (n < 2) {
+              return n;
+          }
+          return fibonacci(n - 1) + fibonacci(n - 2);
+      }`,
+    fibonacciMemo: `
+      long long fibonacciMemo(int n, std::vector<long long>& memo) {
+          if (n < 2) {
+              return n;
+          }
+          if (memo[n] != -1) {
+              return memo[n];
+          }
+          memo[n] = fibonacciMemo(n - 1, memo) + fibonacciMemo(n - 2, memo);
+          return memo[n];
+      }`,
+  });
+
+  // Nombres del C++ en el idioma de la página: funciones y variables que se
+  // dibujan. Las claves de CODIGO y de OPS quedan en español.
+  const NOMBRES = tr({}, {
+    sumaDigitos: "digitSum", imprimirDigitos: "printDigits", imprimirAlReves: "printReversed", invertir: "reverseDigits",
+    aBase: "toBase", esPalindromo: "isPalindrome", potencia: "power",
+    acumulado: "accumulated", DIGITOS: "DIGITS", texto: "text", exponente: "exponent", mitad: "half",
+  });
+  const nombre = (x) => NOMBRES[x] || x;
 
   // ------------------------------------------------------------------
   // Estado: la pila de llamadas, un marco por llamada en curso (el de más
@@ -145,51 +234,56 @@
 
   const OPS = {
     sumaDigitos: {
-      etiqueta: "sumaDigitos(n)",
+      etiqueta: `${nombre("sumaDigitos")}(n)`,
       usa: ["n"],
       codigo: "sumaDigitos",
       ejecutar(s, { n }, paso) {
         const C = "sumaDigitos";
+        const F = nombre(C);
         nuevaLlamada(s, String(n).length);
         conNumero(s, n);
         const P = conNivel(s, paso);
         function rec(n) {
-          const m = llamar(s, `sumaDigitos(${n})`);
+          const m = llamar(s, `${F}(${n})`);
           const k = s.marcos.length;
           const largo = String(n).length;
           if (n < 10) {
             m.base = true;
             s.vis = { vigentes: 1 };
-            P(C, 2, k === 1 ? `sumaDigitos(${n}): ¿n < 10? Sí, tiene un solo dígito.` : `Nueva llamada con su propio n = ${n}. ¿n < 10? Sí: ya no se puede partir más.`);
+            P(C, 2, k === 1
+              ? tr(`${F}(${n}): ¿n < 10? Sí, tiene un solo dígito.`, `${F}(${n}): n < 10? Yes, it has a single digit.`)
+              : tr(`Nueva llamada con su propio n = ${n}. ¿n < 10? Sí: ya no se puede partir más.`, `New call with its own n = ${n}. n < 10? Yes: it can't be split any further.`));
             const r = ficha(s, n, celda(0));
             m.resultado = [r];
             s.vis = { vigentes: 1, activos: [r.id], salida: k === 1 ? r.v : null };
             P(C, 3, k === 1
-              ? `Caso base: devuelve ${n} sin llamarse. Con un solo dígito, la suma es el mismo dígito.`
-              : `Caso base: devuelve ${n} sin llamarse. Aquí la pila deja de crecer y empieza a bajar.`, k === 1 ? "exito" : "");
+              ? tr(`Caso base: devuelve ${n} sin llamarse. Con un solo dígito, la suma es el mismo dígito.`, `Base case: it returns ${n} without calling itself. With a single digit, the sum is that same digit.`)
+              : tr(`Caso base: devuelve ${n} sin llamarse. Aquí la pila deja de crecer y empieza a bajar.`, `Base case: it returns ${n} without calling itself. Here the stack stops growing and starts shrinking.`), k === 1 ? "exito" : "");
             return r;
           }
           s.vis = { vigentes: largo };
           P(C, 2, k === 1
-            ? `sumaDigitos(${n}): ¿n < 10? No, tiene ${largo} dígitos. Hay que partirlo.`
-            : `Nueva llamada, con su propio marco y su propio n = ${n}. ¿n < 10? No.`);
+            ? tr(`${F}(${n}): ¿n < 10? No, tiene ${largo} dígitos. Hay que partirlo.`, `${F}(${n}): n < 10? No, it has ${largo} digits. It has to be split.`)
+            : tr(`Nueva llamada, con su propio marco y su propio n = ${n}. ¿n < 10? No.`, `New call, with its own frame and its own n = ${n}. n < 10? No.`));
           const q = Math.floor(n / 10);
           const ultimo = ficha(s, n % 10, celda(largo - 1));
-          const h = hueco(s, `sumaDigitos(${q})`);
+          const h = hueco(s, `${F}(${q})`);
           m.expr = [h, txt("+"), ultimo];
           s.vis = { vigentes: largo - 1, activos: [ultimo.id] };
-          P(C, 5, `n % 10 = ${n % 10} es el último dígito y n / 10 = ${q}, el resto. El ${n % 10} se queda esperando en este marco mientras sumaDigitos(${q}) resuelve lo demás.`);
+          P(C, 5, tr(
+            `n % 10 = ${n % 10} es el último dígito y n / 10 = ${q}, el resto. El ${n % 10} se queda esperando en este marco mientras ${F}(${q}) resuelve lo demás.`,
+            `n % 10 = ${n % 10} is the last digit and n / 10 = ${q} is the rest. The ${n % 10} waits in this frame while ${F}(${q}) solves the rest.`));
           const sub = rec(q);
           volver(s);
           h.lleno = [sub];
           s.vis = { vigentes: largo - 1, activos: [sub.id] };
-          P(C, 5, `sumaDigitos(${q}) devolvió ${sub.v}: su marco se cierra y el valor sube al hueco que lo esperaba.`);
+          P(C, 5, tr(`${F}(${q}) devolvió ${sub.v}: su marco se cierra y el valor sube al hueco que lo esperaba.`, `${F}(${q}) returned ${sub.v}: its frame closes and the value goes up into the slot that was waiting for it.`));
           const r = ficha(s, Number(sub.v) + (n % 10));
           m.resultado = [r];
           s.vis = { vigentes: largo, activos: [r.id], salida: k === 1 ? r.v : null };
           P(C, 5, k === 1
-            ? `${sub.v} + ${n % 10} = ${r.v}. sumaDigitos(${n}) devuelve ${r.v}: cada llamada sumó un dígito al volver.`
-            : `${sub.v} + ${n % 10} = ${r.v}: sumaDigitos(${n}) devuelve ${r.v} a la llamada de arriba.`, k === 1 ? "exito" : "");
+            ? tr(`${sub.v} + ${n % 10} = ${r.v}. ${F}(${n}) devuelve ${r.v}: cada llamada sumó un dígito al volver.`, `${sub.v} + ${n % 10} = ${r.v}. ${F}(${n}) returns ${r.v}: each call added one digit on the way back.`)
+            : tr(`${sub.v} + ${n % 10} = ${r.v}: ${F}(${n}) devuelve ${r.v} a la llamada de arriba.`, `${sub.v} + ${n % 10} = ${r.v}: ${F}(${n}) returns ${r.v} to the call above.`), k === 1 ? "exito" : "");
           return r;
         }
         rec(n);
@@ -197,35 +291,40 @@
     },
 
     imprimirDigitos: {
-      etiqueta: "imprimirDigitos(n)",
+      etiqueta: `${nombre("imprimirDigitos")}(n)`,
       usa: ["n"],
       codigo: "imprimirDigitos",
       ejecutar(s, { n }, paso) {
         const C = "imprimirDigitos";
+        const F = nombre(C);
         nuevaLlamada(s, String(n).length);
         conNumero(s, n);
         s.pantalla = [];
         const P = conNivel(s, paso);
         const pantalla = () => `"${s.pantalla.map((f) => `${f.v} `).join("")}"`;
         function rec(n) {
-          const m = llamar(s, `imprimirDigitos(${n})`);
+          const m = llamar(s, `${F}(${n})`);
           const k = s.marcos.length;
           const largo = String(n).length;
           const cout = ficha(s, n % 10, celda(largo - 1), "pendiente");
           if (n >= 10) {
             const q = Math.floor(n / 10);
-            const h = hueco(s, `imprimirDigitos(${q})`, true);
-            m.expr = [h, txt("; después cout <<", "suave"), cout];
+            const h = hueco(s, `${F}(${q})`, true);
+            m.expr = [h, txt(tr("; después cout <<", "; then cout <<"), "suave"), cout];
             s.vis = { vigentes: largo, activos: [cout.id] };
-            P(C, 3, `n = ${n} ≥ 10: primero llama a imprimirDigitos(${q}). El cout << ${n % 10} queda pendiente: está DESPUÉS de la llamada.`);
+            P(C, 3, tr(
+              `n = ${n} ≥ 10: primero llama a ${F}(${q}). El cout << ${n % 10} queda pendiente: está DESPUÉS de la llamada.`,
+              `n = ${n} ≥ 10: first it calls ${F}(${q}). The cout << ${n % 10} is left pending: it comes AFTER the call.`));
             rec(q);
             volver(s);
-            h.texto = "✓ terminó";
+            h.texto = tr("✓ terminó", "✓ done");
           } else {
             m.base = true;
             m.expr = [txt("cout <<", "suave"), cout];
             s.vis = { vigentes: largo, activos: [cout.id] };
-            P(C, 2, k === 1 ? `n = ${n} < 10: el if no entra y no hay llamada.` : `n = ${n} < 10: el if no entra. Caso base: esta llamada ya no llama a nadie.`);
+            P(C, 2, k === 1
+              ? tr(`n = ${n} < 10: el if no entra y no hay llamada.`, `n = ${n} < 10: the if is skipped and there is no call.`)
+              : tr(`n = ${n} < 10: el if no entra. Caso base: esta llamada ya no llama a nadie.`, `n = ${n} < 10: the if is skipped. Base case: this call doesn't call anyone else.`));
           }
           // El dígito sale volando a la pantalla; en el marco queda la marca de impreso.
           m.expr = m.expr.map((x) => (x === cout ? txt(`${cout.v} ✓`, "bien") : x));
@@ -233,53 +332,60 @@
           s.pantalla.push(cout);
           s.vis = { vigentes: largo, activos: [cout.id] };
           P(C, 5, n >= 10
-            ? `Volvió de la llamada. Ahora sí: cout << ${n % 10}. Pantalla: ${pantalla()}.`
-            : `cout << ${n}: es el primero que se imprime, aunque es la última llamada. Pantalla: ${pantalla()}.`);
+            ? tr(`Volvió de la llamada. Ahora sí: cout << ${n % 10}. Pantalla: ${pantalla()}.`, `Back from the call. Now it does: cout << ${n % 10}. Screen: ${pantalla()}.`)
+            : tr(`cout << ${n}: es el primero que se imprime, aunque es la última llamada. Pantalla: ${pantalla()}.`, `cout << ${n}: it is the first one printed, even though it is the last call. Screen: ${pantalla()}.`));
         }
         rec(n);
         s.vis = { vigentes: String(n).length };
-        P(C, 6, `Listo: ${pantalla()}, en orden. Cada llamada imprimió su dígito al volver, de la más profunda (el primer dígito) a la primera.`, "exito");
+        P(C, 6, tr(
+          `Listo: ${pantalla()}, en orden. Cada llamada imprimió su dígito al volver, de la más profunda (el primer dígito) a la primera.`,
+          `Done: ${pantalla()}, in order. Each call printed its digit on the way back, from the deepest one (the first digit) to the first one.`), "exito");
       },
     },
 
     imprimirAlReves: {
-      etiqueta: "imprimirAlReves(n)",
+      etiqueta: `${nombre("imprimirAlReves")}(n)`,
       usa: ["n"],
       codigo: "imprimirAlReves",
       ejecutar(s, { n }, paso) {
         const C = "imprimirAlReves";
+        const F = nombre(C);
         nuevaLlamada(s, String(n).length);
         conNumero(s, n);
         s.pantalla = [];
         const P = conNivel(s, paso);
         const pantalla = () => `"${s.pantalla.map((f) => `${f.v} `).join("")}"`;
         function rec(n) {
-          const m = llamar(s, `imprimirAlReves(${n})`);
+          const m = llamar(s, `${F}(${n})`);
           const k = s.marcos.length;
           const largo = String(n).length;
           const cout = ficha(s, n % 10, celda(largo - 1));
           s.pantalla.push(cout);
           s.vis = { vigentes: largo, activos: [cout.id] };
-          P(C, 2, `${k === 1 ? "" : `Nueva llamada con n = ${n}. `}cout << n % 10: imprime ${n % 10} de ida, ANTES de llamar. Pantalla: ${pantalla()}.`);
+          P(C, 2, tr(
+            `${k === 1 ? "" : `Nueva llamada con n = ${n}. `}cout << n % 10: imprime ${n % 10} de ida, ANTES de llamar. Pantalla: ${pantalla()}.`,
+            `${k === 1 ? "" : `New call with n = ${n}. `}cout << n % 10: it prints ${n % 10} on the way down, BEFORE the call. Screen: ${pantalla()}.`));
           if (n >= 10) {
             const q = Math.floor(n / 10);
-            const h = hueco(s, `imprimirAlReves(${q})`, true);
-            m.expr = [h, txt("; después: nada", "suave")];
+            const h = hueco(s, `${F}(${q})`, true);
+            m.expr = [h, txt(tr("; después: nada", "; then: nothing"), "suave")];
             s.vis = { vigentes: largo - 1 };
-            P(C, 4, `n = ${n} ≥ 10: llama a imprimirAlReves(${q}). A esta llamada no le queda nada por hacer después.`);
+            P(C, 4, tr(`n = ${n} ≥ 10: llama a ${F}(${q}). A esta llamada no le queda nada por hacer después.`, `n = ${n} ≥ 10: it calls ${F}(${q}). This call has nothing left to do afterwards.`));
             rec(q);
             volver(s);
-            h.texto = "✓ terminó";
+            h.texto = tr("✓ terminó", "✓ done");
             s.vis = { vigentes: largo };
             P(C, 6, k === 1
-              ? `Volvió y termina sin hacer nada más. Pantalla: ${pantalla()}: el último dígito salió primero.`
-              : `imprimirAlReves(${n}) vuelve de su llamada y termina: no tenía nada pendiente.`, k === 1 ? "exito" : "");
+              ? tr(`Volvió y termina sin hacer nada más. Pantalla: ${pantalla()}: el último dígito salió primero.`, `It came back and ends without doing anything else. Screen: ${pantalla()}: the last digit came out first.`)
+              : tr(`${F}(${n}) vuelve de su llamada y termina: no tenía nada pendiente.`, `${F}(${n}) comes back from its call and ends: it had nothing pending.`), k === 1 ? "exito" : "");
           } else {
             m.base = true;
             s.vis = { vigentes: largo };
-            P(C, 3, `n = ${n} < 10: el if no entra. Caso base: no hay más llamadas.`);
+            P(C, 3, tr(`n = ${n} < 10: el if no entra. Caso base: no hay más llamadas.`, `n = ${n} < 10: the if is skipped. Base case: no more calls.`));
             s.vis = { vigentes: largo };
-            P(C, 6, k === 1 ? `Listo: ${pantalla()}.` : `imprimirAlReves(${n}) termina. Las de arriba terminan una tras otra, sin imprimir nada más.`, k === 1 ? "exito" : "");
+            P(C, 6, k === 1
+              ? tr(`Listo: ${pantalla()}.`, `Done: ${pantalla()}.`)
+              : tr(`${F}(${n}) termina. Las de arriba terminan una tras otra, sin imprimir nada más.`, `${F}(${n}) ends. The ones above end one after another, without printing anything else.`), k === 1 ? "exito" : "");
           }
         }
         rec(n);
@@ -287,45 +393,55 @@
     },
 
     invertir: {
-      etiqueta: "invertir(n, 0)",
+      etiqueta: `${nombre("invertir")}(n, 0)`,
       usa: ["n"],
       codigo: "invertir",
       ejecutar(s, { n }, paso) {
         const C = "invertir";
+        const F = nombre(C);
+        const A = nombre("acumulado");
         nuevaLlamada(s, String(n).length + 1);
         conNumero(s, n);
         const P = conNivel(s, paso);
         function rec(n, acumulado) {
-          const m = llamar(s, `invertir(${n}, ${acumulado})`);
+          const m = llamar(s, `${F}(${n}, ${acumulado})`);
           const k = s.marcos.length;
           const largo = cifras(n);
           if (n === 0) {
             m.base = true;
             s.vis = { vigentes: 0 };
-            P(C, 2, k === 1 ? "invertir(0, 0): n == 0, no hay dígitos que invertir." : `invertir(0, ${acumulado}): n == 0, ya no quedan dígitos.`);
+            P(C, 2, k === 1
+              ? tr(`${F}(0, 0): n == 0, no hay dígitos que invertir.`, `${F}(0, 0): n == 0, there are no digits to reverse.`)
+              : tr(`${F}(0, ${acumulado}): n == 0, ya no quedan dígitos.`, `${F}(0, ${acumulado}): n == 0, there are no digits left.`));
             const r = ficha(s, acumulado);
             m.resultado = [r];
             s.vis = { vigentes: 0, activos: [r.id], salida: k === 1 ? r.v : null };
-            P(C, 3, k === 1 ? "Caso base: devuelve acumulado = 0." : `Caso base: devuelve acumulado = ${acumulado}, que ya es el número invertido. Nadie arriba lo va a cambiar.`, k === 1 ? "exito" : "");
+            P(C, 3, k === 1
+              ? tr(`Caso base: devuelve ${A} = 0.`, `Base case: it returns ${A} = 0.`)
+              : tr(`Caso base: devuelve ${A} = ${acumulado}, que ya es el número invertido. Nadie arriba lo va a cambiar.`, `Base case: it returns ${A} = ${acumulado}, which is already the reversed number. Nobody above will change it.`), k === 1 ? "exito" : "");
             return r;
           }
           s.vis = { vigentes: largo };
-          P(C, 2, k === 1 ? `invertir(${n}, 0): n ≠ 0, quedan dígitos. acumulado empieza en 0.` : `Nueva llamada: n = ${n}, acumulado = ${acumulado}. n ≠ 0.`);
+          P(C, 2, k === 1
+            ? tr(`${F}(${n}, 0): n ≠ 0, quedan dígitos. ${A} empieza en 0.`, `${F}(${n}, 0): n ≠ 0, there are digits left. ${A} starts at 0.`)
+            : tr(`Nueva llamada: n = ${n}, ${A} = ${acumulado}. n ≠ 0.`, `New call: n = ${n}, ${A} = ${acumulado}. n ≠ 0.`));
           const q = Math.floor(n / 10);
           const d = n % 10;
           const nuevo = acumulado * 10 + d;
           const digito = ficha(s, d, celda(largo - 1));
-          const h = hueco(s, `invertir(${q}, ${nuevo})`);
+          const h = hueco(s, `${F}(${q}, ${nuevo})`);
           m.expr = [txt(`${acumulado}·10 +`, "suave"), digito, txt("→", "suave"), h];
           s.vis = { vigentes: largo - 1, activos: [digito.id] };
-          P(C, 5, `acumulado * 10 + n % 10 = ${acumulado}·10 + ${d} = ${nuevo}: el último dígito pasa al acumulado. Llama a invertir(${q}, ${nuevo}) y no deja nada pendiente.`);
+          P(C, 5, tr(
+            `${A} * 10 + n % 10 = ${acumulado}·10 + ${d} = ${nuevo}: el último dígito pasa al acumulado. Llama a ${F}(${q}, ${nuevo}) y no deja nada pendiente.`,
+            `${A} * 10 + n % 10 = ${acumulado}·10 + ${d} = ${nuevo}: the last digit moves into the accumulator. It calls ${F}(${q}, ${nuevo}) and leaves nothing pending.`));
           const r = rec(q, nuevo);
           volver(s);
           h.lleno = [r];
           s.vis = { vigentes: largo, activos: [r.id], salida: k === 1 ? r.v : null };
           P(C, 5, k === 1
-            ? `invertir(${n}, 0) devuelve ${r.v}. El resultado se armó de ida, en acumulado; de vuelta solo subió sin cambios.`
-            : `Devolvió ${r.v}, y esta llamada devuelve lo mismo, sin tocarlo: es recursión de cola.`, k === 1 ? "exito" : "");
+            ? tr(`${F}(${n}, 0) devuelve ${r.v}. El resultado se armó de ida, en ${A}; de vuelta solo subió sin cambios.`, `${F}(${n}, 0) returns ${r.v}. The result was built on the way down, in ${A}; on the way back it only went up unchanged.`)
+            : tr(`Devolvió ${r.v}, y esta llamada devuelve lo mismo, sin tocarlo: es recursión de cola.`, `It returned ${r.v}, and this call returns the same thing, untouched: it is tail recursion.`), k === 1 ? "exito" : "");
           return r;
         }
         rec(n, 0);
@@ -333,11 +449,13 @@
     },
 
     aBase: {
-      etiqueta: "aBase(n, base)",
+      etiqueta: `${nombre("aBase")}(n, base)`,
       usa: ["n", "base"],
       codigo: "aBase",
       ejecutar(s, { n, base, sinTabla }, paso) {
         const C = "aBase";
+        const F = nombre(C);
+        const D = nombre("DIGITOS");
         const valida = n >= 0 && base >= 2 && base <= 16;
         nuevaLlamada(s, valida ? n.toString(base).length : 1);
         // La cadena DIGITOS, con cada símbolo bajo su posición (en Todo junto no hay lugar).
@@ -345,7 +463,7 @@
         const P = conNivel(s, paso);
         const comillas = (fichas) => `"${fichas.map((f) => f.v).join("")}"`;
         function rec(n) {
-          const m = llamar(s, `aBase(${n}, ${base})`);
+          const m = llamar(s, `${F}(${n}, ${base})`);
           const k = s.marcos.length;
           if (k === 1) {
             if (!valida) {
@@ -353,14 +471,15 @@
               m.expr = [txt("throw std::invalid_argument", "mal")];
               s.vis = { sacudir: true, salida: "error", error: true };
               P(C, 3, n < 0
-                ? `n = ${n} es negativo: no hay dígitos para eso. Lanza std::invalid_argument y no se llama a nadie.`
+                ? tr(`n = ${n} es negativo: no hay dígitos para eso. Lanza std::invalid_argument y no se llama a nadie.`, `n = ${n} is negative: there are no digits for that. It throws std::invalid_argument and no one is called.`)
                 : base < 2
-                  ? `base = ${base}: con menos de 2 dígitos no se puede escribir (dividir entre ${base} nunca achica n${base === 1 ? "; la recursión no terminaría" : ""}). Lanza std::invalid_argument.`
-                  : `base = ${base}: DIGITOS solo tiene 16 símbolos (0-9 y A-F). Lanza std::invalid_argument.`, "error");
+                  ? tr(`base = ${base}: con menos de 2 dígitos no se puede escribir (dividir entre ${base} nunca achica n${base === 1 ? "; la recursión no terminaría" : ""}). Lanza std::invalid_argument.`,
+                    `base = ${base}: you can't write numbers with fewer than 2 digits (dividing by ${base} never makes n smaller${base === 1 ? "; the recursion would never end" : ""}). It throws std::invalid_argument.`)
+                  : tr(`base = ${base}: ${D} solo tiene 16 símbolos (0-9 y A-F). Lanza std::invalid_argument.`, `base = ${base}: ${D} only has 16 symbols (0-9 and A-F). It throws std::invalid_argument.`), "error");
               return null;
             }
             s.vis = {};
-            P(C, 2, `aBase(${n}, ${base}): n ≥ 0 y la base está entre 2 y 16, se puede convertir.`);
+            P(C, 2, tr(`${F}(${n}, ${base}): n ≥ 0 y la base está entre 2 y 16, se puede convertir.`, `${F}(${n}, ${base}): n ≥ 0 and the base is between 2 and 16, so it can be converted.`));
           }
           if (n < base) {
             m.base = true;
@@ -368,27 +487,33 @@
             const r = ficha(s, c, `d${n}`, "car comilla");
             m.expr = [txt("std::string(1,", "suave"), r, txt(")", "suave")];
             s.vis = { lee: n, activos: [r.id] };
-            P(C, 6, `n = ${n} < ${base}: cabe en un solo dígito (caso base). DIGITOS[${n}] es el char '${c}', el símbolo que vale ${n}. std::string(1, '${c}') arma un string con 1 copia de ese carácter.`);
+            P(C, 6, tr(
+              `n = ${n} < ${base}: cabe en un solo dígito (caso base). ${D}[${n}] es el char '${c}', el símbolo que vale ${n}. std::string(1, '${c}') arma un string con 1 copia de ese carácter.`,
+              `n = ${n} < ${base}: it fits in a single digit (base case). ${D}[${n}] is the char '${c}', the symbol worth ${n}. std::string(1, '${c}') builds a string with 1 copy of that character.`));
             r.clase = "car";
             m.expr = [txt(`std::string(1, '${c}')`, "suave")];
             m.resultado = [r];
             s.vis = { activos: [r.id], salida: k === 1 ? comillas([r]) : null };
-            P(C, 6, `Devuelve "${c}", un std::string de largo 1. Hay que convertir el char porque aBase devuelve std::string.`, k === 1 ? "exito" : "");
+            P(C, 6, tr(
+              `Devuelve "${c}", un std::string de largo 1. Hay que convertir el char porque ${F} devuelve std::string.`,
+              `It returns "${c}", a std::string of length 1. The char has to be converted because ${F} returns std::string.`), k === 1 ? "exito" : "");
             return [r];
           }
           const q = Math.floor(n / base);
           const resto = n % base;
           const digito = ficha(s, DIGITOS[resto], `d${resto}`, "car comilla");
-          const h = hueco(s, `aBase(${q}, ${base})`);
+          const h = hueco(s, `${F}(${q}, ${base})`);
           m.expr = [h, txt("+", "suave"), digito];
           m.nota = `${n} = ${q}·${base} + ${resto}`;
           s.vis = { lee: resto, activos: [digito.id] };
-          P(C, 8, `${k === 1 ? "" : "La validación pasa otra vez. "}n = ${n} ≥ ${base}: ${n} ÷ ${base} = ${q}, resto ${resto}, y DIGITOS[${resto}] = '${DIGITOS[resto]}'. Es el ÚLTIMO dígito: espera a que aBase(${q}, ${base}) escriba los de adelante.`);
+          P(C, 8, tr(
+            `${k === 1 ? "" : "La validación pasa otra vez. "}n = ${n} ≥ ${base}: ${n} ÷ ${base} = ${q}, resto ${resto}, y ${D}[${resto}] = '${DIGITOS[resto]}'. Es el ÚLTIMO dígito: espera a que ${F}(${q}, ${base}) escriba los de adelante.`,
+            `${k === 1 ? "" : "The check passes again. "}n = ${n} ≥ ${base}: ${n} ÷ ${base} = ${q}, remainder ${resto}, and ${D}[${resto}] = '${DIGITOS[resto]}'. It is the LAST digit: it waits for ${F}(${q}, ${base}) to write the ones in front.`));
           const sub = rec(q);
           volver(s);
           h.lleno = sub;
           s.vis = { activos: sub.map((f) => f.id) };
-          P(C, 8, `aBase(${q}, ${base}) devolvió ${comillas(sub)}: sube al hueco y su marco se cierra.`);
+          P(C, 8, tr(`${F}(${q}, ${base}) devolvió ${comillas(sub)}: sube al hueco y su marco se cierra.`, `${F}(${q}, ${base}) returned ${comillas(sub)}: it goes up into the slot and its frame closes.`));
           h.lleno = null;
           h.texto = comillas(sub);
           m.expr = m.expr.map((x) => (x === digito ? txt(`'${digito.v}'`, "suave") : x));
@@ -397,8 +522,9 @@
           m.resultado = r;
           s.vis = { activos: [digito.id], salida: k === 1 ? comillas(r) : null };
           P(C, 8, k === 1
-            ? `${comillas(sub)} + '${digito.v}' = ${comillas(r)} (string + char pega el carácter al final). ${n} en base ${base} es ${comillas(r)}: los restos salieron del último al primero y la recursión los dejó en orden.`
-            : `${comillas(sub)} + '${digito.v}' = ${comillas(r)}: el dígito de esta llamada va al final.`, k === 1 ? "exito" : "");
+            ? tr(`${comillas(sub)} + '${digito.v}' = ${comillas(r)} (string + char pega el carácter al final). ${n} en base ${base} es ${comillas(r)}: los restos salieron del último al primero y la recursión los dejó en orden.`,
+              `${comillas(sub)} + '${digito.v}' = ${comillas(r)} (string + char appends the character at the end). ${n} in base ${base} is ${comillas(r)}: the remainders came out from last to first and the recursion put them in order.`)
+            : tr(`${comillas(sub)} + '${digito.v}' = ${comillas(r)}: el dígito de esta llamada va al final.`, `${comillas(sub)} + '${digito.v}' = ${comillas(r)}: this call's digit goes at the end.`), k === 1 ? "exito" : "");
           return r;
         }
         rec(n);
@@ -406,16 +532,18 @@
     },
 
     esPalindromo: {
-      etiqueta: "esPalindromo(texto, 0, tamaño - 1)",
+      etiqueta: tr("esPalindromo(texto, 0, tamaño - 1)", "isPalindrome(text, 0, size - 1)"),
       usa: ["palabra"],
       codigo: "esPalindromo",
       ejecutar(s, { palabra }, paso) {
         const C = "esPalindromo";
+        const F = nombre(C);
+        const T = nombre("texto");
         nuevaLlamada(s, Math.floor(palabra.length / 2) + 1);
         s.letras = { letras: palabra.split("").map((c, i) => ({ id: `l${i}`, v: c })), pares: {} };
         const P = conNivel(s, paso);
         function rec(i, j) {
-          const m = llamar(s, `esPalindromo(texto, ${i}, ${j})`);
+          const m = llamar(s, `${F}(${T}, ${i}, ${j})`);
           const k = s.marcos.length;
           const marcas = { i, j };
           if (i >= j) {
@@ -424,16 +552,18 @@
             m.resultado = [r];
             s.vis = { marcas, activos: [r.id], salida: k === 1 ? "true" : null };
             P(C, 3, palabra.length === 0
-              ? "El texto está vacío: i = 0 y j = -1 ya se cruzaron. Caso base: true (no hay nada que no coincida)."
+              ? tr("El texto está vacío: i = 0 y j = -1 ya se cruzaron. Caso base: true (no hay nada que no coincida).", "The text is empty: i = 0 and j = -1 have already crossed. Base case: true (there is nothing that doesn't match).")
               : i === j
-                ? `i = j = ${i}: queda una sola letra en el medio, igual a sí misma. Caso base: devuelve true.`
-                : `i = ${i} > j = ${j}: ya se cruzaron, se compararon todas las parejas. Caso base: devuelve true.`, k === 1 ? "exito" : "");
+                ? tr(`i = j = ${i}: queda una sola letra en el medio, igual a sí misma. Caso base: devuelve true.`, `i = j = ${i}: a single letter is left in the middle, equal to itself. Base case: it returns true.`)
+                : tr(`i = ${i} > j = ${j}: ya se cruzaron, se compararon todas las parejas. Caso base: devuelve true.`, `i = ${i} > j = ${j}: they have crossed, every pair was compared. Base case: it returns true.`), k === 1 ? "exito" : "");
             return r;
           }
           const a = palabra[i];
           const b = palabra[j];
           s.vis = { marcas, comparando: [i, j] };
-          P(C, 5, `${k === 1 ? "" : "Nueva llamada. "}i = ${i} < j = ${j}, así que compara texto[${i}] = '${a}' con texto[${j}] = '${b}'.`);
+          P(C, 5, tr(
+            `${k === 1 ? "" : "Nueva llamada. "}i = ${i} < j = ${j}, así que compara ${T}[${i}] = '${a}' con ${T}[${j}] = '${b}'.`,
+            `${k === 1 ? "" : "New call. "}i = ${i} < j = ${j}, so it compares ${T}[${i}] = '${a}' with ${T}[${j}] = '${b}'.`));
           if (a !== b) {
             m.base = true;
             s.letras.pares[i] = s.letras.pares[j] = "mal";
@@ -441,22 +571,26 @@
             m.resultado = [r];
             m.expr = [txt(`'${a}' ≠ '${b}'`, "mal")];
             s.vis = { marcas, activos: [r.id], sacudir: true, salida: k === 1 ? "false" : null };
-            P(C, 6, `'${a}' ≠ '${b}': otro caso base. No hace falta mirar el resto: devuelve false.`);
+            P(C, 6, tr(`'${a}' ≠ '${b}': otro caso base. No hace falta mirar el resto: devuelve false.`, `'${a}' ≠ '${b}': another base case. There's no need to look at the rest: it returns false.`));
             return r;
           }
           s.letras.pares[i] = s.letras.pares[j] = "bien";
-          const h = hueco(s, `esPalindromo(texto, ${i + 1}, ${j - 1})`);
+          const h = hueco(s, `${F}(${T}, ${i + 1}, ${j - 1})`);
           m.expr = [txt(`'${a}' = '${b}' →`, "bien"), h];
           s.vis = { marcas: { i: i + 1, j: j - 1 } };
-          P(C, 8, `'${a}' = '${b}'. La respuesta ahora depende solo de lo de adentro: llama con i + 1 = ${i + 1} y j - 1 = ${j - 1}.`);
+          P(C, 8, tr(
+            `'${a}' = '${b}'. La respuesta ahora depende solo de lo de adentro: llama con i + 1 = ${i + 1} y j - 1 = ${j - 1}.`,
+            `'${a}' = '${b}'. The answer now depends only on what is inside: it calls with i + 1 = ${i + 1} and j - 1 = ${j - 1}.`));
           const r = rec(i + 1, j - 1);
           volver(s);
           h.lleno = [r];
           const fin = r.v === "true";
           s.vis = { marcas, activos: [r.id], salida: k === 1 ? r.v : null };
           P(C, 8, k === 1
-            ? (fin ? `Devuelve true: "${palabra}" es un palíndromo. Cada llamada comparó una pareja, de afuera hacia adentro.` : `Devuelve false: "${palabra}" no es un palíndromo. El false subió sin cambios desde la llamada que encontró la diferencia.`)
-            : `Devolvió ${r.v}; esta llamada devuelve lo mismo, sin tocarlo.`, k === 1 && fin ? "exito" : "");
+            ? (fin
+              ? tr(`Devuelve true: "${palabra}" es un palíndromo. Cada llamada comparó una pareja, de afuera hacia adentro.`, `It returns true: "${palabra}" is a palindrome. Each call compared one pair, from the outside in.`)
+              : tr(`Devuelve false: "${palabra}" no es un palíndromo. El false subió sin cambios desde la llamada que encontró la diferencia.`, `It returns false: "${palabra}" is not a palindrome. The false went up unchanged from the call that found the mismatch.`))
+            : tr(`Devolvió ${r.v}; esta llamada devuelve lo mismo, sin tocarlo.`, `It returned ${r.v}; this call returns the same thing, untouched.`), k === 1 && fin ? "exito" : "");
           return r;
         }
         rec(0, palabra.length - 1);
@@ -464,18 +598,20 @@
     },
 
     potencia: {
-      etiqueta: "potencia(base, exponente)",
+      etiqueta: tr("potencia(base, exponente)", "power(base, exponent)"),
       usa: ["base", "exponente"],
       codigo: "potencia",
       ejecutar(s, { base, exponente }, paso) {
         const C = "potencia";
+        const F = nombre(C);
+        const M = nombre("mitad");
         nuevaLlamada(s, exponente ? Math.floor(Math.log2(exponente)) + 2 : 1);
         s.contador = { llamadas: 0, multiplicaciones: 0, conFor: Math.max(0, exponente - 1) };
         const P = conNivel(s, paso);
         const MAXIMO = 9223372036854775807n;
         const b = BigInt(base);
         function rec(e) {
-          const m = llamar(s, `potencia(${base}, ${e})`);
+          const m = llamar(s, `${F}(${base}, ${e})`);
           const k = s.marcos.length;
           s.contador.llamadas++;
           if (e === 0) {
@@ -483,21 +619,25 @@
             const r = ficha(s, 1);
             m.resultado = [r];
             s.vis = { activos: [r.id], salida: k === 1 ? "1" : null };
-            P(C, 3, k === 1 ? `exponente = 0: caso base. ${base}⁰ = 1.` : "exponente = 0: caso base. Cualquier número elevado a 0 es 1: devuelve 1 sin llamarse.", k === 1 ? "exito" : "");
+            P(C, 3, k === 1
+              ? tr(`exponente = 0: caso base. ${base}⁰ = 1.`, `exponent = 0: base case. ${base}⁰ = 1.`)
+              : tr("exponente = 0: caso base. Cualquier número elevado a 0 es 1: devuelve 1 sin llamarse.", "exponent = 0: base case. Any number raised to 0 is 1: it returns 1 without calling itself."), k === 1 ? "exito" : "");
             return 1n;
           }
           const mitadE = Math.floor(e / 2);
-          const h = hueco(s, `potencia(${base}, ${mitadE})`);
-          m.expr = [txt("mitad =", "suave"), h];
+          const h = hueco(s, `${F}(${base}, ${mitadE})`);
+          m.expr = [txt(`${M} =`, "suave"), h];
           s.vis = { contador: ["llamadas"] };
-          P(C, 5, `${base}^${e} = (${base}^${mitadE})²${e % 2 ? ` × ${base}` : ""}. Primero calcula la mitad: potencia(${base}, ${mitadE}).`);
+          P(C, 5, tr(
+            `${base}^${e} = (${base}^${mitadE})²${e % 2 ? ` × ${base}` : ""}. Primero calcula la mitad: ${F}(${base}, ${mitadE}).`,
+            `${base}^${e} = (${base}^${mitadE})²${e % 2 ? ` × ${base}` : ""}. First it computes the half: ${F}(${base}, ${mitadE}).`));
           const sub = rec(mitadE);
           if (sub == null) return null;
           volver(s);
           const fm = ficha(s, sub);
           h.lleno = [fm];
           s.vis = { activos: [fm.id] };
-          P(C, 5, `mitad = ${sub}. Se calcula UNA vez y se usa dos veces.`);
+          P(C, 5, tr(`${M} = ${sub}. Se calcula UNA vez y se usa dos veces.`, `${M} = ${sub}. It is computed ONCE and used twice.`));
           const par = e % 2 === 0;
           const r = par ? sub * sub : sub * sub * b;
           const lineaR = par ? 7 : 9;
@@ -506,17 +646,21 @@
             m.error = true;
             m.expr = [txt(cuenta, "mal")];
             s.vis = { sacudir: true, salida: "error", error: true };
-            P(C, lineaR, `${cuenta} = ${r} no cabe en un long long (máximo ${MAXIMO}): se desborda. En C++ eso es comportamiento indefinido; el resultado sería basura.`, "error");
+            P(C, lineaR, tr(
+              `${cuenta} = ${r} no cabe en un long long (máximo ${MAXIMO}): se desborda. En C++ eso es comportamiento indefinido; el resultado sería basura.`,
+              `${cuenta} = ${r} doesn't fit in a long long (maximum ${MAXIMO}): it overflows. In C++ that is undefined behavior; the result would be garbage.`), "error");
             return null;
           }
           s.contador.multiplicaciones += par ? 1 : 2;
           const fr = ficha(s, r);
-          m.expr = [txt(`mitad = ${sub}:`, "suave"), txt(cuenta)];
+          m.expr = [txt(`${M} = ${sub}:`, "suave"), txt(cuenta)];
           m.resultado = [fr];
           s.vis = { activos: [fr.id], contador: ["multiplicaciones"], salida: k === 1 ? String(r) : null };
+          const pocas = s.contador.multiplicaciones >= s.contador.conFor;
           P(C, lineaR, k === 1
-            ? `${e} es ${par ? "par" : "impar"}: ${cuenta} = ${r}. potencia(${base}, ${e}) = ${r} con ${s.contador.multiplicaciones} multiplicaciones; con un for serían ${s.contador.conFor}.${s.contador.multiplicaciones >= s.contador.conFor ? " Con exponentes tan chicos no se gana nada: la ventaja se ve con los grandes." : ""}`
-            : `${e} es ${par ? "par: mitad × mitad" : "impar: mitad × mitad × base"} = ${r}. Devuelve ${r}.`, k === 1 ? "exito" : "");
+            ? tr(`${e} es ${par ? "par" : "impar"}: ${cuenta} = ${r}. ${F}(${base}, ${e}) = ${r} con ${s.contador.multiplicaciones} multiplicaciones; con un for serían ${s.contador.conFor}.${pocas ? " Con exponentes tan chicos no se gana nada: la ventaja se ve con los grandes." : ""}`,
+              `${e} is ${par ? "even" : "odd"}: ${cuenta} = ${r}. ${F}(${base}, ${e}) = ${r} with ${s.contador.multiplicaciones} multiplications; with a for loop it would take ${s.contador.conFor}.${pocas ? " With exponents this small nothing is gained: the advantage shows with large ones." : ""}`)
+            : tr(`${e} es ${par ? "par: mitad × mitad" : "impar: mitad × mitad × base"} = ${r}. Devuelve ${r}.`, `${e} is ${par ? "even: half × half" : "odd: half × half × base"} = ${r}. It returns ${r}.`), k === 1 ? "exito" : "");
           return r;
         }
         rec(exponente);
@@ -580,7 +724,7 @@
     const camino = [];
     const vistos = new Set();
     const P = conNivel(s, paso, () => camino.length);
-    const nombre = (k) => (conMemo ? `fibonacciMemo(${k}, memo)` : `fibonacci(${k})`);
+    const llamadaDe = (k) => (conMemo ? `fibonacciMemo(${k}, memo)` : `fibonacci(${k})`);
     const ver = (vis) => { s.vis = Object.assign({ camino: camino.slice() }, vis); };
 
     function rec(id) {
@@ -591,12 +735,14 @@
       s.contador.llamadas++;
       if (!vistos.has(k)) { vistos.add(k); s.contador.distintos = vistos.size; }
       const raiz = camino.length === 1;
-      const repetido = !conMemo && nodo.repetido ? ` fibonacci(${k}) ya se había calculado antes: todo lo que cuelga de aquí es trabajo repetido.` : "";
+      const repetido = !conMemo && nodo.repetido
+        ? tr(` fibonacci(${k}) ya se había calculado antes: todo lo que cuelga de aquí es trabajo repetido.`, ` fibonacci(${k}) had already been computed before: everything hanging from here is repeated work.`)
+        : "";
       if (nodo.tipo === "base") {
         s.arbol.estado[id] = "listo";
         s.arbol.texto[id] = String(k);
         ver({ actual: id, salida: raiz ? String(k) : null });
-        P(C, 3, `${nombre(k)}: n < 2, caso base. Devuelve ${k}.`, raiz ? "exito" : "");
+        P(C, 3, tr(`${llamadaDe(k)}: n < 2, caso base. Devuelve ${k}.`, `${llamadaDe(k)}: n < 2, base case. It returns ${k}.`), raiz ? "exito" : "");
         camino.pop();
         return k;
       }
@@ -604,20 +750,22 @@
         s.arbol.estado[id] = "memo";
         s.arbol.texto[id] = String(nodo.v);
         ver({ actual: id, vuela: { memo: k, a: id, v: nodo.v } });
-        P(C, 6, `${nombre(k)}: memo[${k}] = ${nodo.v}, ya estaba calculado. Lo devuelve sin llamar a nadie: aquí se poda todo un subárbol.`);
+        P(C, 6, tr(
+          `${llamadaDe(k)}: memo[${k}] = ${nodo.v}, ya estaba calculado. Lo devuelve sin llamar a nadie: aquí se poda todo un subárbol.`,
+          `${llamadaDe(k)}: memo[${k}] = ${nodo.v}, it was already computed. It returns it without calling anyone: a whole subtree is pruned here.`));
         camino.pop();
         return nodo.v;
       }
       s.arbol.texto[id] = "? + ?";
       ver({ actual: id, repetido: !!repetido });
       P(C, conMemo ? 8 : 5, conMemo
-        ? `${nombre(k)}: memo[${k}] = -1, todavía no se calculó. Llama primero a fibonacciMemo(${k - 1}, memo).`
-        : `${nombre(k)}: n ≥ 2. Llama primero a fibonacci(${k - 1}).${repetido}`);
+        ? tr(`${llamadaDe(k)}: memo[${k}] = -1, todavía no se calculó. Llama primero a fibonacciMemo(${k - 1}, memo).`, `${llamadaDe(k)}: memo[${k}] = -1, it hasn't been computed yet. First it calls fibonacciMemo(${k - 1}, memo).`)
+        : tr(`${llamadaDe(k)}: n ≥ 2. Llama primero a fibonacci(${k - 1}).${repetido}`, `${llamadaDe(k)}: n ≥ 2. First it calls fibonacci(${k - 1}).${repetido}`));
       const [h1, h2] = nodo.hijos;
       const a = rec(h1);
       s.arbol.texto[id] = `${a} + ?`;
       ver({ actual: id, vuela: { de: h1, a: id, v: a } });
-      P(C, conMemo ? 8 : 5, `${nombre(k - 1)} devolvió ${a}. Ahora la segunda llamada: ${nombre(k - 2)}.`);
+      P(C, conMemo ? 8 : 5, tr(`${llamadaDe(k - 1)} devolvió ${a}. Ahora la segunda llamada: ${llamadaDe(k - 2)}.`, `${llamadaDe(k - 1)} returned ${a}. Now the second call: ${llamadaDe(k - 2)}.`));
       const b = rec(h2);
       const v = a + b;
       s.arbol.estado[id] = "listo";
@@ -625,16 +773,17 @@
       if (conMemo) {
         s.memo[k] = { id: s.memo[k].id, v: String(v) };
         ver({ actual: id, vuela: { de: h2, a: id, v: b }, guarda: k });
-        P(C, 8, `${a} + ${b} = ${v}. memo[${k}] = ${v}: queda guardado para la próxima vez que se pida.`);
+        P(C, 8, tr(`${a} + ${b} = ${v}. memo[${k}] = ${v}: queda guardado para la próxima vez que se pida.`, `${a} + ${b} = ${v}. memo[${k}] = ${v}: it is stored for the next time it is asked for.`));
         if (raiz) {
           ver({ actual: id, salida: String(v) });
-          P(C, 9, `return memo[${k}]: devuelve ${v} con ${s.contador.llamadas} llamadas. Sin memo serían ${arbolDeLlamadas(n, false).nodos.length}.`, "exito");
+          const sinMemo = arbolDeLlamadas(n, false).nodos.length;
+          P(C, 9, tr(`return memo[${k}]: devuelve ${v} con ${s.contador.llamadas} llamadas. Sin memo serían ${sinMemo}.`, `return memo[${k}]: it returns ${v} with ${s.contador.llamadas} calls. Without memo it would take ${sinMemo}.`), "exito");
         }
       } else {
         ver({ actual: id, vuela: { de: h2, a: id, v: b }, salida: raiz ? String(v) : null });
         P(C, 5, raiz
-          ? `${a} + ${b} = ${v}: fibonacci(${k}) devuelve ${v}. Hizo ${s.contador.llamadas} llamadas para solo ${s.contador.distintos} valores distintos.`
-          : `${a} + ${b} = ${v}: fibonacci(${k}) devuelve ${v}.`, raiz ? "exito" : "");
+          ? tr(`${a} + ${b} = ${v}: fibonacci(${k}) devuelve ${v}. Hizo ${s.contador.llamadas} llamadas para solo ${s.contador.distintos} valores distintos.`, `${a} + ${b} = ${v}: fibonacci(${k}) returns ${v}. It made ${s.contador.llamadas} calls for only ${s.contador.distintos} distinct values.`)
+          : tr(`${a} + ${b} = ${v}: fibonacci(${k}) devuelve ${v}.`, `${a} + ${b} = ${v}: fibonacci(${k}) returns ${v}.`), raiz ? "exito" : "");
       }
       camino.pop();
       return v;
@@ -676,7 +825,7 @@
     // Hueco: la llamada de abajo y lo que devolvió (o ? mientras tanto).
     const contenido = p.lleno && p.lleno.length
       ? p.lleno.map((f) => dibujarFicha(s, f))
-      : el("span", { class: p.texto ? "rec-hueco-texto" : "rec-hueco-vacio", text: p.texto || (p.sinValor ? "en curso…" : "?") });
+      : el("span", { class: p.texto ? "rec-hueco-texto" : "rec-hueco-vacio", text: p.texto || (p.sinValor ? tr("en curso…", "running…") : "?") });
     return el("span", { class: `rec-hueco${p.lleno || p.texto ? " lleno" : ""}`, "data-id": p.id },
       el("code", { text: p.etiqueta }), p.sinValor ? "" : el("span", { class: "rec-igual", text: "=" }), el("span", { class: "rec-hueco-valor" }, contenido));
   }
@@ -690,12 +839,12 @@
     if (m.error) clase += " error";
     if (actual && vis.sacudir) clase += " sacudir";
     return el("div", { class: clase, "data-id": m.id, style: `--prof:${k}` },
-      el("span", { class: "rec-prof", title: `Llamada número ${k + 1} en la pila`, text: k + 1 }),
+      el("span", { class: "rec-prof", title: tr(`Llamada número ${k + 1} en la pila`, `Call number ${k + 1} on the stack`), text: k + 1 }),
       el("code", { class: "rec-llamada", text: m.llamada }),
-      m.base && !m.error ? el("span", { class: "rec-etiqueta-base", text: "caso base" }) : "",
+      m.base && !m.error ? el("span", { class: "rec-etiqueta-base", text: tr("caso base", "base case") }) : "",
       m.expr.length ? el("span", { class: "rec-expr" }, m.expr.map((p) => dibujarPieza(s, p))) : "",
       m.nota ? el("span", { class: "rec-nota", text: m.nota }) : "",
-      m.resultado ? el("span", { class: "rec-devuelve" }, el("span", { class: "rec-flecha", text: "devuelve" }), m.resultado.map((f) => dibujarFicha(s, f))) : "");
+      m.resultado ? el("span", { class: "rec-devuelve" }, el("span", { class: "rec-flecha", text: tr("devuelve", "returns") }), m.resultado.map((f) => dibujarFicha(s, f))) : "");
   }
 
   function dibujarNumero(s) {
@@ -711,7 +860,7 @@
   function dibujarTabla(s) {
     const vis = s.vis || {};
     return el("div", { class: "rec-fila" },
-      el("span", { class: "fila-titulo", text: "DIGITOS" }),
+      el("span", { class: "fila-titulo", text: nombre("DIGITOS") }),
       el("div", { class: "rec-tabla" }, DIGITOS.split("").map((c, i) =>
         el("div", { class: "rec-letra-col" },
           el("span", { class: `rec-tabla-celda${i >= s.tabla.base ? " sin-usar" : ""}${vis.lee === i ? " leida" : ""}`, "data-id": `d${i}`, text: c }),
@@ -720,7 +869,7 @@
 
   function dibujarPantalla(s) {
     return el("div", { class: "rec-fila" },
-      el("span", { class: "fila-titulo", text: "pantalla" }),
+      el("span", { class: "fila-titulo", text: tr("pantalla", "screen") }),
       el("div", { class: "rec-pantalla" }, s.pantalla.length ? s.pantalla.map((f) => dibujarFicha(s, f)) : el("span", { class: "rec-cursor", text: "▌" })));
   }
 
@@ -742,34 +891,38 @@
     // i o j fuera del texto (texto vacío, o j = -1): su marca va en un lugar aparte.
     const fuera = [["i", marcas.i], ["j", marcas.j]].filter(([, v]) => v != null && (v < 0 || v >= letras.length));
     return el("div", { class: "rec-fila" },
-      el("span", { class: "fila-titulo", text: "texto" }),
-      el("div", { class: "rec-letras" }, columnas.length ? columnas : el("span", { class: "rec-vacio", text: "\"\" (vacío)" }),
-        fuera.length ? el("div", { class: "rec-letra-col fuera" }, el("span", { class: "rec-letra vacia", text: "" }), el("span", { class: "indice", text: "fuera" }),
+      el("span", { class: "fila-titulo", text: nombre("texto") }),
+      el("div", { class: "rec-letras" }, columnas.length ? columnas : el("span", { class: "rec-vacio", text: tr("\"\" (vacío)", "\"\" (empty)") }),
+        fuera.length ? el("div", { class: "rec-letra-col fuera" }, el("span", { class: "rec-letra vacia", text: "" }), el("span", { class: "indice", text: tr("fuera", "outside") }),
           el("span", { class: "rec-marcas" }, fuera.map(([x, v]) => el("span", { class: "marcador", "data-id": `marca-${x}`, text: `▲${x}=${v}` })))) : ""));
   }
 
   function dibujarContador(s) {
     const cambio = (s.vis || {}).contador || [];
     const c = s.contador;
-    const dato = (nombre, valor) => el("span", { class: cambio.includes(nombre) ? "cambio" : "" }, `${nombre} = `, el("b", { text: valor }));
+    // Las claves (llamadas, multiplicaciones…) son las del estado; se muestran en el idioma de la página.
+    const ROTULOS = { llamadas: tr("llamadas", "calls"), multiplicaciones: tr("multiplicaciones", "multiplications"), distintos: tr("valores distintos", "distinct values") };
+    const dato = (clave, valor) => el("span", { class: cambio.includes(clave) ? "cambio" : "" }, `${ROTULOS[clave]} = `, el("b", { text: valor }));
     if (s.arbol) {
       return el("div", { class: "variables rec-contador" },
-        dato("llamadas", c.llamadas), dato("valores distintos", c.distintos));
+        dato("llamadas", c.llamadas), dato("distintos", c.distintos));
     }
     return el("div", { class: "variables rec-contador" },
       dato("llamadas", c.llamadas), dato("multiplicaciones", c.multiplicaciones),
-      el("span", { class: "rec-comparacion" }, "con un for: ", el("b", { text: c.conFor })));
+      el("span", { class: "rec-comparacion" }, tr("con un for: ", "with a for loop: "), el("b", { text: c.conFor })));
   }
+
+  const marcosTexto = (n) => (n === 1 ? tr("1 marco", "1 frame") : tr(`${n} marcos`, `${n} frames`));
 
   function infoPila(s) {
     const vis = s.vis || {};
     const n = s.marcos.length;
     return el("div", { class: "rec-info" },
-      el("div", { class: "pila-llamadas", "aria-label": "Profundidad de la pila de llamadas" },
-        n ? ["pila:", el("span", { class: "llamada", text: `${n} ${n === 1 ? "marco" : "marcos"}` })] : "pila vacía"),
+      el("div", { class: "pila-llamadas", "aria-label": tr("Profundidad de la pila de llamadas", "Call stack depth") },
+        n ? [tr("pila:", "stack:"), el("span", { class: "llamada", text: marcosTexto(n) })] : tr("pila vacía", "empty stack")),
       s.contador ? dibujarContador(s) : "",
       vis.salida != null
-        ? el("div", { class: "salida-valor" }, vis.error ? "lanza" : "devuelve", el("div", { class: `celda ${vis.error || vis.salida === "false" ? "error" : "encontrada"}`, text: vis.error ? "excepción" : vis.salida }))
+        ? el("div", { class: "salida-valor" }, vis.error ? tr("lanza", "throws") : tr("devuelve", "returns"), el("div", { class: `celda ${vis.error || vis.salida === "false" ? "error" : "encontrada"}`, text: vis.error ? tr("excepción", "exception") : vis.salida }))
         : "");
   }
 
@@ -783,7 +936,7 @@
       s.pantalla ? dibujarPantalla(s) : "",
       el("div", { class: "rec-marcos" }, total
         ? s.marcos.map((m, k) => dibujarMarco(s, m, k, total))
-        : el("span", { class: "rec-vacio", text: "Todavía no hay llamadas: elige una operación." })));
+        : el("span", { class: "rec-vacio", text: tr("Todavía no hay llamadas: elige una operación.", "No calls yet: choose an operation.") })));
   }
 
   function dibujarPila(escenario, s) {
@@ -993,11 +1146,11 @@
     const vis = s.vis || {};
     const profundidad = (vis.camino || []).length;
     return el("div", { class: "rec-info" },
-      el("div", { class: "pila-llamadas", "aria-label": "Profundidad de la pila de llamadas" },
-        profundidad ? ["pila:", el("span", { class: "llamada", text: `${profundidad} ${profundidad === 1 ? "marco" : "marcos"}` })] : "pila vacía"),
+      el("div", { class: "pila-llamadas", "aria-label": tr("Profundidad de la pila de llamadas", "Call stack depth") },
+        profundidad ? [tr("pila:", "stack:"), el("span", { class: "llamada", text: marcosTexto(profundidad) })] : tr("pila vacía", "empty stack")),
       s.contador ? dibujarContador(s) : "",
-      vis.repetido ? el("span", { class: "rec-aviso", text: "trabajo repetido" }) : "",
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: "celda encontrada", text: vis.salida })) : "");
+      vis.repetido ? el("span", { class: "rec-aviso", text: tr("trabajo repetido", "repeated work") }) : "",
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: "celda encontrada", text: vis.salida })) : "");
   }
 
   // ------------------------------------------------------------------
@@ -1010,7 +1163,7 @@
       incremental: true,
       dibujar: opciones.dibujar || dibujarPila,
       codigo: Object.fromEntries(opciones.ops.map((id) => [OPS[id].codigo, CODIGO[OPS[id].codigo]])),
-      tituloCodigo: (clave) => `${clave}()`,
+      tituloCodigo: (clave) => `${nombre(clave)}()`,
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial || estadoVacio,
       entradas: opciones.entradas,
@@ -1019,7 +1172,11 @@
   }
 
   const numero = (id, etiqueta, valor, min, max) => ({ id, etiqueta, valor, min, max });
-  const PALABRAS = ["reconocer", "recorrer", "radar", "abba", "sala", "x", ""];
+  // Los textos de esPalindromo cumplen papeles: un palíndromo largo, uno que
+  // falla recién en la tercera pareja, uno impar corto, uno par, uno que
+  // falla enseguida, una letra y el vacío. En inglés, palabras con los
+  // mismos papeles.
+  const PALABRAS = tr(["reconocer", "recorrer", "radar", "abba", "sala", "x", ""], ["racecar", "remember", "radar", "noon", "hello", "x", ""]);
   // Estado inicial de esPalindromo: el texto ya a la vista, sin llamadas.
   function conLetras(palabra) {
     const s = estadoVacio();
@@ -1030,64 +1187,80 @@
   visualizador("vis-suma", {
     ops: ["sumaDigitos"],
     entradas: [numero("n", "n", 1234, 0, 99999)],
-    mensajeInicial: "Pulsa sumaDigitos(n) y mira la pila: baja hasta el caso base y las sumas se hacen al volver.",
+    mensajeInicial: tr(
+      "Pulsa sumaDigitos(n) y mira la pila: baja hasta el caso base y las sumas se hacen al volver.",
+      "Press digitSum(n) and watch the stack: it goes down to the base case and the sums are done on the way back."),
   });
 
   visualizador("vis-imprimir", {
     ops: ["imprimirDigitos", "imprimirAlReves"],
     entradas: [numero("n", "n", 1234, 0, 999999)],
-    mensajeInicial: "Las dos funciones son casi iguales: solo cambia si el cout va antes o después de la llamada. Pruébalas y compara la pantalla.",
+    mensajeInicial: tr(
+      "Las dos funciones son casi iguales: solo cambia si el cout va antes o después de la llamada. Pruébalas y compara la pantalla.",
+      "The two functions are almost the same: the only change is whether the cout goes before or after the call. Try both and compare the screen."),
   });
 
   visualizador("vis-invertir", {
     ops: ["invertir"],
     entradas: [numero("n", "n", 1234, 0, 999999)],
-    mensajeInicial: "Fíjate en acumulado: el resultado se arma de ida. Prueba también n = 1200.",
+    mensajeInicial: tr(
+      "Fíjate en acumulado: el resultado se arma de ida. Prueba también n = 1200.",
+      "Watch accumulated: the result is built on the way down. Also try n = 1200."),
   });
 
   visualizador("vis-base", {
     ops: ["aBase"],
     entradas: [numero("n", "n", 13, -9, 999), numero("base", "base", 2, -1, 20)],
-    mensajeInicial: "Convierte 13 a base 2. Después prueba 255 en base 16 y una base inválida, como 1.",
+    mensajeInicial: tr(
+      "Convierte 13 a base 2. Después prueba 255 en base 16 y una base inválida, como 1.",
+      "Convert 13 to base 2. Then try 255 in base 16 and an invalid base, like 1."),
   });
 
   visualizador("vis-palindromo", {
     ops: ["esPalindromo"],
     entradas: [{
-      id: "palabra", etiqueta: "texto", opciones: PALABRAS.map((p) => [p, p ? `"${p}"` : "\"\" (vacío)"]),
+      id: "palabra", etiqueta: nombre("texto"), opciones: PALABRAS.map((p) => [p, p ? `"${p}"` : tr("\"\" (vacío)", "\"\" (empty)")]),
       // El texto elegido se ve enseguida, letra por letra.
       alCambiar: (s, { palabra }) => ({
         estado: conLetras(palabra),
         mensaje: palabra.length > 1
-          ? `texto = "${palabra}": ${palabra.length} letras. Cada llamada compara la primera y la última que quedan, y se mete hacia adentro.`
-          : `texto = "${palabra}": con ${palabra.length ? "una letra" : "el texto vacío"} no hay parejas que comparar. Es un caso base.`,
+          ? tr(`texto = "${palabra}": ${palabra.length} letras. Cada llamada compara la primera y la última que quedan, y se mete hacia adentro.`,
+            `text = "${palabra}": ${palabra.length} letters. Each call compares the first and the last ones left, and moves inward.`)
+          : tr(`texto = "${palabra}": con ${palabra.length ? "una letra" : "el texto vacío"} no hay parejas que comparar. Es un caso base.`,
+            `text = "${palabra}": with ${palabra.length ? "a single letter" : "the empty text"} there are no pairs to compare. It is a base case.`),
       }),
     }],
     estadoInicial: ({ palabra }) => conLetras(palabra),
-    mensajeInicial: "Elige un texto: cada llamada compara una pareja de letras, de afuera hacia adentro.",
+    mensajeInicial: tr(
+      "Elige un texto: cada llamada compara una pareja de letras, de afuera hacia adentro.",
+      "Choose a text: each call compares a pair of letters, from the outside in."),
   });
 
   visualizador("vis-potencia", {
     ops: ["potencia"],
-    entradas: [numero("base", "base", 2, -99, 99), numero("exponente", "exponente", 10, 0, 64)],
-    mensajeInicial: "Calcula 2^10 y cuenta las multiplicaciones. Prueba un exponente grande, como 2^62, y uno que no quepa, como 10^19.",
+    entradas: [numero("base", "base", 2, -99, 99), numero("exponente", nombre("exponente"), 10, 0, 64)],
+    mensajeInicial: tr(
+      "Calcula 2^10 y cuenta las multiplicaciones. Prueba un exponente grande, como 2^62, y uno que no quepa, como 10^19.",
+      "Compute 2^10 and count the multiplications. Try a large exponent, like 2^62, and one that doesn't fit, like 10^19."),
   });
 
   visualizador("vis-fibonacci", {
     ops: ["fibonacci", "fibonacciMemo"],
     dibujar: dibujarArbol,
     entradas: [numero("n", "n", 5, 0, 6)],
-    mensajeInicial: "Cada nodo es una llamada. Ejecuta fibonacci(5) y cuenta cuántas veces aparece f(2); después, fibonacciMemo.",
+    mensajeInicial: tr(
+      "Cada nodo es una llamada. Ejecuta fibonacci(5) y cuenta cuántas veces aparece f(2); después, fibonacciMemo.",
+      "Each node is a call. Run fibonacci(5) and count how many times f(2) appears; then, fibonacciMemo."),
   });
 
   // En Todo junto, dos campos sirven a todas: n y b (la base o el exponente).
   const conDosCampos = (id) => {
     const op = OPS[id];
     if (id === "aBase") {
-      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: "aBase(n, b)", ejecutar: (s, args, paso) => op.ejecutar(s, { n: args.n, base: args.b, sinTabla: true }, paso) });
+      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: `${nombre("aBase")}(n, b)`, ejecutar: (s, args, paso) => op.ejecutar(s, { n: args.n, base: args.b, sinTabla: true }, paso) });
     }
     if (id === "potencia") {
-      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: "potencia(n, b)", ejecutar: (s, args, paso) => op.ejecutar(s, { base: args.n, exponente: args.b }, paso) });
+      return Object.assign({}, op, { usa: ["n", "b"], etiqueta: `${nombre("potencia")}(n, b)`, ejecutar: (s, args, paso) => op.ejecutar(s, { base: args.n, exponente: args.b }, paso) });
     }
     return op;
   };
@@ -1096,6 +1269,8 @@
     ops: ["sumaDigitos", "imprimirDigitos", "imprimirAlReves", "invertir", "aBase", "potencia"],
     adaptar: conDosCampos,
     entradas: [numero("n", "n", 156, 0, 999), numero("b", "b", 16, 0, 64)],
-    mensajeInicial: "Todas las funciones con la pila a la vista. b es la base de aBase o el exponente de potencia.",
+    mensajeInicial: tr(
+      "Todas las funciones con la pila a la vista. b es la base de aBase o el exponente de potencia.",
+      "Every function with the stack in view. b is the base of toBase or the exponent of power."),
   });
 })();

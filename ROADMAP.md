@@ -37,7 +37,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | --- | --- |
 | Pila | Hecho: lección, animaciones y `ejemplos/cpp/en/stack.cpp` (`LinkedStack` con `push`, `pop` y `peek`) |
 | Notación algorítmica (Big-O) | Hecho: lección, carrera de curvas, comparador de términos, animaciones y `ejemplos/cpp/en/algorithmic_notation.cpp` |
-| Recursión | Pendiente |
+| Recursión | Hecho: lección, pila de marcos, árbol de llamadas de Fibonacci, animaciones y `ejemplos/cpp/en/recursion.cpp` (`digitSum`, `printDigits`, `reverseDigits`, `toBase`, `isPalindrome` con `racecar` y `remember`, `power`) |
 | Lambdas en C++ | Pendiente |
 | Vector dinámico | Pendiente |
 | Lista enlazada simple | Pendiente |

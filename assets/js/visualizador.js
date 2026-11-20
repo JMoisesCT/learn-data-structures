@@ -56,6 +56,7 @@
         titulo: "Recursion",
         resumen: "A function that calls itself with a smaller problem. Extracting digits, base conversion, palindromes, fast power and the Fibonacci call tree, with the call stack in view.",
         etiquetas: ["base case", "call stack"],
+        archivo: "recursion.cpp",
       },
     },
     {
