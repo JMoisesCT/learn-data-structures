@@ -176,11 +176,35 @@
 
   // Al escribir otro n, el arreglo se dibuja de inmediato con ese tamaño; la
   // gráfica conserva los puntos de las ejecuciones anteriores.
-  function cambiarN(s, n) {
+  // caso: el de la lista "repetido…" si la hay (cambia los datos de hayRepetidos).
+  function cambiarN(s, n, caso, op) {
     const nuevo = Object.assign({}, s, { vis: {} });
-    preparar(nuevo, s.op, n, "sin");
+    preparar(nuevo, op || s.op, n, caso || "sin");
     nuevo.enCurso = false;
     return nuevo;
+  }
+
+  // Elegir "repetido al inicio" o "al final" pone el repetido en los datos en
+  // ese momento y marca las dos casillas iguales.
+  function cambiarCaso(s, { n, caso }) {
+    const nuevo = cambiarN(s, n, caso, "hayRepetidos");
+    const d = nuevo.datos;
+    let mensaje;
+    if (n < 2) {
+      mensaje = tr(`Con n = ${n} no hay pares que comparar: no puede haber repetidos.`, `With n = ${n} there are no pairs to compare: there can't be duplicates.`);
+    } else if (caso === "inicio") {
+      nuevo.vis = { leidas: [0, 1] };
+      mensaje = tr(`datos[1] = datos[0] = ${d[0]}: hayRepetidos lo encuentra en la primera comparación. Es el mejor caso.`,
+        `data[1] = data[0] = ${d[0]}: hasDuplicates finds it on the first comparison. It is the best case.`);
+    } else if (caso === "final") {
+      nuevo.vis = { leidas: [n - 2, n - 1] };
+      mensaje = tr(`datos[${n - 1}] = datos[${n - 2}] = ${d[n - 1]}: es el último par que se compara, así que recorre toda la tabla de pares antes de encontrarlo.`,
+        `data[${n - 1}] = data[${n - 2}] = ${d[n - 1]}: it is the last pair compared, so it goes through the whole table of pairs before finding it.`);
+    } else {
+      mensaje = tr(`Sin repetidos: el peor caso. hayRepetidos compara los ${(n * (n - 1)) / 2} pares antes de responder false.`,
+        `No duplicates: the worst case. hasDuplicates compares all ${(n * (n - 1)) / 2} pairs before answering false.`);
+    }
+    return { estado: nuevo, mensaje, codigo: "hayRepetidos" };
   }
 
   function preparar(s, op, n, caso) {
@@ -654,6 +678,11 @@
     }
 
     const p = piezas(lienzo);
+    // Si las casillas cambian de tamaño o de lugar (otro n), las nuevas
+    // aparecen cuando las que se quedan ya se deslizaron: no se enciman.
+    const medida = n <= 12 ? `${paso}-${celda}` : `${paso}-${celda}-${columnas}`;
+    const seMueven = !!lienzo.dataset.medida && lienzo.dataset.medida !== medida;
+    lienzo.dataset.medida = medida;
     const x = (j) => 8 + (n <= 12 ? j : j % columnas) * paso;
     const yCelda = (f, j) => f.yCeldas + (n <= 12 ? 0 : Math.floor(j / columnas)) * f.banda;
     for (const f of filas) {
@@ -661,17 +690,26 @@
       titulo.textContent = f.titulo;
       titulo.style.cssText = `left:0;top:${f.y}px`;
       f.valores.forEach((v, j) => {
-        const nodo = p.pieza(`c-${s.corrida}-${f.id}-${j}`, () => el("div", { class: "na-celda" }));
-        nodo.textContent = sinNumeros ? "" : v;
+        // Las casillas se conservan entre ejecuciones y al cambiar n: solo
+        // aparecen las nuevas y se van las que sobran (si el valor cambia, late).
+        const nodo = p.pieza(`c-${f.id}-${j}`, () => el("div", { class: seMueven ? "na-celda tarde" : "na-celda" }));
+        const texto = sinNumeros ? "" : String(v);
+        if (nodo.textContent !== "" && nodo.textContent !== texto) {
+          nodo.classList.remove("renovada");
+          void nodo.offsetWidth;
+          nodo.classList.add("renovada");
+        }
+        nodo.textContent = texto;
         nodo.title = sinNumeros ? `[${j}] = ${v}` : "";
         nodo.style.cssText = `left:${x(j)}px;top:${yCelda(f, j)}px;width:${celda}px;height:${celda}px`;
         let clase = "na-celda";
+        for (const extra of ["renovada", "tarde"]) if (nodo.classList.contains(extra)) clase += ` ${extra}`;
         if ((vis[`revisadas${f.sufijo}`] || []).includes(j)) clase += " revisada";
         if (!f.sufijo && (vis.descartadas || []).includes(j)) clase += " descartada";
         if ((vis[`leidas${f.sufijo}`] || []).includes(j)) clase += " leida";
         if ((vis[`encontrada${f.sufijo}`] || []).includes(j)) clase += " encontrada";
         nodo.className = clase;
-        const indice = p.pieza(`i-${s.corrida}-${f.id}-${j}`, () => el("span", { class: "indice" }));
+        const indice = p.pieza(`i-${f.id}-${j}`, () => el("span", { class: seMueven ? "indice tarde" : "indice" }));
         indice.textContent = sinNumeros && j % 8 ? "" : j;
         indice.style.cssText = `left:${x(j)}px;top:${yCelda(f, j) + celda + 2}px;width:${celda}px;text-align:center`;
         // Puntos de paso: uno por cada pasos++ que tocó esta casilla.
@@ -950,13 +988,14 @@
 
   const entradaN = (valor, max) => ({
     id: "n", etiqueta: "n", min: 1, max, valor,
-    alCambiar: (s, { n }) => ({
+    // Con un repetido elegido, el nuevo n lo conserva y lo vuelve a marcar.
+    alCambiar: (s, { n, caso }) => (s.op === "hayRepetidos" && caso && caso !== "sin" ? cambiarCaso(s, { n, caso }) : {
       estado: cambiarN(s, n),
       mensaje: tr(`n = ${n}: ahora el arreglo tiene ${n} elemento(s). Pulsa la operación para contar sus pasos; los puntos de la gráfica se conservan.`,
         `n = ${n}: the array now has ${n} element(s). Press the operation to count its steps; the points on the chart are kept.`),
     }),
   });
-  const CASO = { id: "caso", etiqueta: "", reinicia: false, opciones: [
+  const CASO = { id: "caso", etiqueta: "", alCambiar: cambiarCaso, opciones: [
     ["sin", tr("sin repetidos", "no duplicates")], ["inicio", tr("repetido al inicio", "duplicate at the start")], ["final", tr("repetido al final", "duplicate at the end")]] };
   const OBJETIVO = (max, valor) => ({ id: "objetivo", etiqueta: nombre("objetivo"), min: -99, max, valor });
 
