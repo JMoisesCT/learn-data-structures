@@ -1227,7 +1227,8 @@
   // ------------------------------------------------------------------
   // Ejemplos de un clic: ponen los valores como si se escribieran (así la
   // muesca, el dibujo y el mensaje se actualizan) y ejecutan la operación.
-  // Se bloquean junto con los botones mientras corre una animación.
+  // Cambian los datos, así que se bloquean junto con las entradas mientras
+  // la operación está en curso (y con los botones mientras corre).
   // ------------------------------------------------------------------
 
   // enLinea: junto a los botones (cuando sobra espacio); si no, en su propia
@@ -1242,7 +1243,7 @@
       type: "button", class: "rec-ejemplo", title: ej.titulo || null, text: ej.texto,
       onclick: () => {
         const boton = botones[ej.op || 0];
-        if (!boton || boton.disabled) return;
+        if (!boton || boton.disabled || bloqueadas()) return;
         for (const [id, v] of Object.entries(ej.valores)) {
           const input = document.getElementById(`${contenedor}-${id}`);
           input.value = v;
@@ -1254,8 +1255,11 @@
     const grupo = el("span", { class: `rec-ejemplos${enLinea ? " en-linea" : ""}` }, el("span", { class: "rec-ejemplos-titulo", text: tr("Prueba:", "Try:") }), chips);
     if (enLinea) controles.insertBefore(grupo, controles.querySelector(".separador"));
     else controles.append(grupo);
-    const sincronizar = () => { for (const c of chips) c.disabled = botones[0].disabled; };
-    new MutationObserver(sincronizar).observe(botones[0], { attributes: true, attributeFilter: ["disabled"] });
+    const entradas = [...controles.querySelectorAll("input, select")];
+    const bloqueadas = () => entradas.some((e) => e.disabled);
+    const sincronizar = () => { for (const c of chips) c.disabled = botones[0].disabled || bloqueadas(); };
+    const observador = new MutationObserver(sincronizar);
+    for (const nodo of [botones[0], ...entradas]) observador.observe(nodo, { attributes: true, attributeFilter: ["disabled"] });
   }
 
   // ------------------------------------------------------------------
@@ -1290,6 +1294,8 @@
       pintar();
     });
     inBase.addEventListener("input", pintar);
+    // Cambia el exponente: se bloquea con su caja mientras la operación está en curso.
+    new MutationObserver(() => { desl.disabled = inExp.disabled; }).observe(inExp, { attributes: true, attributeFilter: ["disabled"] });
     inExp.closest(".campo").after(desl);
     pintar();
   }

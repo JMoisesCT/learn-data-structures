@@ -1008,6 +1008,10 @@
     // Entradas aleatorias que cambian de valor cuando termina la operación (no
     // antes: mientras corre la animación, la caja muestra el valor que se usa).
     let aleatoriosPendientes = [];
+    // La operación cuyos pasos se ven (null en el estado inicial) y el
+    // temporizador que termina rápido sus pasos pendientes antes de otra.
+    let opMostrada = null;
+    let avance = null;
 
     // --- Construcción de la interfaz ---
     const campos = {};
@@ -1025,7 +1029,7 @@
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
         // La caja tiene el ancho del número más largo que acepta.
         input.style.setProperty("--cifras", Math.max(String(e.min == null ? "" : e.min).length, String(e.max == null ? "" : e.max).length));
-        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !temporizador) cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
+        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
         input.addEventListener("input", () => revisarCampo(e.id, true));
         if (e.alCambiar) input.addEventListener("input", () => cambiarEntrada(e, input));
       }
@@ -1541,13 +1545,21 @@
     }
 
     function ejecutar(op) {
-      if (temporizador) return; // los botones están bloqueados mientras corre la animación
+      if (temporizador || avance) return; // los botones están bloqueados mientras corre la animación
+      // Otra operación con la anterior a medio ver (en Paso a paso o en
+      // pausa): primero se terminan a la vista sus pasos pendientes, así el
+      // dibujo no salta de golpe al estado final.
+      if (opMostrada && actual < pasos.length - 1) {
+        terminarYLuego(() => ejecutar(op));
+        return;
+      }
       detener();
       const { args, error, id: campoMalo } = leerArgumentos(op);
       if (error) {
         // La caja que falla se sacude y queda lista para corregirla.
         revisarCampo(campoMalo, false);
         campos[campoMalo].input.focus({ preventScroll: true });
+        opMostrada = null;
         pasos = [pasoInicial(error)];
         pasos[0].tipo = "error";
         ir(0);
@@ -1564,6 +1576,7 @@
       estado = s;
       anotarRastro(lista);
       pasos = lista.length ? lista : [pasoInicial(tr("Listo.", "Done."))];
+      opMostrada = op;
       aleatoriosPendientes = (op.usa || []).filter((id) => campos[id].cfg.aleatorio);
       reservarEspacio();
       ir(0);
@@ -1572,7 +1585,58 @@
       invitarAvanzar(pasos.length > 1 && modo === "manual" && !avanzoAMano);
     }
 
+    // Recorre rápido los pasos que faltan de la operación que se ve (a lo
+    // sumo AVANCE_CUADROS cuadros, repartidos hasta el último), deja ver un
+    // momento cómo terminó y sigue con despues().
+    const AVANCE_CUADROS = 6;
+    const AVANCE_MS = 260;
+    const AVANCE_PAUSA_MS = 550;
+    function terminarYLuego(despues) {
+      detener();
+      invitarAvanzar(false);
+      const desde = actual;
+      const faltan = pasos.length - 1 - desde;
+      const cuadros = Math.min(faltan, AVANCE_CUADROS);
+      const indices = Array.from({ length: cuadros }, (_, k) => desde + Math.round(((k + 1) * faltan) / cuadros));
+      const etiqueta = opMostrada.etiqueta || opMostrada.id;
+      const aviso = tr(`Terminando ${etiqueta}…`, `Finishing ${etiqueta}…`);
+      let k = 0;
+      const cuadro = () => {
+        const indice = indices[k++];
+        ir(indice);
+        if (k < indices.length) {
+          mensaje.textContent = aviso;
+          mensaje.className = "mensaje";
+          avance = setTimeout(cuadro, AVANCE_MS);
+        } else {
+          // El último paso se queda a la vista con su mensaje antes de seguir.
+          avance = setTimeout(() => {
+            avance = null;
+            despues();
+          }, AVANCE_PAUSA_MS);
+        }
+        bloquearMientrasAvanza();
+      };
+      cuadro();
+    }
+
+    function cancelarAvance() {
+      clearTimeout(avance);
+      avance = null;
+    }
+
+    // Mientras termina la operación anterior no se puede pulsar nada más que
+    // Reiniciar: ni operaciones ni la barra de reproducción.
+    function bloquearMientrasAvanza() {
+      if (!avance) return;
+      bloquearOperaciones(true);
+      bloquearEntradas(true);
+      for (const b of [bInicio, bAtras, bPlay, bAdelante, bFin]) b.disabled = true;
+    }
+
     function reiniciar() {
+      cancelarAvance();
+      opMostrada = null;
       detener();
       invitarAvanzar(false);
       aleatoriosPendientes = [];
@@ -1594,6 +1658,8 @@
     // quiera conservar, como los puntos de una gráfica.
     function cambiarEntrada(e, input) {
       if (!e.opciones && problemaDe(e, input.value)) return;
+      cancelarAvance();
+      opMostrada = null;
       detener();
       invitarAvanzar(false);
       aleatoriosPendientes = [];
@@ -1792,6 +1858,7 @@
       }
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
+      bloquearEntradas(actual < pasos.length - 1);
       noEncoger(mensaje);
       ajustarEscala();
       centrar();
@@ -1818,6 +1885,22 @@
       for (const [, boton] of botones) {
         boton.disabled = si;
         boton.title = si ? tr("Espera a que termine la animación o pausa con ❚❚", "Wait for the animation to finish or pause it with ❚❚") : "";
+      }
+    }
+
+    // Mientras una operación está en curso (no llegó a su último paso, en
+    // cualquier modo) sus datos no se pueden cambiar: la animación muestra lo
+    // que hizo la función con esos datos. Se desbloquean en el último paso
+    // (» salta ahí) y Reiniciar sigue disponible.
+    function bloquearEntradas(si) {
+      for (const { input } of Object.values(campos)) {
+        if (input.disabled === si) continue;
+        input.disabled = si;
+        const caja = input.closest(".campo");
+        if (caja) {
+          caja.classList.toggle("bloqueado", si);
+          caja.title = si ? tr("Se puede cambiar al terminar la operación (» salta al final)", "You can change it when the operation ends (» jumps to the end)") : "";
+        }
       }
     }
 

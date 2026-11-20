@@ -747,6 +747,10 @@ body.con-leccion.leccion-final > .pie { display: block; }
 }
 
 .campo select { width: auto; }
+/* Bloqueada mientras la operación está en curso (ver bloquearEntradas). */
+.campo.bloqueado { cursor: not-allowed; }
+.campo input:disabled,
+.campo select:disabled { opacity: 0.55; cursor: not-allowed; }
 /* Un número: la caja mide lo que su número más largo (--cifras) y lleva el
    rango en una muesca sobre su borde inferior, sin ocupar alto. */
 .campo input[type="number"] { width: max(5.2rem, calc(var(--cifras, 0) * 0.62em + 2.6rem)); font-variant-numeric: tabular-nums; }
@@ -2708,6 +2712,7 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 }
 .rec-ejemplo:hover:not(:disabled) { border-style: solid; border-color: var(--acento); color: var(--acento); }
 .rec-ejemplo:disabled { opacity: 0.45; cursor: not-allowed; }
+.rec-deslizador:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .rec-deslizador {
   --corte: 100%;
