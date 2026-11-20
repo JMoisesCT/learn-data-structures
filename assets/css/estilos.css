@@ -2690,6 +2690,68 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .rec-vuela { position: relative; z-index: 5; }
 .rec-valor.rec-vuela { box-shadow: var(--sombra); }
 
+/* Ejemplos de un clic y deslizador del exponente, junto a los controles. */
+.rec-ejemplos { display: flex; flex: 1 0 100%; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: -0.15rem; }
+.rec-ejemplos.en-linea { display: inline-flex; flex: 0 1 auto; margin: 0 0 0 0.3rem; }
+.rec-ejemplos-titulo { font-size: 0.75rem; color: var(--texto-suave); }
+.rec-ejemplo {
+  border: 1px dashed var(--borde);
+  background: none;
+  color: var(--texto);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font: inherit;
+  font-family: var(--fuente-codigo);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rec-ejemplo:hover:not(:disabled) { border-style: solid; border-color: var(--acento); color: var(--acento); }
+.rec-ejemplo:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.rec-deslizador {
+  --corte: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8.5rem;
+  height: 1.5rem;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+}
+.rec-deslizador::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--acento-suave) 0 var(--corte), var(--peligro) var(--corte) 100%);
+}
+.rec-deslizador::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--acento-suave) 0 var(--corte), var(--peligro) var(--corte) 100%);
+}
+.rec-deslizador::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--superficie);
+  background: var(--acento);
+  box-shadow: 0 0 0 1px var(--acento);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.rec-deslizador::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--superficie);
+  background: var(--acento);
+  box-shadow: 0 0 0 1px var(--acento);
+}
+.rec-deslizador.en-zona::-webkit-slider-thumb { background: var(--peligro); box-shadow: 0 0 0 1px var(--peligro); }
+.rec-deslizador.en-zona::-moz-range-thumb { background: var(--peligro); box-shadow: 0 0 0 1px var(--peligro); }
+.rec-deslizador:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 4px; }
+
 .rec-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.25rem; min-height: 2rem; margin: 0 0 0.25rem; }
 .rec-info .pila-llamadas { width: auto; margin: 0; }
 .rec-info .variables { margin: 0; }
@@ -2871,6 +2933,12 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
 .rec-contenido.apretado .rec-prof { width: 18px; height: 18px; }
 .rec-contenido.apretado .rec-hueco { padding-top: 0; padding-bottom: 0; }
 .rec-contenido.apretado .rec-hueco-vacio { height: 20px; }
+.rec-contenido.muy-apretado .rec-marcos { gap: 0; }
+.rec-contenido.muy-apretado .rec-tabla-celda { height: 18px; }
+.rec-contenido.muy-apretado .rec-marco { min-height: 22px; }
+.rec-contenido.muy-apretado .rec-valor { height: 17px; font-size: 0.75rem; }
+.rec-contenido.muy-apretado .rec-prof { width: 16px; height: 16px; font-size: 0.65rem; }
+.rec-contenido.muy-apretado .rec-hueco-vacio { height: 17px; }
 
 /* Árbol de llamadas de Fibonacci */
 .rec-marco-arbol { margin: 0.4rem auto 0.6rem; transition: width 0.45s ease, height 0.45s ease; }
