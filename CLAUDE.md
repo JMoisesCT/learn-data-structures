@@ -11,6 +11,8 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
 - Darle al sitio **un formato visual más elegante**. Referencia principal: su otro proyecto, [learn-program-animation](https://github.com/JMoisesCT/learn-program-animation) (estilo inspirado en Brilliant: lecciones en pasos cortos, mucho espacio en blanco, tarjetas, feedback inmediato). Otras referencias en `docs/inspiracion-visual.md`.
 - **Formato de cada tema: lección por pasos, como `temas/monticulo/` y `temas/vector-dinamico/`**, nunca una página larga con scroll. Cada operación en su propio paso con su animación y una pregunta, y al final "Todo junto", complejidad y código completo. Detalles en CONTRIBUTING.md ("Formato de un tema").
 - **Mucho "juice" en las animaciones**: que se vea qué hace cada método en memoria (valores que se deslizan al moverse, lo nuevo que aparece, lo que se borra que se desvanece, índices y punteros que se desplazan, errores que se notan), no solo celdas que cambian de color.
+- **Cada control se refleja al instante**: al cambiar un número o una lista, el dibujo cambia enseguida (otro tamaño, otros datos, el repetido elegido) o, si es solo un argumento, el panel de código muestra la función que va a correr; sin esperar a pulsar el botón azul. Al cambiar de tamaño, lo que ya estaba se queda o se desliza y solo aparece lo nuevo, nunca todo desvaneciéndose y volviendo a aparecer. Se hace con `alCambiar` (ver CONTRIBUTING.md, "Animaciones con juice").
+- **Guía para quien se pierde** (ya está en el motor, no quitarla): mientras corre una animación los botones de operación se bloquean; si nadie toca un visualizador en 4 s su primer botón pulsa, y en modo Paso a paso el botón › pulsa hasta que se usa.
 - **Cada paso cabe en una pantalla** (desde 1280 × 800) sin scroll, salvo el del código completo; también mientras corre una animación. Ver CONTRIBUTING.md ("Cada paso cabe en una pantalla").
 - Temas pedidos explícitamente:
   - **montículos (min-heap y max-heap) y heapsort** (hecho en `temas/monticulo/`);
@@ -51,7 +53,7 @@ for f in $(find assets temas -name '*.js'); do node --check "$f"; done
 python3 -m http.server 8000   # desde la raíz del repositorio
 ```
 
-Prueba en un navegador (Playwright está disponible) todas las operaciones del tema (en los dos idiomas si tiene versión en inglés), incluidos los casos de error, a 1280 px y 390 px de ancho y en modo oscuro. Revisa que no haya errores en la consola ni scroll horizontal, y que cada paso quepa sin scroll a 1280 × 800 (mide `document.scrollingElement.scrollHeight - innerHeight` en cada paso, también después de ejecutar cada operación). Las capturas de prueba van en `capturas/` (ignorada por git) o en el scratchpad, nunca en el commit.
+Prueba en un navegador (Playwright está disponible) todas las operaciones del tema (en los dos idiomas si tiene versión en inglés), incluidos los casos de error, y cada opción de cada lista y cada número que cambie el dibujo (que se refleje al instante), a 1280 px y 390 px de ancho y en modo oscuro. Revisa que no haya errores en la consola ni scroll horizontal, y que cada paso quepa sin scroll a 1280 × 800 (mide `document.scrollingElement.scrollHeight - innerHeight` en cada paso, también después de ejecutar cada operación). Las capturas de prueba van en `capturas/` (ignorada por git) o en el scratchpad, nunca en el commit.
 
 En las sesiones en la nube, el proxy no deja abrir `jmoisesct.github.io` ni borrar ramas remotas: para saber si Pages publicó, revisa la ejecución "pages build and deployment" en GitHub Actions.
 
