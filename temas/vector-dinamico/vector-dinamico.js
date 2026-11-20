@@ -1,8 +1,9 @@
 // Lección del vector dinámico, en pasos. Los fragmentos de código deben
-// coincidir línea por línea con ejemplos/cpp/vector_dinamico.cpp
-// (scripts/verificar-fragmentos.mjs lo revisa).
+// coincidir línea por línea con ejemplos/cpp/vector_dinamico.cpp, y en
+// inglés con ejemplos/cpp/en/dynamic_array.cpp (scripts/verificar-fragmentos.mjs
+// lo revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const MAXIMO = 16; // límite solo para que la animación quepa en pantalla
   const CELDA = 44;
   const PASO = 52;
@@ -11,10 +12,11 @@
   const SVG = "http://www.w3.org/2000/svg";
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/vector_dinamico.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/vector_dinamico.cpp y de
+  // ejemplos/cpp/en/dynamic_array.cpp, con las mismas líneas)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     obtener: `
       int obtener(int i) const {
           if (i < 0 || i >= tamano) {
@@ -73,7 +75,77 @@
           datos = nuevos;
           capacidad = nuevaCapacidad;
       }`,
-  };
+  }, {
+    obtener: `
+      int get(int i) const {
+          if (i < 0 || i >= size) {
+              throw std::out_of_range("invalid index");
+          }
+          return data[i];
+      }`,
+    agregarAlFinal: `
+      void pushBack(int value) {
+          if (size == capacity) {
+              resize(capacity * 2);
+          }
+          data[size] = value;
+          size++;
+      }`,
+    insertar: `
+      void insert(int pos, int value) {
+          if (pos < 0 || pos > size) {
+              throw std::out_of_range("invalid position");
+          }
+          if (size == capacity) {
+              resize(capacity * 2);
+          }
+          for (int i = size; i > pos; i--) {
+              data[i] = data[i - 1];
+          }
+          data[pos] = value;
+          size++;
+      }`,
+    eliminarEn: `
+      void removeAt(int pos) {
+          if (pos < 0 || pos >= size) {
+              throw std::out_of_range("invalid position");
+          }
+          for (int i = pos; i < size - 1; i++) {
+              data[i] = data[i + 1];
+          }
+          size--;
+      }`,
+    buscar: `
+      int find(int value) const {
+          for (int i = 0; i < size; i++) {
+              if (data[i] == value) {
+                  return i;
+              }
+          }
+          return -1;
+      }`,
+    redimensionar: `
+      void resize(int newCapacity) {
+          int* newData = new int[newCapacity];
+          for (int i = 0; i < size; i++) {
+              newData[i] = data[i];
+          }
+          delete[] data;
+          data = newData;
+          capacity = newCapacity;
+      }`,
+  });
+
+  const CLASE = tr("VectorDinamico", "DynamicArray");
+  const FUNCION = tr(
+    { obtener: "obtener", agregarAlFinal: "agregarAlFinal", insertar: "insertar", eliminarEn: "eliminarEn", buscar: "buscar", redimensionar: "redimensionar" },
+    { obtener: "get", agregarAlFinal: "pushBack", insertar: "insert", eliminarEn: "removeAt", buscar: "find", redimensionar: "resize" });
+
+  // Nombres del C++ que se dibujan. Los estados usan los de español y se
+  // traducen al pintar, así son iguales en los dos idiomas.
+  const NOMBRES = { tamano: "size", capacidad: "capacity", valor: "value", nuevaCapacidad: "newCapacity", "&datos[i]": "&data[i]", datos: "data", nuevos: "newData" };
+  const nombre = (k) => tr(k, NOMBRES[k] || k);
+  const traducirVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [nombre(k), v]));
 
   const fragmentos = (...claves) => Object.fromEntries(claves.map((c) => [c, CODIGO[c]]));
 
@@ -128,30 +200,35 @@
     s.nuevos = { id: `a${s.sig++}`, base: s.siguienteBase, celdas: Array(nueva).fill(null) };
     s.siguienteBase += 0x1000;
     s.vis = { vars: extra };
-    paso("redimensionar", 2, `new int[${nueva}]: reservamos un bloque nuevo, del doble de tamaño, en otra parte de la memoria (${hex(s.nuevos.base)}). El viejo no se puede estirar.`);
+    paso("redimensionar", 2, tr(`new int[${nueva}]: reservamos un bloque nuevo, del doble de tamaño, en otra parte de la memoria (${hex(s.nuevos.base)}). El viejo no se puede estirar.`,
+      `new int[${nueva}]: we reserve a new block, twice as big, somewhere else in memory (${hex(s.nuevos.base)}). The old one can't be stretched.`));
     for (let i = 0; i < s.tamano; i++) {
       copiar(s, s.datos, i, s.nuevos, i);
       s.vis = { vars: Object.assign({}, extra, { i }), escritaNuevo: i, marcas: { [i]: "i" }, marcasNuevo: { [i]: "i" } };
-      paso("redimensionar", 4, `nuevos[${i}] = datos[${i}]: copiamos ${s.nuevos.celdas[i].v}.`
-        + (i === s.tamano - 1 ? ` Fueron ${s.tamano} copias: esta es la parte cara, O(n).` : ""));
+      paso("redimensionar", 4, tr(`nuevos[${i}] = datos[${i}]: copiamos ${s.nuevos.celdas[i].v}.`, `newData[${i}] = data[${i}]: we copy ${s.nuevos.celdas[i].v}.`)
+        + (i === s.tamano - 1 ? tr(` Fueron ${s.tamano} copias: esta es la parte cara, O(n).`, ` That was ${s.tamano} copies: this is the expensive part, O(n).`) : ""));
     }
     s.liberado = true;
     s.vis = { vars: extra };
-    paso("redimensionar", 6, "delete[] datos: devolvemos el bloque viejo al sistema. Desde ahora no se puede leer ni escribir ahí.");
+    paso("redimensionar", 6, tr("delete[] datos: devolvemos el bloque viejo al sistema. Desde ahora no se puede leer ni escribir ahí.",
+      "delete[] data: we give the old block back to the system. From now on it can't be read or written."));
     s.datos = s.nuevos;
     s.nuevos = null;
     s.liberado = false;
     s.vis = { vars: extra };
-    paso("redimensionar", 7, `datos = nuevos: el puntero datos ahora apunta al bloque grande (${hex(s.datos.base)}).`);
+    paso("redimensionar", 7, tr(`datos = nuevos: el puntero datos ahora apunta al bloque grande (${hex(s.datos.base)}).`,
+      `data = newData: the data pointer now points to the big block (${hex(s.datos.base)}).`));
     s.capacidad = nueva;
     s.vis = { vars: extra, cambio: ["capacidad"] };
-    paso("redimensionar", 8, `capacidad = ${nueva}. No habrá que volver a copiar hasta llenar las ${nueva} casillas.`);
+    paso("redimensionar", 8, tr(`capacidad = ${nueva}. No habrá que volver a copiar hasta llenar las ${nueva} casillas.`,
+      `capacity = ${nueva}. No more copying until all ${nueva} slots are full.`));
   }
 
   function limiteAlcanzado(s, clave, linea, paso) {
     if (s.tamano < MAXIMO) return false;
     s.vis = { error: true, caret: true };
-    paso(clave, linea, `Para que la animación quepa en pantalla, el vector llega hasta ${MAXIMO} elementos. Elimina alguno o pulsa Reiniciar.`, "error");
+    paso(clave, linea, tr(`Para que la animación quepa en pantalla, el vector llega hasta ${MAXIMO} elementos. Elimina alguno o pulsa Reiniciar.`,
+      `Up to ${MAXIMO} elements, so the animation fits on screen: remove some or press Reset.`), "error");
     return true;
   }
 
@@ -161,20 +238,23 @@
     if (pos >= s.tamano && pos < s.capacidad) {
       s.vis.malas = [pos];
       s.vis.marcas = { [pos]: nombre || "pos" };
-      return `No: la casilla ${pos} existe en memoria, pero no es parte del vector (tamano = ${s.tamano}). Se lanza std::out_of_range.`;
+      return tr(`No: la casilla ${pos} existe en memoria, pero no es parte del vector (tamano = ${s.tamano}). Se lanza std::out_of_range.`,
+        `No: slot ${pos} exists in memory, but it isn't part of the array (size = ${s.tamano}). std::out_of_range is thrown.`);
     }
-    if (maximo < 0) return "No: el vector está vacío, no hay ninguna posición válida. Se lanza std::out_of_range.";
-    return `No: ${pos} está fuera del rango 0..${maximo}. Se lanza std::out_of_range y el vector no cambia.`;
+    if (maximo < 0) return tr("No: el vector está vacío, no hay ninguna posición válida. Se lanza std::out_of_range.",
+      "No: the array is empty, there is no valid position. std::out_of_range is thrown.");
+    return tr(`No: ${pos} está fuera del rango 0..${maximo}. Se lanza std::out_of_range y el vector no cambia.`,
+      `No: ${pos} is outside the range 0..${maximo}. std::out_of_range is thrown and the array doesn't change.`);
   }
 
   const OPS = {
     obtener: {
-      etiqueta: "obtener(i)",
+      etiqueta: tr("obtener(i)", "get(i)"),
       usa: ["pos"],
       fragmentos: ["obtener"],
       ejecutar(s, { pos: i }, paso) {
         s.vis = { vars: { i }, marcas: i >= 0 && i < s.capacidad ? { [i]: "i" } : {} };
-        paso("obtener", 2, `¿i (${i}) está entre 0 y tamano − 1 (${s.tamano - 1})?`);
+        paso("obtener", 2, tr(`¿i (${i}) está entre 0 y tamano − 1 (${s.tamano - 1})?`, `Is i (${i}) between 0 and size − 1 (${s.tamano - 1})?`));
         if (i < 0 || i >= s.tamano) {
           paso("obtener", 3, posicionInvalida(s, i, s.tamano - 1, "i"), "error");
           return;
@@ -182,45 +262,52 @@
         const direccion = s.datos.base + 4 * i;
         const vars = { i, "&datos[i]": `${hex(s.datos.base)} + ${i}·4 = ${hex(direccion)}` };
         s.vis = { vars, salto: i, leidas: [i] };
-        paso("obtener", 5, `Sí. La dirección sale con una cuenta: inicio + i × 4 bytes (lo que ocupa un int) = ${hex(direccion)}. Saltamos directo, sin pasar por las casillas anteriores.`);
+        paso("obtener", 5, tr(`Sí. La dirección sale con una cuenta: inicio + i × 4 bytes (lo que ocupa un int) = ${hex(direccion)}. Saltamos directo, sin pasar por las casillas anteriores.`,
+          `Yes. The address comes from arithmetic: start + i × 4 bytes (the size of an int) = ${hex(direccion)}. We jump straight there, without going through the earlier slots.`));
         s.vis = { vars, encontrada: i, salida: s.datos.celdas[i].v, marcas: { [i]: "i" } };
-        paso("obtener", 5, `return datos[${i}] = ${s.datos.celdas[i].v}. Da igual si i es 0 o un millón: siempre es una cuenta y un salto, O(1).`, "exito");
+        paso("obtener", 5, tr(`return datos[${i}] = ${s.datos.celdas[i].v}. Da igual si i es 0 o un millón: siempre es una cuenta y un salto, O(1).`,
+          `return data[${i}] = ${s.datos.celdas[i].v}. Whether i is 0 or a million, it's always one calculation and one jump: O(1).`), "exito");
       },
     },
     agregarAlFinal: {
-      etiqueta: "agregarAlFinal(valor)",
+      etiqueta: tr("agregarAlFinal(valor)", "pushBack(value)"),
       usa: ["valor"],
       fragmentos: ["agregarAlFinal", "redimensionar"],
       ejecutar(s, { valor }, paso) {
         const lleno = s.tamano === s.capacidad;
         s.vis = { vars: { valor }, caret: true };
-        paso("agregarAlFinal", 2, `¿Está lleno? tamano (${s.tamano}) == capacidad (${s.capacidad})? `
-          + (lleno ? "Sí." : `No: la casilla ${s.tamano} está libre.`));
+        paso("agregarAlFinal", 2, tr(`¿Está lleno? tamano (${s.tamano}) == capacidad (${s.capacidad})? `, `Is it full? size (${s.tamano}) == capacity (${s.capacidad})? `)
+          + (lleno ? tr("Sí.", "Yes.") : tr(`No: la casilla ${s.tamano} está libre.`, `No: slot ${s.tamano} is free.`)));
         if (lleno) {
           if (limiteAlcanzado(s, "agregarAlFinal", 2, paso)) return;
           s.vis = { vars: { valor }, caret: true };
-          paso("agregarAlFinal", 3, "No queda espacio, y un bloque de memoria no se puede estirar: hay que redimensionar al doble.");
+          paso("agregarAlFinal", 3, tr("No queda espacio, y un bloque de memoria no se puede estirar: hay que redimensionar al doble.",
+            "No space left, and a block of memory can't be stretched: we have to resize to double."));
           redimensionar(s, paso, { valor });
         }
         const nueva = nuevaFicha(s, valor);
         s.datos.celdas[s.tamano] = nueva;
         s.vis = { vars: { valor }, ocupadas: s.tamano + 1, escrita: s.tamano, cae: nueva.id, caret: true };
-        paso("agregarAlFinal", 5, `datos[${s.tamano}] = ${valor}: escribimos directo en la primera casilla libre. Nada se mueve.`);
+        paso("agregarAlFinal", 5, tr(`datos[${s.tamano}] = ${valor}: escribimos directo en la primera casilla libre. Nada se mueve.`,
+          `data[${s.tamano}] = ${valor}: we write straight into the first free slot. Nothing moves.`));
         s.tamano++;
         s.vis = { vars: { valor }, cambio: ["tamano"] };
         const libres = s.capacidad - s.tamano;
-        paso("agregarAlFinal", 6, `tamano++ → ${s.tamano}. `
-          + (libres ? `Quedan ${libres} casilla(s) libres: los próximos agregarAlFinal son O(1).` : "Quedó lleno: el próximo agregarAlFinal tendrá que redimensionar."), "exito");
+        paso("agregarAlFinal", 6, tr(`tamano++ → ${s.tamano}. `, `size++ → ${s.tamano}. `)
+          + (libres
+            ? tr(`Quedan ${libres} casilla(s) libres: los próximos agregarAlFinal son O(1).`, `${libres} free slot(s) left: the next pushBack calls are O(1).`)
+            : tr("Quedó lleno: el próximo agregarAlFinal tendrá que redimensionar.", "It's full now: the next pushBack will have to resize.")), "exito");
       },
     },
     insertar: {
-      etiqueta: "insertar(pos, valor)",
+      etiqueta: tr("insertar(pos, valor)", "insert(pos, value)"),
       usa: ["pos", "valor"],
       fragmentos: ["insertar", "redimensionar"],
       ejecutar(s, { pos, valor }, paso) {
         const vars = { pos, valor };
         s.vis = { vars, marcas: pos >= 0 && pos <= s.tamano ? { [pos]: "pos" } : {} };
-        paso("insertar", 2, `¿pos (${pos}) está entre 0 y tamano (${s.tamano})? Vale pos == tamano: sería agregar al final.`);
+        paso("insertar", 2, tr(`¿pos (${pos}) está entre 0 y tamano (${s.tamano})? Vale pos == tamano: sería agregar al final.`,
+          `Is pos (${pos}) between 0 and size (${s.tamano})? pos == size is allowed: it would add at the end.`));
         if (pos < 0 || pos > s.tamano) {
           const texto = posicionInvalida(s, pos, s.tamano);
           s.vis.vars = vars;
@@ -229,40 +316,46 @@
         }
         const lleno = s.tamano === s.capacidad;
         s.vis = { vars, caret: true, marcas: { [pos]: "pos" } };
-        paso("insertar", 5, `¿Está lleno? tamano (${s.tamano}) == capacidad (${s.capacidad})? ${lleno ? "Sí." : "No: hay lugar para correr los elementos."}`);
+        paso("insertar", 5, tr(`¿Está lleno? tamano (${s.tamano}) == capacidad (${s.capacidad})? ${lleno ? "Sí." : "No: hay lugar para correr los elementos."}`,
+          `Is it full? size (${s.tamano}) == capacity (${s.capacidad})? ${lleno ? "Yes." : "No: there is room to shift the elements."}`));
         if (lleno) {
           if (limiteAlcanzado(s, "insertar", 5, paso)) return;
           s.vis = { vars, caret: true, marcas: { [pos]: "pos" } };
-          paso("insertar", 6, "Sí: primero redimensionamos al doble; después hacemos el hueco.");
+          paso("insertar", 6, tr("Sí: primero redimensionamos al doble; después hacemos el hueco.", "Yes: first we resize to double; then we open the gap."));
           redimensionar(s, paso, vars);
         }
         const corridos = s.tamano - pos;
         for (let i = s.tamano; i > pos; i--) {
           copiar(s, s.datos, i - 1, s.datos, i);
           s.vis = { vars: { pos, valor, i }, ocupadas: s.tamano + 1, escrita: i, marcas: marcas([[i, "i"], [pos, "pos"]]) };
-          paso("insertar", 9, `datos[${i}] = datos[${i - 1}]: ${s.datos.celdas[i].v} se corre una casilla a la derecha.`
-            + (i === s.tamano ? " Empezamos por el final para no pisar nada." : ""));
+          paso("insertar", 9, tr(`datos[${i}] = datos[${i - 1}]: ${s.datos.celdas[i].v} se corre una casilla a la derecha.`, `data[${i}] = data[${i - 1}]: ${s.datos.celdas[i].v} shifts one slot to the right.`)
+            + (i === s.tamano ? tr(" Empezamos por el final para no pisar nada.", " We start from the end so nothing gets overwritten.") : ""));
         }
         s.vis = { vars: { pos, valor, i: pos }, ocupadas: s.tamano + 1, hueco: pos, marcas: { [pos]: "i = pos" } };
         paso("insertar", 8, corridos
-          ? `i == pos: termina el ciclo. La casilla ${pos} quedó libre (lo que ves ahí es una copia vieja que vamos a pisar).`
-          : `pos == tamano: no hay nada a la derecha que correr.`);
+          ? tr(`i == pos: termina el ciclo. La casilla ${pos} quedó libre (lo que ves ahí es una copia vieja que vamos a pisar).`,
+            `i == pos: the loop ends. Slot ${pos} is free now (what you see there is an old copy we are about to overwrite).`)
+          : tr("pos == tamano: no hay nada a la derecha que correr.", "pos == size: there is nothing to the right to shift."));
         const nueva = nuevaFicha(s, valor);
         s.datos.celdas[pos] = nueva;
         s.vis = { vars, ocupadas: s.tamano + 1, escrita: pos, cae: nueva.id, marcas: { [pos]: "pos" } };
         paso("insertar", 11, `datos[${pos}] = ${valor}.`);
         s.tamano++;
         s.vis = { vars, cambio: ["tamano"] };
-        paso("insertar", 12, `tamano++ → ${s.tamano}. Corrimos ${corridos} elemento(s): cuanto más a la izquierda insertas, más trabajo. Por eso es O(n).`, "exito");
+        paso("insertar", 12, corridos
+          ? tr(`tamano++ → ${s.tamano}. Corrimos ${corridos} elemento(s): cuanto más a la izquierda insertas, más trabajo. Por eso es O(n).`,
+            `size++ → ${s.tamano}. We shifted ${corridos} element(s): the further left you insert, the more work. That's why it's O(n).`)
+          : tr(`tamano++ → ${s.tamano}. No corrimos nada: insertar al final cuesta lo mismo que agregarAlFinal.`,
+            `size++ → ${s.tamano}. Nothing was shifted: inserting at the end costs the same as pushBack.`), "exito");
       },
     },
     eliminarEn: {
-      etiqueta: "eliminarEn(pos)",
+      etiqueta: tr("eliminarEn(pos)", "removeAt(pos)"),
       usa: ["pos"],
       fragmentos: ["eliminarEn"],
       ejecutar(s, { pos }, paso) {
         s.vis = { vars: { pos }, marcas: pos >= 0 && pos < s.tamano ? { [pos]: "pos" } : {} };
-        paso("eliminarEn", 2, `¿pos (${pos}) está entre 0 y tamano − 1 (${s.tamano - 1})?`);
+        paso("eliminarEn", 2, tr(`¿pos (${pos}) está entre 0 y tamano − 1 (${s.tamano - 1})?`, `Is pos (${pos}) between 0 and size − 1 (${s.tamano - 1})?`));
         if (pos < 0 || pos >= s.tamano) {
           paso("eliminarEn", 3, posicionInvalida(s, pos, s.tamano - 1), "error");
           return;
@@ -271,39 +364,43 @@
         const aCorrer = s.tamano - 1 - pos;
         s.vis = { vars: { pos }, condenada: pos, marcas: { [pos]: "pos" } };
         paso("eliminarEn", 5, aCorrer
-          ? `Para borrar ${quitado} no hay un "hueco" posible: lo tapamos corriendo a la izquierda los ${aCorrer} elemento(s) de su derecha.`
-          : `${quitado} es el último: no hay nada a su derecha que correr.`);
+          ? tr(`Para borrar ${quitado} no hay un "hueco" posible: lo tapamos corriendo a la izquierda los ${aCorrer} elemento(s) de su derecha.`,
+            `To delete ${quitado} we can't leave a "gap": we cover it by shifting the ${aCorrer} element(s) on its right to the left.`)
+          : tr(`${quitado} es el último: no hay nada a su derecha que correr.`, `${quitado} is the last one: there is nothing to its right to shift.`));
         for (let i = pos; i < s.tamano - 1; i++) {
           copiar(s, s.datos, i + 1, s.datos, i);
           s.vis = { vars: { pos, i }, escrita: i, marcas: marcas([[i, "i"], [pos, "pos"]]) };
           paso("eliminarEn", 6, i === pos
-            ? `datos[${i}] = datos[${i + 1}]: ${s.datos.celdas[i].v} pisa a ${quitado}, que se pierde.`
-            : `datos[${i}] = datos[${i + 1}]: ${s.datos.celdas[i].v} se corre a la izquierda.`);
+            ? tr(`datos[${i}] = datos[${i + 1}]: ${s.datos.celdas[i].v} pisa a ${quitado}, que se pierde.`, `data[${i}] = data[${i + 1}]: ${s.datos.celdas[i].v} overwrites ${quitado}, which is lost.`)
+            : tr(`datos[${i}] = datos[${i + 1}]: ${s.datos.celdas[i].v} se corre a la izquierda.`, `data[${i}] = data[${i + 1}]: ${s.datos.celdas[i].v} shifts to the left.`));
         }
         s.tamano--;
         s.vis = { vars: { pos }, cambio: ["tamano"] };
-        paso("eliminarEn", 8, `tamano-- → ${s.tamano}. La casilla ${s.tamano} queda como basura: sigue en memoria y la capacidad no cambia, pero ya no es parte del vector.`, "exito");
+        paso("eliminarEn", 8, tr(`tamano-- → ${s.tamano}. La casilla ${s.tamano} queda como basura: sigue en memoria y la capacidad no cambia, pero ya no es parte del vector.`,
+          `size-- → ${s.tamano}. Slot ${s.tamano} is left as garbage: it's still in memory and the capacity doesn't change, but it's no longer part of the array.`), "exito");
       },
     },
     buscar: {
-      etiqueta: "buscar(valor)",
+      etiqueta: tr("buscar(valor)", "find(value)"),
       usa: ["valor"],
       fragmentos: ["buscar"],
       ejecutar(s, { valor }, paso) {
         for (let i = 0; i < s.tamano; i++) {
           const v = s.datos.celdas[i].v;
           s.vis = { vars: { valor, i }, leidas: [i], revisadas: hasta(i), marcas: { [i]: "i" } };
-          paso("buscar", 3, `¿datos[${i}] (${v}) == ${valor}? ${v === valor ? "¡Sí!" : "No, seguimos con la siguiente."}`);
+          paso("buscar", 3, tr(`¿datos[${i}] (${v}) == ${valor}? ${v === valor ? "¡Sí!" : "No, seguimos con la siguiente."}`,
+            `data[${i}] (${v}) == ${valor}? ${v === valor ? "Yes!" : "No, on to the next one."}`));
           if (v === valor) {
             s.vis = { vars: { valor, i }, encontrada: i, revisadas: hasta(i), salida: i, marcas: { [i]: "i" } };
-            paso("buscar", 4, `return ${i}. Revisamos ${i + 1} casilla(s).`, "exito");
+            paso("buscar", 4, tr(`return ${i}. Revisamos ${i + 1} casilla(s).`, `return ${i}. We checked ${i + 1} slot(s).`), "exito");
             return;
           }
         }
         s.vis = { vars: { valor }, revisadas: hasta(s.tamano), salida: -1 };
         paso("buscar", 7, s.tamano
-          ? `Revisamos las ${s.tamano} casillas y no está: return -1. En el peor caso hay que mirar todas: O(n).`
-          : "El vector está vacío: el for no da ni una vuelta. return -1.", "error");
+          ? tr(`Revisamos las ${s.tamano} casillas y no está: return -1. En el peor caso hay que mirar todas: O(n).`,
+            `We checked all ${s.tamano} slots and it isn't there: return -1. In the worst case we have to look at all of them: O(n).`)
+          : tr("El vector está vacío: el for no da ni una vuelta. return -1.", "The array is empty: the for loop doesn't run even once. return -1."), "error");
       },
     },
   };
@@ -383,8 +480,8 @@
 
     // Variables y valor devuelto, arriba del dibujo.
     escenario.querySelector(".info-vector").replaceChildren(
-      DS.variables(Object.assign({ tamano: s.tamano, capacidad: s.capacidad }, vis.vars), vis.cambio),
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: "celda encontrada", text: vis.salida })) : "");
+      DS.variables(traducirVars(Object.assign({ tamano: s.tamano, capacidad: s.capacidad }, vis.vars)), (vis.cambio || []).map(nombre)),
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: "celda encontrada", text: vis.salida })) : "");
 
     // Filas: casillas, índices, direcciones, marcas y el indicador de tamano.
     // Al insertar, la casilla tamano ya se usa antes de que tamano++ lo diga.
@@ -407,8 +504,8 @@
 
       const n = f.arr.celdas.length;
       const titulo = f.principal
-        ? `datos → ${hex(f.arr.base)}${s.liberado ? "   (liberado con delete[])" : ""}`
-        : `nuevos → ${hex(f.arr.base)}`;
+        ? `${nombre("datos")} → ${hex(f.arr.base)}${s.liberado ? tr("   (liberado con delete[])", "   (freed with delete[])") : ""}`
+        : `${nombre("nuevos")} → ${hex(f.arr.base)}`;
       const piezas = [el("span", { class: "fila-titulo", style: "left:0;top:0", text: titulo })];
       for (let j = 0; j < n; j++) {
         const x = j * PASO;
@@ -431,7 +528,7 @@
       let indicador = fila.querySelector(".vtamano");
       if (f.principal) {
         if (!indicador) {
-          indicador = el("div", { class: "vtamano", "aria-hidden": "true" }, el("span", { text: "▲" }), el("span", { text: "tamano" }));
+          indicador = el("div", { class: "vtamano", "aria-hidden": "true" }, el("span", { text: "▲" }), el("span", { text: nombre("tamano") }));
           fila.append(indicador);
         }
         indicador.style.left = `${s.tamano * PASO}px`;
@@ -497,7 +594,7 @@
       incremental: true,
       dibujar,
       codigo: fragmentos(...claves),
-      tituloCodigo: (clave) => `VectorDinamico::${clave}()`,
+      tituloCodigo: (clave) => `${CLASE}::${FUNCION[clave]}()`,
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial,
       entradas: opciones.entradas,
@@ -505,15 +602,16 @@
     });
   }
 
-  const VALOR = { id: "valor", etiqueta: "Valor", min: 0, max: 99, aleatorio: true };
-  const posicion = (valor) => ({ id: "pos", etiqueta: "Posición", min: -5, max: 20, valor });
+  const VALOR = { id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, aleatorio: true };
+  const posicion = (valor) => ({ id: "pos", etiqueta: tr("Posición", "Position"), min: -5, max: 20, valor });
 
   // Paso 1: obtener(i), con las direcciones de memoria a la vista.
   visualizador("vis-obtener", {
     ops: ["obtener"],
     entradas: [{ id: "pos", etiqueta: "i", min: -5, max: 20, valor: 2 }],
     estadoInicial: () => estadoDesde([10, 20, 30], 4, { direcciones: true }),
-    mensajeInicial: "Las direcciones van de 4 en 4: un int ocupa 4 bytes. Prueba i = 2, 3 y 9.",
+    mensajeInicial: tr("Las direcciones van de 4 en 4: un int ocupa 4 bytes. Prueba i = 2, 3 y 9.",
+      "The addresses go up by 4: an int takes 4 bytes. Try i = 2, 3 and 9."),
   });
 
   // Paso 2: agregarAlFinal y redimensionar.
@@ -521,7 +619,8 @@
     ops: ["agregarAlFinal"],
     entradas: [VALOR],
     estadoInicial: () => estadoDesde([10, 20, 30], 4),
-    mensajeInicial: "Así queda el vector de main() tras agregar 10, 20 y 30. Agrega dos valores: el primero cabe, el segundo no.",
+    mensajeInicial: tr("Así queda el vector de main() tras agregar 10, 20 y 30. Agrega dos valores: el primero cabe, el segundo no.",
+      "This is the array from main() after adding 10, 20 and 30. Add two values: the first one fits, the second doesn't."),
   });
 
   // Pasos 4, 5 y 6: insertar, eliminarEn y buscar.
@@ -529,30 +628,33 @@
     ops: ["insertar"],
     entradas: [posicion(1), VALOR],
     estadoInicial: () => estadoDesde([10, 20, 30, 40, 50], 8),
-    mensajeInicial: "Inserta en la posición 1 y mira cómo se corre todo lo que está a su derecha. Prueba también pos = 0, pos = 5 y una inválida.",
+    mensajeInicial: tr("Inserta en la posición 1 y mira cómo se corre todo lo que está a su derecha. Prueba también pos = 0, pos = 5 y una inválida.",
+      "Insert at position 1 and watch everything to its right shift over. Also try pos = 0, pos = 5 and an invalid one."),
   });
 
   visualizador("vis-eliminar", {
     ops: ["eliminarEn"],
     entradas: [posicion(1)],
     estadoInicial: () => estadoDesde([10, 15, 20, 30, 40, 50], 8),
-    mensajeInicial: "Elimina la posición 1 y mira cómo se cierra el hueco. Prueba también el último (pos = 5) y una posición inválida.",
+    mensajeInicial: tr("Elimina la posición 1 y mira cómo se cierra el hueco. Prueba también el último (pos = 5) y una posición inválida.",
+      "Remove position 1 and watch the gap close. Also try the last one (pos = 5) and an invalid position."),
   });
 
   visualizador("vis-buscar", {
     ops: ["buscar"],
-    entradas: [{ id: "valor", etiqueta: "Valor", min: 0, max: 99, valor: 30 }],
+    entradas: [{ id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, valor: 30 }],
     estadoInicial: () => estadoDesde([10, 15, 20, 30, 40, 50], 8),
-    mensajeInicial: "Busca 30, después un valor que no esté (por ejemplo 99).",
+    mensajeInicial: tr("Busca 30, después un valor que no esté (por ejemplo 99).", "Find 30, then a value that isn't there (for example 99)."),
   });
 
   // Paso 7: todas las operaciones juntas.
   visualizador("vis-todo", {
     ops: ["agregarAlFinal", "insertar", "eliminarEn", "buscar", "obtener"],
-    etiquetas: { obtener: "obtener(pos)" },
+    etiquetas: { obtener: tr("obtener(pos)", "get(pos)") },
     entradas: [VALOR, posicion(1)],
     estadoInicial: () => estadoDesde([10, 20, 30], 4),
-    mensajeInicial: "El vector de main(): 10, 20, 30 con capacidad 4. Combina operaciones; Posición se usa para insertar, eliminarEn y obtener.",
+    mensajeInicial: tr("El vector de main(): 10, 20, 30 con capacidad 4. Combina operaciones; Posición se usa para insertar, eliminarEn y obtener.",
+      "The array from main(): 10, 20, 30 with capacity 4. Combine operations; Position is used by insert, removeAt and get."),
   });
 
   // ------------------------------------------------------------------
@@ -560,8 +662,8 @@
   // ------------------------------------------------------------------
 
   const ESTRATEGIAS = [
-    { titulo: "redimensionar(capacidad * 2)", crecer: (c) => c * 2 },
-    { titulo: "redimensionar(capacidad + 1)", crecer: (c) => c + 1 },
+    { titulo: tr("redimensionar(capacidad * 2)", "resize(capacity * 2)"), crecer: (c) => c * 2 },
+    { titulo: tr("redimensionar(capacidad + 1)", "resize(capacity + 1)"), crecer: (c) => c + 1 },
   ];
   const LLAMADAS = 64;
 
@@ -569,16 +671,19 @@
     const caja = document.getElementById("experimento");
     if (!caja) return;
     let corridas = [];
-    const formato = (n) => n.toLocaleString("es");
+    const local = tr("es", "en");
+    const formato = (n) => n.toLocaleString(local);
+    const decimal = (x) => x.toLocaleString(local, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const AYUDA = tr("Toca una barra para ver lo que costó esa llamada.", "Tap a bar to see what that call cost.");
 
     const tarjetas = ESTRATEGIAS.map((e) => {
-      const barras = hasta(LLAMADAS).map((k) => el("button", { type: "button", class: "barra-costo", "aria-label": `Llamada ${k + 1}`, tabindex: -1 }));
-      const lectura = el("p", { class: "lectura-costo", "aria-live": "polite", text: "Toca una barra para ver lo que costó esa llamada." });
+      const barras = hasta(LLAMADAS).map((k) => el("button", { type: "button", class: "barra-costo", "aria-label": tr(`Llamada ${k + 1}`, `Call ${k + 1}`), tabindex: -1 }));
+      const lectura = el("p", { class: "lectura-costo", "aria-live": "polite", text: AYUDA });
       const datos = el("div", { class: "variables" });
       const grafico = el("div", { class: "grafico-costo", role: "img" }, barras);
       const tarjeta = el("div", { class: "tarjeta-costo" },
         el("p", { class: "fila-titulo", text: e.titulo }), datos, grafico,
-        el("div", { class: "eje-costo" }, el("span", { text: "llamada 1" }), el("span", { text: `llamada ${LLAMADAS}` })),
+        el("div", { class: "eje-costo" }, el("span", { text: tr("llamada 1", "call 1") }), el("span", { text: tr(`llamada ${LLAMADAS}`, `call ${LLAMADAS}`) })),
         lectura);
       grafico.addEventListener("click", (ev) => {
         const k = barras.indexOf(ev.target.closest(".barra-costo"));
@@ -587,7 +692,9 @@
         if (k >= r.costos.length) return;
         const copias = r.costos[k] - 1;
         for (const b of barras) b.classList.toggle("elegida", b === barras[k]);
-        lectura.textContent = `Llamada ${k + 1}: ${copias ? `copió ${copias} elemento(s) y escribió 1` : "solo escribió 1 valor"} → ${r.costos[k]} escritura(s).`;
+        lectura.textContent = tr(
+          `Llamada ${k + 1}: ${copias ? `copió ${copias} elemento(s) y escribió 1` : "solo escribió 1 valor"} → ${r.costos[k]} escritura(s).`,
+          `Call ${k + 1}: ${copias ? `copied ${copias} element(s) and wrote 1` : "only wrote 1 value"} → ${r.costos[k]} write(s).`);
       });
       return { e, barras, datos, grafico, lectura, tarjeta };
     });
@@ -596,7 +703,7 @@
 
     function reiniciar() {
       corridas = ESTRATEGIAS.map(() => ({ tamano: 0, capacidad: 2, costos: [] }));
-      for (const t of tarjetas) t.lectura.textContent = "Toca una barra para ver lo que costó esa llamada.";
+      for (const t of tarjetas) t.lectura.textContent = AYUDA;
       pintar(0);
     }
 
@@ -624,38 +731,39 @@
         const total = r.costos.reduce((a, b) => a + b, 0);
         const copias = total - r.costos.length;
         t.datos.replaceChildren(DS.variables({
-          tamano: r.tamano,
-          capacidad: r.capacidad,
-          copias: formato(copias),
-          "escrituras por llamada": r.tamano ? (total / r.tamano).toFixed(1).replace(".", ",") : "—",
+          [nombre("tamano")]: r.tamano,
+          [nombre("capacidad")]: r.capacidad,
+          [tr("copias", "copies")]: formato(copias),
+          [tr("escrituras por llamada", "writes per call")]: r.tamano ? decimal(total / r.tamano) : "—",
         }));
-        t.grafico.setAttribute("aria-label", `${t.e.titulo}: ${formato(total)} escrituras en ${r.tamano} llamadas`);
+        t.grafico.setAttribute("aria-label", tr(`${t.e.titulo}: ${formato(total)} escrituras en ${r.tamano} llamadas`, `${t.e.titulo}: ${formato(total)} writes in ${r.tamano} calls`));
         t.barras.forEach((b, j) => {
           const costo = r.costos[j];
           b.style.height = costo ? `${Math.max(3, (costo / maximo) * 100)}%` : "0";
           b.className = `barra-costo${costo > 1 ? " con-copias" : ""}${costo && j >= desde ? " nueva" : ""}`;
-          b.title = costo ? `Llamada ${j + 1}: ${costo} escritura(s)` : "";
+          b.title = costo ? tr(`Llamada ${j + 1}: ${costo} escritura(s)`, `Call ${j + 1}: ${costo} write(s)`) : "";
           b.tabIndex = costo ? 0 : -1;
         });
       });
       const [a, b] = corridas.map((r) => r.costos.reduce((x, y) => x + y, 0));
       const n = corridas[0].tamano;
       resumen.textContent = n < 3
-        ? "Todavía no hubo que redimensionar: las dos estrategias empiezan con capacidad 2."
-        : `Para ${n} elementos: duplicando, ${formato(a)} escrituras; sumando 1, ${formato(b)}. ${b > a ? `Sumar 1 cuesta ${(b / a).toFixed(1).replace(".", ",")} veces más.` : ""}`;
+        ? tr("Todavía no hubo que redimensionar: las dos estrategias empiezan con capacidad 2.", "No resizing yet: both strategies start with capacity 2.")
+        : tr(`Para ${n} elementos: duplicando, ${formato(a)} escrituras; sumando 1, ${formato(b)}. ${b > a ? `Sumar 1 cuesta ${decimal(b / a)} veces más.` : ""}`,
+          `For ${n} elements: doubling, ${formato(a)} writes; adding 1, ${formato(b)}. ${b > a ? `Adding 1 costs ${decimal(b / a)} times as much.` : ""}`);
       bUno.disabled = bDiez.disabled = bTodo.disabled = n >= LLAMADAS;
     }
 
-    const bUno = el("button", { class: "boton principal", type: "button", onclick: () => agregar(1) }, el("code", { text: "agregarAlFinal" }), " × 1");
+    const bUno = el("button", { class: "boton principal", type: "button", onclick: () => agregar(1) }, el("code", { text: FUNCION.agregarAlFinal }), " × 1");
     const bDiez = el("button", { class: "boton principal", type: "button", onclick: () => agregar(10) }, "× 10");
-    const bTodo = el("button", { class: "boton", type: "button", text: `Hasta ${LLAMADAS}`, onclick: () => agregar(LLAMADAS) });
+    const bTodo = el("button", { class: "boton", type: "button", text: tr(`Hasta ${LLAMADAS}`, `Up to ${LLAMADAS}`), onclick: () => agregar(LLAMADAS) });
     caja.classList.add("panel", "experimento");
     caja.append(
       el("div", { class: "controles" }, bUno, bDiez, bTodo, el("span", { class: "separador" }),
-        el("button", { class: "boton", type: "button", text: "Reiniciar", onclick: reiniciar })),
+        el("button", { class: "boton", type: "button", text: tr("Reiniciar", "Reset"), onclick: reiniciar })),
       el("div", { class: "leyenda-costo" },
-        el("span", {}, el("i", { class: "muestra" }), "solo escribe el valor (1)"),
-        el("span", {}, el("i", { class: "muestra con-copias" }), "redimensiona: copia todo y escribe")),
+        el("span", {}, el("i", { class: "muestra" }), tr("solo escribe el valor (1)", "only writes the value (1)")),
+        el("span", {}, el("i", { class: "muestra con-copias" }), tr("redimensiona: copia todo y escribe", "resizes: copies everything and writes"))),
       el("div", { class: "comparacion-costo" }, tarjetas.map((t) => t.tarjeta)),
       resumen);
     reiniciar();

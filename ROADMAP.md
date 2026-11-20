@@ -39,7 +39,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Notación algorítmica (Big-O) | Hecho: lección, carrera de curvas, comparador de términos, animaciones y `ejemplos/cpp/en/algorithmic_notation.cpp` |
 | Recursión | Hecho: lección, pila de marcos, árbol de llamadas de Fibonacci, animaciones y `ejemplos/cpp/en/recursion.cpp` (`digitSum`, `printDigits`, `reverseDigits`, `toBase`, `isPalindrome` con `racecar` y `remember`, `power`) |
 | Lambdas en C++ | Hecho: lección, pila de marcos con capturas y flechas, animaciones y `ejemplos/cpp/en/lambdas.cpp` (`computeSquare`, `captureByValue`, `sumWithReference`, `sumOfSquares`, `useAdder`/`makeAdder`, `countGreater`, `firstMultiple`, `sortDescending`, `sortByCloseness`, `sortEvensFirst`) |
-| Vector dinámico | Pendiente |
+| Vector dinámico | Hecho: lección, experimento de costo amortizado, animaciones y `ejemplos/cpp/en/dynamic_array.cpp` (`DynamicArray` con `get`, `pushBack`, `resize`, `insert`, `removeAt` y `find`) |
 | Lista enlazada simple | Pendiente |
 | Lista doblemente enlazada | Pendiente |
 | Lista circular | Pendiente |
