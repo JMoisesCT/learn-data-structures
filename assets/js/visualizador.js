@@ -909,11 +909,16 @@
   //   estadoInicial: (valores) => objeto              // estado plano (se clona en cada paso);
   //                                                   // recibe los valores actuales de las entradas
   //   entradas:      [{ id, etiqueta, valor, min, max, aleatorio }]   // número
-  //                  [{ ..., alCambiar(estado, valores) }]           // número que cambia el dibujo al
-  //                                                   // escribirlo (como el tamaño n): devuelve
-  //                                                   // { estado, mensaje } sin reiniciar todo
   //                  [{ id, etiqueta, opciones: [[valor, texto]] }]   // lista; al cambiarla se reinicia
   //                  [{ ..., opciones, reinicia: false }]             // lista que no reinicia (solo es un argumento)
+  //                  [{ ..., alCambiar(estado, valores) }]            // número o lista que se refleja apenas
+  //                                                   // cambia, sin reiniciar todo: devuelve
+  //                                                   // { estado, mensaje, codigo } (todo opcional;
+  //                                                   // codigo = clave del fragmento que se muestra).
+  //                                                   // Toda entrada debería reflejarse al instante en
+  //                                                   // el dibujo o en el código: si no cambia el estado
+  //                                                   // (un argumento), que muestre el fragmento que
+  //                                                   // va a correr.
   //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, ejecutar(s, args, paso) }]
   //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
   //                  etiqueta puede ser (valores) => texto si depende de una lista
@@ -1008,7 +1013,8 @@
         input = el("select", { id: `${prefijo}-${e.id}` },
           e.opciones.map(([valor, texto]) => el("option", { value: valor, text: texto })));
         if (e.valor != null) input.value = e.valor;
-        input.addEventListener("change", e.reinicia === false ? () => actualizarEtiquetas(valoresEntradas()) : reiniciar);
+        input.addEventListener("change", e.alCambiar ? () => cambiarEntrada(e, input)
+          : e.reinicia === false ? () => actualizarEtiquetas(valoresEntradas()) : reiniciar);
       } else {
         input = el("input", { type: "number", id: `${prefijo}-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
@@ -1285,8 +1291,8 @@
       }
     }
 
-    function pasoInicial(texto) {
-      const inicial = typeof cfg.codigoInicial === "function" ? cfg.codigoInicial(valoresEntradas()) : cfg.codigoInicial;
+    function pasoInicial(texto, codigo) {
+      const inicial = codigo || (typeof cfg.codigoInicial === "function" ? cfg.codigoInicial(valoresEntradas()) : cfg.codigoInicial);
       const clave = inicial || cfg.operaciones[0].codigo || cfg.operaciones[0].id;
       return { estado: clonar(estado), clave, linea: 0, mensaje: texto, tipo: "" };
     }
@@ -1508,6 +1514,9 @@
       invitarAvanzar(false);
       aleatoriosPendientes = [];
       liberarAlturas();
+      // Datos nuevos: el dibujo empieza de cero, así lo viejo no se desvanece
+      // encima de lo nuevo (en los temas que animan entre pasos).
+      escenario.replaceChildren();
       const valores = valoresEntradas();
       estado = cfg.estadoInicial(valores);
       actualizarEtiquetas(valores);
@@ -1517,22 +1526,25 @@
       ir(0);
     }
 
-    // Una entrada numérica con alCambiar se refleja en el dibujo apenas se
-    // escribe un valor válido, sin esperar a ejecutar una operación (y sin
-    // perder lo que el tema quiera conservar, como los puntos de una gráfica).
+    // Una entrada con alCambiar se refleja apenas cambia (un número, cuando es
+    // válido), sin esperar a ejecutar una operación y sin perder lo que el tema
+    // quiera conservar, como los puntos de una gráfica.
     function cambiarEntrada(e, input) {
-      const n = Number(input.value);
-      if (input.value.trim() === "" || !Number.isInteger(n)) return;
-      if ((e.min != null && n < e.min) || (e.max != null && n > e.max)) return;
+      if (!e.opciones) {
+        const n = Number(input.value);
+        if (input.value.trim() === "" || !Number.isInteger(n)) return;
+        if ((e.min != null && n < e.min) || (e.max != null && n > e.max)) return;
+      }
       detener();
       invitarAvanzar(false);
       aleatoriosPendientes = [];
       liberarAlturas();
       const valores = valoresEntradas();
-      const r = e.alCambiar(estado, valores);
-      estado = r.estado;
+      const r = e.alCambiar(estado, valores) || {};
+      if (r.estado) estado = r.estado;
       actualizarEtiquetas(valores);
-      pasos = [pasoInicial(r.mensaje || "")];
+      const texto = r.mensaje || (typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial) || "";
+      pasos = [pasoInicial(texto, r.codigo)];
       reservarEspacio();
       ir(0);
     }
