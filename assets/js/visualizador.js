@@ -82,6 +82,7 @@
         titulo: "Dynamic array",
         resumen: "An array that grows on its own. O(1) access by index and how the capacity doubles.",
         etiquetas: ["O(1) access", "O(n) insert"],
+        archivo: "dynamic_array.cpp",
       },
     },
     {

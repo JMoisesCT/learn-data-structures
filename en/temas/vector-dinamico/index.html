@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamic array · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a dynamic array is (like std::vector), why access by index is O(1), how it doubles when it fills up, amortized cost, and how insert, remove and find shift elements. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="vector-dinamico">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Dynamic array</div>
+      <h1>Dynamic array</h1>
+      <p class="resumen">An <strong>array that grows on its own</strong>. It stores the elements next to each other in memory, so reaching any position is immediate. It is the idea behind <code>std::vector</code>, and you will see what each of its operations does inside.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Contiguous slots">
+        <h2>Slots next to each other</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>It keeps three things: <code>data</code>, a pointer to the block reserved with <code>new</code>; <code>size</code>, how many elements there are (<strong>▲ size</strong> marks the first free slot); and <code>capacity</code>, how many slots the block has (the dashed ones are free).</p>
+          </div>
+          <div>
+            <p>Because the slots are <strong>contiguous</strong>, the address of <code>data[i]</code> comes from arithmetic: start + <code>i</code> × 4 bytes. There is nothing to walk through: that is why <code>get(i)</code> is <strong>O(1)</strong>.</p>
+          </div>
+        </div>
+        <div id="vis-obtener"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If <code>data</code> starts at <code>0x1000</code> and an <code>int</code> takes 4 bytes, where is <code>data[5]</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That would be the case if each int took 1 byte. You have to multiply the index by 4."><code>0x1005</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="0x1000 + 5 · 4 = 0x1000 + 20, and 20 in hexadecimal is 0x14."><code>0x1014</code></button>
+            <button type="button" class="opcion" data-explicacion="0x20 is 32 in decimal: that would be 8 slots of 4 bytes, not 5."><code>0x1020</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="agregar" data-titulo="pushBack and resize">
+        <h2><code>pushBack</code>: write into the next slot</h2>
+        <p>While <code>size &lt; capacity</code>, adding at the end is just writing into <code>data[size]</code> and adding 1: <strong>O(1)</strong>.</p>
+        <p>When it fills up, a block of memory <strong>can't be stretched</strong> (what comes after it may belong to another variable). So <code>resize</code> reserves a block <strong>twice as big</strong> somewhere else, copies everything, frees the old one with <code>delete[]</code> and moves the pointer.</p>
+        <div id="vis-agregar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">The array has <code>size = 4</code> and <code>capacity = 4</code>. How many values does the next <code>pushBack</code> copy?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That only happens when there is room. Here it's full: it has to resize first.">None</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="resize copies the 4 that were already there into the new block of 8. Then it writes the new value, which isn't a copy.">4</button>
+            <button type="button" class="opcion" data-explicacion="Only the elements that exist (size) are copied, not the 8 slots of the new block.">8</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="amortizado" data-titulo="Why double?">
+        <h2>Why grow to double and not one at a time?</h2>
+        <p>Each <code>resize</code> copies <strong>everything</strong>. Compare the two strategies: each bar is what one call cost.</p>
+        <div id="experimento"></div>
+        <div class="dos-columnas">
+        <div class="nota">When doubling, the expensive copies get <strong>rarer and rarer</strong>: after copying <code>n</code> elements there are <code>n</code> free slots left. For <code>n</code> elements it does fewer than <code>2n</code> writes: on average, each <code>pushBack</code> is O(1). That is its <strong>amortized cost</strong>.</div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Starting with capacity 2 and doubling, how many times does it resize when adding 1000 elements?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="2 → 4 → 8 → … → 1024: that's 9 doublings. It grows exponentially, so it resizes about log₂ n times.">9 times</button>
+            <button type="button" class="opcion" data-explicacion="That would happen if it grew by 2 each time. When doubling, the jumps get bigger and bigger.">About 500 times</button>
+            <button type="button" class="opcion" data-explicacion="That would happen with capacity + 1: exactly what the second chart shows.">Almost 1000 times</button>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar" data-titulo="Insert in the middle">
+        <h2><code>insert(pos, value)</code>: open a gap</h2>
+        <p>The slots can't be "pulled apart" to fit a new one in the middle. Everything from <code>pos</code> to the end has to <strong>shift one place to the right</strong>, and only then is the value written. The more elements to its right, the more expensive: <strong>O(n)</strong>.</p>
+        <div id="vis-insertar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does the <code>for</code> loop in <code>insert</code> go from right to left (<code>i--</code>)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The number of copies is the same in both directions: size − pos.">Because that way it makes fewer copies</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="If it started at pos, data[pos + 1] = data[pos] would overwrite a value that hasn't moved yet, and the same number would be copied into every slot.">So it doesn't overwrite values that haven't moved yet</button>
+            <button type="button" class="opcion" data-explicacion="The order matters: from left to right, data would be lost.">It doesn't matter, it's just habit</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Remove">
+        <h2><code>removeAt(pos)</code>: close the gap</h2>
+        <p>The reverse of insert: each element to the right of <code>pos</code> <strong>shifts to the left</strong>, and the first one overwrites the one being removed. At the end, <code>size</code> goes down by 1. The memory <strong>is not freed</strong>: the last slot is left as garbage and the capacity doesn't change.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In an array with <code>n</code> elements, how many does <code>removeAt(0)</code> shift?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The first one doesn't shift: it's lost, because the second one overwrites it.">n</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="All but the removed one. Deleting at the start is the worst case: that's why remove is O(n). (Deleting the last one shifts none.)">n − 1</button>
+            <button type="button" class="opcion" data-explicacion="That's deleting the last one: then only size goes down.">0</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Find">
+        <h2><code>find(value)</code>: look slot by slot</h2>
+        <p>Knowing the <strong>position</strong> gives immediate access, but knowing the <strong>value</strong> doesn't tell you where it is. If the array isn't sorted, you have to check from the beginning until you find it: <strong>O(n)</strong>. If it isn't there, it returns <code>-1</code>.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If the array were <strong>sorted</strong>, how could you search faster?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="You look at the middle one and discard the half that can't have it, again and again: O(log n). It works because get(i) is O(1).">With binary search, in O(log n)</button>
+            <button type="button" class="opcion" data-explicacion="With the address you reach a position, but you don't know which position the value is in.">By calculating its address, in O(1)</button>
+            <button type="button" class="opcion" data-explicacion="Yes, you can: the order lets you discard whole halves without looking at them.">You can't, it's still O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>The same array, with every operation. Add until it's full, insert at the start, remove, find. Notice which operations move elements and which don't.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th>In <code>std::vector</code></th><th>Time</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>get(i)</code></td><td><code>v[i]</code>, <code>v.at(i)</code></td><td class="o-grande bueno">O(1)</td><td>The address is computed with arithmetic.</td></tr>
+              <tr><td><code>pushBack</code></td><td><code>v.push_back(x)</code></td><td class="o-grande bueno">O(1) amortized</td><td>There's almost always room; sometimes everything is copied.</td></tr>
+              <tr><td><code>insert(pos, x)</code></td><td><code>v.insert(v.begin() + pos, x)</code></td><td class="o-grande malo">O(n)</td><td>Everything from <code>pos</code> on shifts to the right.</td></tr>
+              <tr><td><code>removeAt(pos)</code></td><td><code>v.erase(v.begin() + pos)</code></td><td class="o-grande malo">O(n)</td><td>They shift to the left to close the gap.</td></tr>
+              <tr><td><code>find(x)</code></td><td><code>std::find(v.begin(), v.end(), x)</code></td><td class="o-grande malo">O(n)</td><td>Slot by slot (if it isn't sorted).</td></tr>
+              <tr><td><code>getSize()</code> / <code>getCapacity()</code></td><td><code>v.size()</code> / <code>v.capacity()</code></td><td class="o-grande bueno">O(1)</td><td>They just read a variable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">If you know in advance how many elements you will store, <code>v.reserve(n)</code> reserves the capacity in one go and avoids every copy made by <code>resize</code>.</div>
+        <ul>
+          <li>It's the <strong>default</strong> structure in C++: when in doubt, use <code>std::vector</code>.</li>
+          <li>Ideal when you access by position and almost always add or remove at the end. Also, since the data is together, the processor reads it very fast (cache).</li>
+          <li>Avoid it if you do many insertions or removals at the start or in the middle: consider a linked list or <code>std::deque</code>.</li>
+          <li>Careful: after a resize, pointers or references to old elements are left pointing to the freed block.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra dynamic_array.cpp -o dynamic_array &amp;&amp; ./dynamic_array</span></pre>
+        <div data-codigo-completo="en/dynamic_array.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Add <code>void popBack()</code>. What is its complexity?</li>
+          <li>Make the array <strong>shrink</strong> to half when <code>size</code> is less than <code>capacity / 4</code>. Why not at exactly half? (Think about adding and removing alternately right at the limit.)</li>
+          <li>Add a copy counter to <code>resize</code>, change <code>capacity * 2</code> to <code>capacity + 1</code> and compare how many copies are made when adding 1000 elements.</li>
+          <li>Write <code>void reserve(int n)</code>, like <code>std::vector::reserve</code>: if <code>n &gt; capacity</code>, it resizes only once.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/vector-dinamico/vector-dinamico.js"></script>
+</body>
+</html>

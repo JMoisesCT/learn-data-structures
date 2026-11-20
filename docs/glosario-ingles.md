@@ -28,6 +28,10 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 
 | Tema | Español | Inglés |
 | --- | --- | --- |
+| Vector dinámico | `VectorDinamico` / `datos` / `tamano` (variable) / `capacidad` | `DynamicArray` / `data` / `size` / `capacity` |
+| Vector dinámico | `size()` / `capacity()` (métodos) | `getSize()` / `getCapacity()` (así no chocan con las variables `size` y `capacity`) |
+| Vector dinámico | `obtener` / `agregarAlFinal` / `insertar` / `eliminarEn` / `buscar` | `get` / `pushBack` / `insert` / `removeAt` / `find` |
+| Vector dinámico | `redimensionar` / `nuevaCapacidad` / `nuevos` | `resize` / `newCapacity` / `newData` |
 | Lista enlazada | `ListaEnlazada` | `LinkedList` |
 | Lista enlazada | `nodoEn(i)` | `nodeAt(i)` |
 | Lista enlazada | `obtener(i)` | `get(i)` |
