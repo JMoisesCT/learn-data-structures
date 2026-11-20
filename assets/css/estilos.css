@@ -1793,8 +1793,19 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   font-weight: 700;
   font-size: 0.95rem;
   animation: pop 0.35s ease;
-  transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.35s ease, transform 0.35s ease;
+  /* left, top y tamaño: al cambiar n las casillas que se quedan se deslizan a su lugar. */
+  transition: background-color 0.25s ease, border-color 0.25s ease, opacity 0.35s ease, transform 0.35s ease,
+    left 0.35s ease, top 0.35s ease, width 0.35s ease, height 0.35s ease;
 }
+.na-celda.renovada { animation: latido 0.6s ease; }
+/* Casillas nuevas cuando las demás se deslizan (otro n): aparecen al final del deslizamiento. */
+.na-celda.tarde, .lienzo-na .indice.tarde { animation: aparece-tarde 0.35s ease 0.3s backwards; }
+@keyframes aparece-tarde {
+  0% { opacity: 0; transform: scale(0.75); }
+  60% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.lienzo-na .indice { transition: left 0.35s ease, top 0.35s ease, opacity 0.35s ease, transform 0.35s ease; }
 .varias-filas .na-celda { border-radius: 6px; font-size: 0.78rem; }
 .muy-chicas .na-celda { border-width: 1.5px; border-radius: 4px; font-size: 0.56rem; }
 .muy-chicas .indice { font-size: 0.5rem; }
