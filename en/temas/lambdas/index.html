@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lambdas in C++ · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a lambda is in C++, when it runs, captures by value and by reference, nested lambdas (one inside another and one that makes others), and practical uses with std::count_if, std::find_if and std::sort. Call stack animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="lambdas">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Lambdas in C++</div>
+      <h1>Lambdas in C++</h1>
+      <p class="resumen">An <strong>unnamed function written right where it is used</strong>. It is not a data structure, but it is how you tell <code>std::sort</code> how to sort or <code>std::count_if</code> what to count.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="An unnamed function">
+        <h2>An unnamed function</h2>
+        <div class="dos-columnas">
+          <div>
+            <p class="anatomia-lambda" aria-label="Parts of a lambda"><code><span class="parte-captura">[captures]</span><span class="parte-parametros">(parameters)</span> <span class="parte-tipo">-&gt; type</span> <span class="parte-cuerpo">{ body }</span></code></p>
+            <p><strong>Brackets</strong>: which outside variables it uses. <strong>Parentheses</strong>: what it receives. <strong>Body</strong>: what it does. The return type is rarely written: it is deduced from <code>return</code>.</p>
+          </div>
+          <div>
+            <p>Writing the lambda <strong>creates a function object</strong> (that's why it is stored with <code>auto</code>), but the body doesn't run yet. It runs only when called, like any function: with its own frame on the stack.</p>
+          </div>
+        </div>
+        <div id="vis-simple"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">On which line is <code>x * x</code> computed for the first time?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="There the function object is only created and stored in square. The body doesn't run yet.">At <code>auto square = [](int x) {…}</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Calling square(n) opens the lambda's frame, x receives a copy of n and only then does return x * x run.">When calling <code>square(n)</code></button>
+            <button type="button" class="opcion" data-explicacion="The outer return only returns result, which already holds the computed value.">At <code>return result</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="por-valor" data-titulo="Capturing by value">
+        <h2>Capturing by value: <code>[factor]</code></h2>
+        <p>A lambda doesn't see the variables of the function where it is written, unless it <strong>captures</strong> them. With <code>[factor]</code> it keeps a <strong>copy</strong> at the moment it is created: if you change <code>factor</code> afterwards, the lambda doesn't notice. <code>[=]</code> copies everything it uses.</p>
+        <div id="vis-valor"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>captureByValue(3, 4)</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="The lambda uses the copy of factor it kept when it was created (3): 4 × 3 = 12. The factor = 100 came too late.">12</button>
+            <button type="button" class="opcion" data-explicacion="That would happen with [&amp;factor]: the reference would see the 100. With [factor] the lambda has its own copy.">400</button>
+            <button type="button" class="opcion" data-explicacion="It does compile: changing the outside variable is allowed. What you can't do is change the copy from inside the lambda (unless it is mutable).">It doesn't compile</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">And if you wrote <code>factor = 5;</code> inside the body?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It never gets to run: the compiler rejects it first.">It changes the outside factor</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Captured copies are read-only. With [factor](int y) mutable {…} you can, but it only changes the lambda's copy.">It doesn't compile, unless the lambda is <code>mutable</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="por-referencia" data-titulo="Capturing by reference">
+        <h2>Capturing by reference: <code>[&amp;total]</code></h2>
+        <p>With <code>&amp;</code> the lambda doesn't take a copy: it keeps <strong>where</strong> the original variable is (the arrow). That way it can modify it, like here, where each call adds to <code>total</code>. <code>[&amp;]</code> captures everything it uses this way.</p>
+        <div id="vis-referencia"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With <code>numbers = {3, 1, 6}</code>, what is <code>total</code> at the end?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Each addToTotal(x) adds to the original total through the reference: 3 + 1 + 6 = 10.">10</button>
+            <button type="button" class="opcion" data-explicacion="That would happen with [total] mutable: each sum would go to the lambda's copy and the outside total would stay at 0.">0</button>
+            <button type="button" class="opcion" data-explicacion="The lambda doesn't replace total with x: it does total += x, and it does it on every iteration.">6, the last one</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="anidadas" data-titulo="A lambda inside another">
+        <h2>Nested lambdas: one inside another</h2>
+        <p>A lambda's body can define and call another one. <code>square</code> is a local variable of <code>sumSquares</code>: <strong>it is created every time that one runs</strong> and destroyed when it finishes. Each call opens its own frame on the stack.</p>
+        <div id="vis-anidadas"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Could <code>sumOfSquares</code> call <code>square(5)</code> in its last <code>return</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Lambdas follow the same scope rules as any local variable.">Yes, because lambdas are global</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="square is declared inside the body of sumSquares: outside those braces it doesn't exist, just like any local variable.">No: <code>square</code> only exists inside <code>sumSquares</code></button>
+            <button type="button" class="opcion" data-explicacion="The problem isn't the capture: even if it captured it, square doesn't exist in that scope.">Yes, if it captures it with <code>[&amp;]</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="fabrica" data-titulo="A lambda that returns another">
+        <h2>Nested lambdas: one that makes others</h2>
+        <p>A lambda can <strong>return another lambda</strong>. <code>makeAdder(10)</code> makes a function that adds 10, and <code>makeAdder(3)</code> a different one that adds 3: each one <strong>remembers its own <code>b</code></strong>, even though the frame where it was created no longer exists.</p>
+        <div id="vis-fabrica"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does the inner lambda capture <code>[b]</code> and not <code>[&amp;b]</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="b is a parameter of makeAdder and dies when its frame closes. A reference would be left pointing to freed memory (a dangling reference): undefined behavior.">Because <code>b</code> stops existing when <code>makeAdder</code> finishes</button>
+            <button type="button" class="opcion" data-explicacion="That is exactly the danger: [&amp;b] compiles without complaint and fails (or not) when it runs.">Because <code>[&amp;b]</code> doesn't compile</button>
+            <button type="button" class="opcion" data-explicacion="Copying an int or keeping a reference costs almost the same. The reason is something else: how long b lives.">Because copying is faster</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="contar" data-titulo="Counting with count_if">
+        <h2>Practical use: counting with <code>std::count_if</code></h2>
+        <p>The algorithms in <code>&lt;algorithm&gt;</code> know how to traverse; the lambda tells them <strong>what to look for</strong>. <code>count_if</code> calls the lambda with each element and counts how many times it returned <code>true</code>. It is written right there, as an argument, and it captures <code>limit</code> to compare against it.</p>
+        <div id="vis-contar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If <code>numbers</code> has 1000 elements, how many times does <code>count_if</code> call the lambda?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Once per element, always: to count you have to look at all of them. That's why it is O(n).">1000</button>
+            <button type="button" class="opcion" data-explicacion="That is what find_if does, which stops at the first one that matches. count_if has to check all of them.">Until it finds the first one that matches</button>
+            <button type="button" class="opcion" data-explicacion="It can't discard halves: the vector isn't sorted and any element could match.">About 10 (log₂ 1000)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="buscar" data-titulo="Searching with find_if">
+        <h2>Practical use: searching with <code>std::find_if</code></h2>
+        <p><code>find_if</code> asks the lambda element by element and <strong>stops at the first one that matches</strong>. It returns an iterator to that element, or <code>numbers.end()</code> (the position after the last one) if none matches.</p>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What does <code>std::find_if</code> return if no element matches?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The -1 is returned by firstMultiple, after comparing with end(). find_if returns an iterator.">-1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="end() doesn't point to any element: it is the «it's over» mark. That's why you have to compare against it before using *it.">The iterator <code>numbers.end()</code></button>
+            <button type="button" class="opcion" data-explicacion="The STL algorithms work with iterators, not with null pointers.">nullptr</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="ordenar" data-titulo="Sorting with a criterion">
+        <h2>Practical use: sorting with your criterion</h2>
+        <p><code>std::sort</code> sorts from smallest to largest, but if you pass it a lambda <code>comp(a, b)</code> that answers <strong>«does <code>a</code> go before <code>b</code>?»</strong>, it sorts with whatever criterion you want. The algorithm doesn't change: only the question does.</p>
+        <div id="vis-ordenar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Which lambda sorts from smallest to largest?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="a goes before b when it is smaller. That is exactly what std::sort does without a lambda."><code>[](int a, int b) { return a &lt; b; }</code></button>
+            <button type="button" class="opcion" data-explicacion="It looks the same, but comp(a, a) must be false. With &lt;= two equal values each «go before» the other and std::sort can fail: undefined behavior."><code>[](int a, int b) { return a &lt;= b; }</code></button>
+            <button type="button" class="opcion" data-explicacion="That one says b goes first when it is smaller: it sorts from largest to smallest."><code>[](int a, int b) { return b &lt; a; }</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>The <code>numbers</code> vector from <code>main()</code> with the functions that receive lambdas: add values, sort it and count or search again.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Captures and uses">
+        <h2>Captures, cost and where you will use them</h2>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>Capture</th><th>What the lambda keeps</th></tr></thead>
+              <tbody>
+                <tr><td><code>[]</code></td><td>Nothing: it only uses its parameters.</td></tr>
+                <tr><td><code>[x]</code> / <code>[=]</code></td><td>A copy of <code>x</code> / of everything it uses. It works even if the variable dies before the lambda.</td></tr>
+                <tr><td><code>[&amp;x]</code> / <code>[&amp;]</code></td><td>A reference: it can modify the original and copies nothing big. Only if the variable lives longer than the lambda.</td></tr>
+                <tr><td><code>[x, &amp;y]</code></td><td>Mixed: a copy of <code>x</code>, a reference to <code>y</code>.</td></tr>
+                <tr><td><code>[x]() mutable</code></td><td>A copy that the lambda can modify.</td></tr>
+                <tr><td><code>[](auto a, auto b)</code></td><td>Generic lambda (C++14): it works for any type.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th>With a lambda</th><th>Time</th><th>You will see it in</th></tr></thead>
+              <tbody>
+                <tr><td><code>std::count_if</code>, <code>std::for_each</code></td><td class="o-grande malo">O(n)</td><td>Traversals: one call per element</td></tr>
+                <tr><td><code>std::find_if</code></td><td class="o-grande malo">O(n)</td><td>Searches: it stops at the first one that matches</td></tr>
+                <tr><td><code>std::sort(…, comp)</code></td><td class="o-grande">O(n log n)</td><td>Sorting: about n·log n comparisons</td></tr>
+                <tr><td><code>std::priority_queue</code> with <code>decltype(comp)</code></td><td class="o-grande bueno">O(log n)</td><td>Heap: a min-heap with <code>x &gt; y</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <ul>
+          <li>Creating a lambda is <strong>O(1)</strong>: it is an object that only stores its captures. Calling it costs the same as a normal function (the compiler usually inlines it).</li>
+          <li>Store it with <code>auto</code>. <code>std::function&lt;int(int)&gt;</code> stores «anything that can be called» (for example, a recursive lambda), but it is a little slower.</li>
+          <li>Prefer short lambdas, and be careful with <code>[&amp;]</code> in a lambda that is returned or stored for later: references to local variables are left dangling.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra lambdas.cpp -o lambdas &amp;&amp; ./lambdas</span></pre>
+        <div data-codigo-completo="en/lambdas.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>With <code>std::count_if</code>, count how many numbers in <code>numbers</code> are even.</li>
+          <li>Write <code>auto makeMultiplier = [](int k) { … };</code> that returns a lambda that multiplies by <code>k</code>. Create <code>twice</code> and <code>triple</code> and try them.</li>
+          <li>Sort a <code>std::vector&lt;std::string&gt;</code> by length and, if they tie, alphabetically.</li>
+          <li>Use <code>std::for_each</code> with a lambda that captures <code>[&amp;maximum]</code> to find the largest in <code>numbers</code>. What happens if you capture <code>[maximum]</code>?</li>
+          <li>Change <code>[b]</code> to <code>[&amp;b]</code> in <code>makeAdder</code> and compile with <code>-fsanitize=address</code>. What does the sanitizer tell you when calling <code>addBase</code>?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/lambdas/lambdas.js"></script>
+</body>
+</html>

@@ -69,6 +69,7 @@
         titulo: "Lambdas in C++",
         resumen: "Unnamed functions written where they are used: captures by value and by reference, nested lambdas, and how they give std::sort or std::count_if a criterion.",
         etiquetas: ["C++ tool", "captures [=] [&]"],
+        archivo: "lambdas.cpp",
       },
     },
     {

@@ -1,17 +1,19 @@
 // Lección de lambdas en C++, en pasos. Los fragmentos de código deben
-// coincidir línea por línea con ejemplos/cpp/lambdas.cpp
-// (scripts/verificar-fragmentos.mjs lo revisa).
+// coincidir línea por línea con ejemplos/cpp/lambdas.cpp, y en inglés con
+// ejemplos/cpp/en/lambdas.cpp (scripts/verificar-fragmentos.mjs lo revisa).
+// Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const SVG = "http://www.w3.org/2000/svg";
   const DURACION = 450;
   const MAXIMO = 7; // elementos de numeros: límite solo para que el dibujo quepa
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/lambdas.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/lambdas.cpp y de
+  // ejemplos/cpp/en/lambdas.cpp, con las mismas líneas)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     elevarAlCuadrado: `
       int elevarAlCuadrado(int n) {
           auto cuadrado = [](int x) {
@@ -105,7 +107,118 @@
               return a < b;
           });
       }`,
-  };
+  }, {
+    elevarAlCuadrado: `
+      int computeSquare(int n) {
+          auto square = [](int x) {
+              return x * x;
+          };
+          int result = square(n);
+          return result;
+      }`,
+    capturaPorValor: `
+      int captureByValue(int factor, int x) {
+          auto multiply = [factor](int y) {
+              return y * factor;
+          };
+          factor = 100;
+          return multiply(x);
+      }`,
+    sumarConReferencia: `
+      int sumWithReference(const std::vector<int>& numbers) {
+          int total = 0;
+          auto addToTotal = [&total](int x) {
+              total += x;
+          };
+          for (int x : numbers) {
+              addToTotal(x);
+          }
+          return total;
+      }`,
+    sumaDeCuadrados: `
+      int sumOfSquares(const std::vector<int>& numbers) {
+          auto sumSquares = [](const std::vector<int>& v) {
+              auto square = [](int x) {
+                  return x * x;
+              };
+              int sum = 0;
+              for (int x : v) {
+                  sum += square(x);
+              }
+              return sum;
+          };
+          return sumSquares(numbers);
+      }`,
+    usarSumador: `
+      int useAdder(int base, int x) {
+          auto makeAdder = [](int b) {
+              return [b](int y) {
+                  return b + y;
+              };
+          };
+          auto addBase = makeAdder(base);
+          return addBase(x);
+      }`,
+    contarMayores: `
+      int countGreater(const std::vector<int>& numbers, int limit) {
+          return std::count_if(numbers.begin(), numbers.end(), [limit](int x) {
+              return x > limit;
+          });
+      }`,
+    primerMultiplo: `
+      int firstMultiple(const std::vector<int>& numbers, int k) {
+          auto it = std::find_if(numbers.begin(), numbers.end(), [k](int x) {
+              return x % k == 0;
+          });
+          if (it == numbers.end()) {
+              return -1;
+          }
+          return *it;
+      }`,
+    ordenarDescendente: `
+      void sortDescending(std::vector<int>& numbers) {
+          std::sort(numbers.begin(), numbers.end(), [](int a, int b) {
+              return a > b;
+          });
+      }`,
+    ordenarPorCercania: `
+      void sortByCloseness(std::vector<int>& numbers, int center) {
+          std::sort(numbers.begin(), numbers.end(), [center](int a, int b) {
+              int da = std::abs(a - center);
+              int db = std::abs(b - center);
+              if (da != db) {
+                  return da < db;
+              }
+              return a < b;
+          });
+      }`,
+    ordenarParesPrimero: `
+      void sortEvensFirst(std::vector<int>& numbers) {
+          std::sort(numbers.begin(), numbers.end(), [](int a, int b) {
+              if (a % 2 != b % 2) {
+                  return a % 2 == 0;
+              }
+              return a < b;
+          });
+      }`,
+  });
+
+  // Nombres del C++ en el idioma de la página. Los estados usan siempre los
+  // nombres en español y se traducen al pintar (marcos, variables, capturas
+  // y firmas), así la animación es la misma en los dos idiomas.
+  const NOMBRES = tr({}, {
+    elevarAlCuadrado: "computeSquare", cuadrado: "square", resultado: "result",
+    capturaPorValor: "captureByValue", multiplicar: "multiply",
+    sumarConReferencia: "sumWithReference", numeros: "numbers", acumular: "addToTotal",
+    sumaDeCuadrados: "sumOfSquares", sumarCuadrados: "sumSquares", suma: "sum",
+    usarSumador: "useAdder", crearSumador: "makeAdder", sumarBase: "addBase",
+    contarMayores: "countGreater", limite: "limit", cuenta: "count", primerMultiplo: "firstMultiple",
+    ordenarDescendente: "sortDescending", ordenarPorCercania: "sortByCloseness", centro: "center", ordenarParesPrimero: "sortEvensFirst",
+  });
+
+  const nombre = (x) => NOMBRES[x] || x;
+  // Traduce cada identificador de un texto: "contarMayores(const vector<int>& numeros, int limite)".
+  const traducir = (t) => String(t).replace(/[A-Za-z_]+/g, nombre);
 
   // ------------------------------------------------------------------
   // Estado: la pila de llamadas (un marco por función o lambda en
@@ -171,7 +284,7 @@
 
   const OPS = {
     elevarAlCuadrado: {
-      etiqueta: "elevarAlCuadrado(n)",
+      etiqueta: traducir("elevarAlCuadrado(n)"),
       usa: ["n"],
       codigo: "elevarAlCuadrado",
       ejecutar(s, { n }, paso) {
@@ -179,30 +292,36 @@
         const f = abrir(s, "elevarAlCuadrado(int n)");
         const fn = asignar(f, "n", ficha(s, n));
         s.vis = { activos: [fn.id] };
-        paso("elevarAlCuadrado", 1, `Llamamos a elevarAlCuadrado(${n}): se abre su marco en la pila con n = ${n}.`);
+        paso("elevarAlCuadrado", 1, tr(`Llamamos a elevarAlCuadrado(${n}): se abre su marco en la pila con n = ${n}.`, `We call computeSquare(${n}): its frame opens on the stack with n = ${n}.`));
         const cuadrado = asignar(f, "cuadrado", lambda(s, "[](int x)"));
         s.vis = { activos: [cuadrado.id] };
-        paso("elevarAlCuadrado", 2, "auto cuadrado = [](int x) {…}: se crea un objeto función y se guarda en cuadrado. El cuerpo todavía NO se ejecuta. [] vacío: no captura nada.");
+        paso("elevarAlCuadrado", 2, tr(
+          "auto cuadrado = [](int x) {…}: se crea un objeto función y se guarda en cuadrado. El cuerpo todavía NO se ejecuta. [] vacío: no captura nada.",
+          "auto square = [](int x) {…}: a function object is created and stored in square. The body does NOT run yet. Empty []: it captures nothing."));
         const g = abrir(s, "cuadrado(int x)", "lambda");
         const fx = asignar(g, "x", copia(s, fn));
         s.vis = { activos: [cuadrado.id, fx.id] };
-        paso("elevarAlCuadrado", 5, `cuadrado(n): se llama como cualquier función. Se abre un marco nuevo y el parámetro x recibe una copia de n (${n}).`);
+        paso("elevarAlCuadrado", 5, tr(
+          `cuadrado(n): se llama como cualquier función. Se abre un marco nuevo y el parámetro x recibe una copia de n (${n}).`,
+          `square(n): it is called like any function. A new frame opens and the parameter x receives a copy of n (${n}).`));
         const r = ficha(s, n * n);
         g.retorno = r;
         s.vis = { activos: [fx.id] };
-        paso("elevarAlCuadrado", 3, `Ahora sí se ejecuta el cuerpo: return x * x = ${n} × ${n} = ${n * n}.`);
+        paso("elevarAlCuadrado", 3, tr(`Ahora sí se ejecuta el cuerpo: return x * x = ${n} × ${n} = ${n * n}.`, `Now the body runs: return x * x = ${n} × ${n} = ${n * n}.`));
         cerrar(s);
         asignar(f, "resultado", r);
         s.vis = { cambio: [r.id] };
-        paso("elevarAlCuadrado", 5, `El marco de la lambda se cierra y lo que devolvió (${n * n}) se guarda en resultado.`);
+        paso("elevarAlCuadrado", 5, tr(
+          `El marco de la lambda se cierra y lo que devolvió (${n * n}) se guarda en resultado.`,
+          `The lambda's frame closes and what it returned (${n * n}) is stored in result.`));
         f.retorno = r;
         s.vis = { salida: n * n };
-        paso("elevarAlCuadrado", 6, `return resultado: elevarAlCuadrado(${n}) devuelve ${n * n}.`, "exito");
+        paso("elevarAlCuadrado", 6, tr(`return resultado: elevarAlCuadrado(${n}) devuelve ${n * n}.`, `return result: computeSquare(${n}) returns ${n * n}.`), "exito");
       },
     },
 
     capturaPorValor: {
-      etiqueta: "capturaPorValor(factor, x)",
+      etiqueta: traducir("capturaPorValor(factor, x)"),
       usa: ["factor", "x"],
       codigo: "capturaPorValor",
       ejecutar(s, { factor, x }, paso) {
@@ -211,57 +330,71 @@
         const ff = asignar(f, "factor", ficha(s, factor));
         const fx = asignar(f, "x", ficha(s, x));
         s.vis = { activos: [ff.id, fx.id] };
-        paso("capturaPorValor", 1, `Entramos con factor = ${factor} y x = ${x}.`);
+        paso("capturaPorValor", 1, tr(`Entramos con factor = ${factor} y x = ${x}.`, `We enter with factor = ${factor} and x = ${x}.`));
         const guardada = copia(s, ff);
         const multiplicar = asignar(f, "multiplicar", lambda(s, "[factor](int y)", [{ nombre: "factor", ficha: guardada }]));
         s.vis = { activos: [guardada.id] };
-        paso("capturaPorValor", 2, `[factor]: al crearse, la lambda guarda dentro de sí una COPIA de factor (${factor}). Es como un atributo del objeto función.`);
+        paso("capturaPorValor", 2, tr(
+          `[factor]: al crearse, la lambda guarda dentro de sí una COPIA de factor (${factor}). Es como un atributo del objeto función.`,
+          `[factor]: when it is created, the lambda keeps a COPY of factor (${factor}) inside itself. It is like an attribute of the function object.`));
         asignar(f, "factor", ficha(s, 100));
         s.vis = { cambio: [idVar(f, "factor")], exito: [guardada.id] };
         paso("capturaPorValor", 5, factor === 100
-          ? "factor = 100: la variable ya valía 100. La copia de la lambda es independiente de todos modos."
-          : `factor = 100 cambia la variable de afuera, pero la copia que guarda la lambda no se entera: sigue valiendo ${factor}.`);
+          ? tr("factor = 100: la variable ya valía 100. La copia de la lambda es independiente de todos modos.", "factor = 100: the variable was already 100. The lambda's copy is independent anyway.")
+          : tr(`factor = 100 cambia la variable de afuera, pero la copia que guarda la lambda no se entera: sigue valiendo ${factor}.`,
+            `factor = 100 changes the outside variable, but the copy the lambda keeps doesn't notice: it is still ${factor}.`));
         const g = abrir(s, "multiplicar(int y)", "lambda");
         const fy = asignar(g, "y", copia(s, fx));
         s.vis = { activos: [multiplicar.id, fy.id] };
-        paso("capturaPorValor", 6, `multiplicar(x): se abre el marco de la lambda con y = ${x}.`);
+        paso("capturaPorValor", 6, tr(`multiplicar(x): se abre el marco de la lambda con y = ${x}.`, `multiply(x): the lambda's frame opens with y = ${x}.`));
         const r = ficha(s, x * factor);
         g.retorno = r;
         s.vis = { activos: [fy.id, guardada.id] };
-        paso("capturaPorValor", 3, `return y * factor: usa SU copia de factor (${factor}), no la variable que ahora vale 100. ${x} × ${factor} = ${x * factor}.`);
+        paso("capturaPorValor", 3, tr(
+          `return y * factor: usa SU copia de factor (${factor}), no la variable que ahora vale 100. ${x} × ${factor} = ${x * factor}.`,
+          `return y * factor: it uses ITS copy of factor (${factor}), not the variable that is now 100. ${x} × ${factor} = ${x * factor}.`));
         cerrar(s);
         f.retorno = r;
         s.vis = { salida: r.v };
-        paso("capturaPorValor", 6, `capturaPorValor(${factor}, ${x}) devuelve ${r.v}` + (factor === 100 ? "." : `, no ${x * 100}: la captura por valor congela el valor del momento en que se creó la lambda.`), "exito");
+        paso("capturaPorValor", 6, factor === 100
+          ? tr(`capturaPorValor(${factor}, ${x}) devuelve ${r.v}.`, `captureByValue(${factor}, ${x}) returns ${r.v}.`)
+          : tr(`capturaPorValor(${factor}, ${x}) devuelve ${r.v}, no ${x * 100}: la captura por valor congela el valor del momento en que se creó la lambda.`,
+            `captureByValue(${factor}, ${x}) returns ${r.v}, not ${x * 100}: capturing by value freezes the value from the moment the lambda was created.`), "exito");
       },
     },
 
     sumarConReferencia: {
-      etiqueta: "sumarConReferencia(numeros)",
+      etiqueta: traducir("sumarConReferencia(numeros)"),
       codigo: "sumarConReferencia",
       ejecutar(s, args, paso) {
         nuevaLlamada(s, 2);
         const f = abrir(s, "sumarConReferencia(const vector<int>& numeros)");
         asignar(f, "numeros", refNumeros());
-        paso("sumarConReferencia", 1, `numeros llega por referencia (const &): no se copia el vector ${lista(s)}, se usa el de main.`);
+        paso("sumarConReferencia", 1, tr(
+          `numeros llega por referencia (const &): no se copia el vector ${lista(s)}, se usa el de main.`,
+          `numbers arrives by reference (const &): the vector ${lista(s)} isn't copied, main's is used.`));
         asignar(f, "total", ficha(s, 0));
         s.vis = { activos: [idVar(f, "total")] };
         paso("sumarConReferencia", 2, "int total = 0.");
         const acumular = asignar(f, "acumular", lambda(s, "[&total](int x)", [{ nombre: "&total", ref: idVar(f, "total") }]));
         s.vis = { activos: [acumular.id], flechas: true };
-        paso("sumarConReferencia", 3, "[&total]: la lambda NO copia total; guarda una referencia (la flecha) a la variable original.");
+        paso("sumarConReferencia", 3, tr(
+          "[&total]: la lambda NO copia total; guarda una referencia (la flecha) a la variable original.",
+          "[&total]: the lambda does NOT copy total; it keeps a reference (the arrow) to the original variable."));
         s.numeros.forEach((celda, i) => {
           const fx = asignar(f, "x", copia(s, celda));
           s.vis = { celdas: { [i]: "actual" }, revisadas: i, marcas: { [i]: "x" } };
-          paso("sumarConReferencia", 6, `for (int x : numeros): x = ${celda.v}.`);
+          paso("sumarConReferencia", 6, tr(`for (int x : numeros): x = ${celda.v}.`, `for (int x : numbers): x = ${celda.v}.`));
           const g = abrir(s, "acumular(int x)", "lambda");
           const gx = asignar(g, "x", copia(s, fx));
           s.vis = { celdas: { [i]: "actual" }, revisadas: i, marcas: { [i]: "x" }, activos: [acumular.id, gx.id] };
-          paso("sumarConReferencia", 7, `acumular(${celda.v}): se abre el marco de la lambda con su propio x.`);
+          paso("sumarConReferencia", 7, tr(`acumular(${celda.v}): se abre el marco de la lambda con su propio x.`, `addToTotal(${celda.v}): the lambda's frame opens with its own x.`));
           const antes = leer(f, "total").v;
           asignar(f, "total", ficha(s, antes + celda.v, gx.id));
           s.vis = { celdas: { [i]: "actual" }, revisadas: i, marcas: { [i]: "x" }, cambio: [idVar(f, "total")], flechaActiva: true };
-          paso("sumarConReferencia", 4, `total += x: a través de la referencia cambia el total de afuera: ${antes} + ${celda.v} = ${antes + celda.v}.`);
+          paso("sumarConReferencia", 4, tr(
+            `total += x: a través de la referencia cambia el total de afuera: ${antes} + ${celda.v} = ${antes + celda.v}.`,
+            `total += x: through the reference it changes the outside total: ${antes} + ${celda.v} = ${antes + celda.v}.`));
           cerrar(s);
         });
         quitar(f, "x");
@@ -269,32 +402,40 @@
         f.retorno = total;
         s.vis = { salida: total.v };
         paso("sumarConReferencia", 9, s.numeros.length
-          ? `return total: devuelve ${total.v}. La lambda nunca devolvió nada; trabajó sobre total a través de la referencia.`
-          : "numeros está vacío: el for no da vueltas, la lambda nunca se llama y total sigue en 0.", "exito");
+          ? tr(`return total: devuelve ${total.v}. La lambda nunca devolvió nada; trabajó sobre total a través de la referencia.`,
+            `return total: it returns ${total.v}. The lambda never returned anything; it worked on total through the reference.`)
+          : tr("numeros está vacío: el for no da vueltas, la lambda nunca se llama y total sigue en 0.",
+            "numbers is empty: the for loop doesn't run, the lambda is never called and total stays at 0."), "exito");
       },
     },
 
     sumaDeCuadrados: {
-      etiqueta: "sumaDeCuadrados(numeros)",
+      etiqueta: traducir("sumaDeCuadrados(numeros)"),
       codigo: "sumaDeCuadrados",
       ejecutar(s, args, paso) {
         nuevaLlamada(s, 3);
         const f = abrir(s, "sumaDeCuadrados(const vector<int>& numeros)");
         asignar(f, "numeros", refNumeros());
-        paso("sumaDeCuadrados", 1, `Entramos con numeros = ${lista(s)} (por referencia).`);
+        paso("sumaDeCuadrados", 1, tr(`Entramos con numeros = ${lista(s)} (por referencia).`, `We enter with numbers = ${lista(s)} (by reference).`));
         const externa = asignar(f, "sumarCuadrados", lambda(s, "[](const vector<int>& v)"));
         s.vis = { activos: [externa.id] };
-        paso("sumaDeCuadrados", 2, "Se crea la lambda de afuera, sumarCuadrados. La de adentro (cuadrado) todavía no existe: está en el cuerpo, que aún no se ejecuta.");
+        paso("sumaDeCuadrados", 2, tr(
+          "Se crea la lambda de afuera, sumarCuadrados. La de adentro (cuadrado) todavía no existe: está en el cuerpo, que aún no se ejecuta.",
+          "The outer lambda, sumSquares, is created. The inner one (square) doesn't exist yet: it is in the body, which hasn't run yet."));
         const g = abrir(s, "sumarCuadrados(const vector<int>& v)", "lambda");
         asignar(g, "v", refNumeros());
         s.vis = { activos: [externa.id] };
-        paso("sumaDeCuadrados", 12, "sumarCuadrados(numeros): se abre su marco. v es otra referencia al mismo vector.");
+        paso("sumaDeCuadrados", 12, tr(
+          "sumarCuadrados(numeros): se abre su marco. v es otra referencia al mismo vector.",
+          "sumSquares(numbers): its frame opens. v is another reference to the same vector."));
         const interna = asignar(g, "cuadrado", lambda(s, "[](int x)"));
         s.vis = { activos: [interna.id] };
-        paso("sumaDeCuadrados", 3, "Ahora sí: dentro del marco de sumarCuadrados se crea cuadrado. Es una variable local de la lambda de afuera.");
+        paso("sumaDeCuadrados", 3, tr(
+          "Ahora sí: dentro del marco de sumarCuadrados se crea cuadrado. Es una variable local de la lambda de afuera.",
+          "Now it happens: inside sumSquares's frame, square is created. It is a local variable of the outer lambda."));
         asignar(g, "suma", ficha(s, 0));
         s.vis = { activos: [idVar(g, "suma")] };
-        paso("sumaDeCuadrados", 6, "int suma = 0.");
+        paso("sumaDeCuadrados", 6, tr("int suma = 0.", "int sum = 0."));
         s.numeros.forEach((celda, i) => {
           const gx = asignar(g, "x", copia(s, celda));
           const vis = { celdas: { [i]: "actual" }, revisadas: i, marcas: { [i]: "x" } };
@@ -303,7 +444,9 @@
           const h = abrir(s, "cuadrado(int x)", "lambda");
           const hx = asignar(h, "x", copia(s, gx));
           s.vis = Object.assign({ activos: [interna.id, hx.id] }, vis);
-          paso("sumaDeCuadrados", 8, `cuadrado(${celda.v}): una lambda llama a otra. La pila tiene tres marcos: cada uno con sus propias variables.`);
+          paso("sumaDeCuadrados", 8, tr(
+            `cuadrado(${celda.v}): una lambda llama a otra. La pila tiene tres marcos: cada uno con sus propias variables.`,
+            `square(${celda.v}): one lambda calls another. The stack has three frames: each one with its own variables.`));
           const r = ficha(s, celda.v * celda.v);
           h.retorno = r;
           s.vis = Object.assign({ activos: [hx.id] }, vis);
@@ -312,22 +455,24 @@
           const antes = leer(g, "suma").v;
           asignar(g, "suma", ficha(s, antes + r.v, r.id));
           s.vis = Object.assign({ cambio: [idVar(g, "suma")] }, vis);
-          paso("sumaDeCuadrados", 8, `Se cierra el marco de cuadrado. suma += ${r.v} → ${antes + r.v}.`);
+          paso("sumaDeCuadrados", 8, tr(`Se cierra el marco de cuadrado. suma += ${r.v} → ${antes + r.v}.`, `square's frame closes. sum += ${r.v} → ${antes + r.v}.`));
         });
         quitar(g, "x");
         const suma = leer(g, "suma");
         g.retorno = suma;
         s.vis = { activos: [suma.id] };
-        paso("sumaDeCuadrados", 10, `return suma: sumarCuadrados devuelve ${suma.v}.`);
+        paso("sumaDeCuadrados", 10, tr(`return suma: sumarCuadrados devuelve ${suma.v}.`, `return sum: sumSquares returns ${suma.v}.`));
         cerrar(s);
         f.retorno = suma;
         s.vis = { salida: suma.v };
-        paso("sumaDeCuadrados", 12, `Al cerrarse el marco de sumarCuadrados, cuadrado se destruye con él: solo existía ahí adentro. sumaDeCuadrados devuelve ${suma.v}.`, "exito");
+        paso("sumaDeCuadrados", 12, tr(
+          `Al cerrarse el marco de sumarCuadrados, cuadrado se destruye con él: solo existía ahí adentro. sumaDeCuadrados devuelve ${suma.v}.`,
+          `When sumSquares's frame closes, square is destroyed with it: it only existed in there. sumOfSquares returns ${suma.v}.`), "exito");
       },
     },
 
     usarSumador: {
-      etiqueta: "usarSumador(base, x)",
+      etiqueta: traducir("usarSumador(base, x)"),
       usa: ["base", "x"],
       codigo: "usarSumador",
       ejecutar(s, { base, x }, paso) {
@@ -336,40 +481,46 @@
         const fb = asignar(f, "base", ficha(s, base));
         const fx = asignar(f, "x", ficha(s, x));
         s.vis = { activos: [fb.id, fx.id] };
-        paso("usarSumador", 1, `Entramos con base = ${base} y x = ${x}.`);
+        paso("usarSumador", 1, tr(`Entramos con base = ${base} y x = ${x}.`, `We enter with base = ${base} and x = ${x}.`));
         const fabrica = asignar(f, "crearSumador", lambda(s, "[](int b)"));
         s.vis = { activos: [fabrica.id] };
-        paso("usarSumador", 2, "Se crea crearSumador: una lambda cuyo trabajo es fabricar otras lambdas.");
+        paso("usarSumador", 2, tr("Se crea crearSumador: una lambda cuyo trabajo es fabricar otras lambdas.", "makeAdder is created: a lambda whose job is to make other lambdas."));
         const g = abrir(s, "crearSumador(int b)", "lambda");
         const gb = asignar(g, "b", copia(s, fb));
         s.vis = { activos: [fabrica.id, gb.id] };
-        paso("usarSumador", 7, `crearSumador(base): se abre su marco con b = ${base}.`);
+        paso("usarSumador", 7, tr(`crearSumador(base): se abre su marco con b = ${base}.`, `makeAdder(base): its frame opens with b = ${base}.`));
         const guardada = copia(s, gb);
         const sumador = lambda(s, "[b](int y)", [{ nombre: "b", ficha: guardada }]);
         g.retorno = sumador;
         s.vis = { activos: [guardada.id] };
-        paso("usarSumador", 3, `return [b](int y) {…}: se crea una lambda NUEVA que guarda su propia copia de b (${base}) y se devuelve como valor.`);
+        paso("usarSumador", 3, tr(
+          `return [b](int y) {…}: se crea una lambda NUEVA que guarda su propia copia de b (${base}) y se devuelve como valor.`,
+          `return [b](int y) {…}: a NEW lambda is created that keeps its own copy of b (${base}), and it is returned as a value.`));
         cerrar(s);
         asignar(f, "sumarBase", sumador);
         s.vis = { exito: [guardada.id] };
-        paso("usarSumador", 7, `El marco de crearSumador se cierra y su b desaparece, pero la lambda devuelta conserva su copia. Con [&b] quedaría apuntando a una variable que ya no existe.`);
+        paso("usarSumador", 7, tr(
+          "El marco de crearSumador se cierra y su b desaparece, pero la lambda devuelta conserva su copia. Con [&b] quedaría apuntando a una variable que ya no existe.",
+          "makeAdder's frame closes and its b disappears, but the returned lambda keeps its copy. With [&b] it would be left pointing to a variable that no longer exists."));
         const h = abrir(s, "sumarBase(int y)", "lambda");
         const hy = asignar(h, "y", copia(s, fx));
         s.vis = { activos: [sumador.id, hy.id] };
-        paso("usarSumador", 8, `sumarBase(x): se abre el marco de la lambda fabricada con y = ${x}.`);
+        paso("usarSumador", 8, tr(`sumarBase(x): se abre el marco de la lambda fabricada con y = ${x}.`, `addBase(x): the frame of the made lambda opens with y = ${x}.`));
         const r = ficha(s, base + x);
         h.retorno = r;
         s.vis = { activos: [guardada.id, hy.id] };
-        paso("usarSumador", 4, `return b + y: b sale de la copia guardada. ${base} + ${x} = ${base + x}.`);
+        paso("usarSumador", 4, tr(`return b + y: b sale de la copia guardada. ${base} + ${x} = ${base + x}.`, `return b + y: b comes from the stored copy. ${base} + ${x} = ${base + x}.`));
         cerrar(s);
         f.retorno = r;
         s.vis = { salida: r.v };
-        paso("usarSumador", 8, `usarSumador(${base}, ${x}) devuelve ${r.v}. Cada llamada a crearSumador fabrica un sumador distinto con su propia b.`, "exito");
+        paso("usarSumador", 8, tr(
+          `usarSumador(${base}, ${x}) devuelve ${r.v}. Cada llamada a crearSumador fabrica un sumador distinto con su propia b.`,
+          `useAdder(${base}, ${x}) returns ${r.v}. Each call to makeAdder makes a different adder with its own b.`), "exito");
       },
     },
 
     contarMayores: {
-      etiqueta: "contarMayores(numeros, limite)",
+      etiqueta: traducir("contarMayores(numeros, limite)"),
       usa: ["limite"],
       codigo: "contarMayores",
       ejecutar(s, { limite }, paso) {
@@ -378,13 +529,15 @@
         asignar(f, "numeros", refNumeros());
         const fl = asignar(f, "limite", ficha(s, limite));
         s.vis = { activos: [fl.id] };
-        paso("contarMayores", 1, `¿Cuántos elementos de ${lista(s)} son mayores que ${limite}?`);
+        paso("contarMayores", 1, tr(`¿Cuántos elementos de ${lista(s)} son mayores que ${limite}?`, `How many elements of ${lista(s)} are greater than ${limite}?`));
         const g = abrir(s, "std::count_if", "biblioteca");
         const guardada = copia(s, fl);
         const pred = asignar(g, "pred", lambda(s, "[limite](int x)", [{ nombre: "limite", ficha: guardada }]));
         asignar(g, "cuenta", ficha(s, 0));
         s.vis = { activos: [pred.id] };
-        paso("contarMayores", 2, `La lambda se escribe ahí mismo, como tercer argumento, y count_if la recibe como pred. Guarda una copia de limite (${limite}).`);
+        paso("contarMayores", 2, tr(
+          `La lambda se escribe ahí mismo, como tercer argumento, y count_if la recibe como pred. Guarda una copia de limite (${limite}).`,
+          `The lambda is written right there, as the third argument, and count_if receives it as pred. It keeps a copy of limit (${limite}).`));
         const cumplen = {};
         s.numeros.forEach((celda, i) => {
           const h = abrir(s, "pred(int x)", "lambda");
@@ -393,7 +546,7 @@
           h.retorno = r;
           const celdas = Object.assign({}, cumplen, { [i]: "actual" });
           s.vis = { celdas, revisadas: i, marcas: { [i]: "it" }, activos: [hx.id, guardada.id] };
-          paso("contarMayores", 3, `count_if llama a pred(${celda.v}): ¿${celda.v} > ${limite}? ${texto(r.v)}.`);
+          paso("contarMayores", 3, tr(`count_if llama a pred(${celda.v}): ¿${celda.v} > ${limite}? ${texto(r.v)}.`, `count_if calls pred(${celda.v}): ${celda.v} > ${limite}? ${texto(r.v)}.`));
           cerrar(s);
           if (r.v) {
             cumplen[i] = "cumple";
@@ -402,18 +555,23 @@
             cumplen[i] = "no";
           }
           s.vis = { celdas: Object.assign({}, cumplen), revisadas: i + 1, marcas: { [i]: "it" }, cambio: r.v ? [idVar(g, "cuenta")] : [] };
-          paso("contarMayores", 2, r.v ? `true: count_if suma 1 → cuenta = ${leer(g, "cuenta").v}.` : "false: no se cuenta. count_if pasa al siguiente.");
+          paso("contarMayores", 2, r.v
+            ? tr(`true: count_if suma 1 → cuenta = ${leer(g, "cuenta").v}.`, `true: count_if adds 1 → count = ${leer(g, "cuenta").v}.`)
+            : tr("false: no se cuenta. count_if pasa al siguiente.", "false: it isn't counted. count_if moves on to the next one."));
         });
         const cuenta = leer(g, "cuenta");
         cerrar(s);
         f.retorno = cuenta;
-        s.vis = { celdas: Object.assign({}, cumplen), revisadas: s.numeros.length, salida: cuenta.v };
-        paso("contarMayores", 2, `count_if llamó a la lambda ${s.numeros.length} vez/veces, una por elemento: O(n). Devuelve ${cuenta.v}.`, "exito");
+        const n = s.numeros.length;
+        s.vis = { celdas: Object.assign({}, cumplen), revisadas: n, salida: cuenta.v };
+        paso("contarMayores", 2, tr(
+          `count_if llamó a la lambda ${n === 1 ? "1 vez" : `${n} veces`}, una por elemento: O(n). Devuelve ${cuenta.v}.`,
+          `count_if called the lambda ${n === 1 ? "once" : `${n} times`}, once per element: O(n). It returns ${cuenta.v}.`), "exito");
       },
     },
 
     primerMultiplo: {
-      etiqueta: "primerMultiplo(numeros, k)",
+      etiqueta: traducir("primerMultiplo(numeros, k)"),
       usa: ["k"],
       codigo: "primerMultiplo",
       ejecutar(s, { k }, paso) {
@@ -422,12 +580,12 @@
         asignar(f, "numeros", refNumeros());
         const fk = asignar(f, "k", ficha(s, k));
         s.vis = { activos: [fk.id] };
-        paso("primerMultiplo", 1, `Buscamos en ${lista(s)} el primer múltiplo de ${k}.`);
+        paso("primerMultiplo", 1, tr(`Buscamos en ${lista(s)} el primer múltiplo de ${k}.`, `We look in ${lista(s)} for the first multiple of ${k}.`));
         const g = abrir(s, "std::find_if", "biblioteca");
         const guardada = copia(s, fk);
         const pred = asignar(g, "pred", lambda(s, "[k](int x)", [{ nombre: "k", ficha: guardada }]));
         s.vis = { activos: [pred.id] };
-        paso("primerMultiplo", 2, `find_if recibe la lambda, que guarda una copia de k (${k}).`);
+        paso("primerMultiplo", 2, tr(`find_if recibe la lambda, que guarda una copia de k (${k}).`, `find_if receives the lambda, which keeps a copy of k (${k}).`));
         const descartadas = {};
         for (let i = 0; i < s.numeros.length; i++) {
           const celda = s.numeros[i];
@@ -435,25 +593,31 @@
           const hx = asignar(h, "x", copia(s, celda));
           if (k === 0) {
             s.vis = { celdas: { [i]: "actual" }, marcas: { [i]: "it" }, malos: [guardada.id], sacudir: true };
-            paso("primerMultiplo", 3, `x % k con k = 0 es dividir entre cero: comportamiento indefinido (el programa puede caerse). Por eso k debe ser al menos 1.`, "error");
+            paso("primerMultiplo", 3, tr(
+              "x % k con k = 0 es dividir entre cero: comportamiento indefinido (el programa puede caerse). Por eso k debe ser al menos 1.",
+              "x % k with k = 0 is division by zero: undefined behavior (the program may crash). That's why k must be at least 1."), "error");
             return;
           }
           const r = ficha(s, celda.v % k === 0);
           h.retorno = r;
           s.vis = { celdas: Object.assign({ [i]: "actual" }, descartadas), revisadas: i, marcas: { [i]: "it" }, activos: [hx.id, guardada.id] };
-          paso("primerMultiplo", 3, `pred(${celda.v}): ${celda.v} % ${k} = ${celda.v % k}, ¿es 0? ${texto(r.v)}.`);
+          paso("primerMultiplo", 3, tr(`pred(${celda.v}): ${celda.v} % ${k} = ${celda.v % k}, ¿es 0? ${texto(r.v)}.`, `pred(${celda.v}): ${celda.v} % ${k} = ${celda.v % k}, is it 0? ${texto(r.v)}.`));
           cerrar(s);
           if (r.v) {
             cerrar(s);
             asignar(f, "it", { tipo: "ref", texto: `numeros[${i}]` });
             s.vis = { celdas: Object.assign({ [i]: "cumple" }, descartadas), revisadas: i, marcas: { [i]: "it" }, activos: [idVar(f, "it")] };
-            paso("primerMultiplo", 2, `true: find_if se detiene aquí, sin mirar el resto, y devuelve un iterador a numeros[${i}].`);
+            paso("primerMultiplo", 2, tr(
+              `true: find_if se detiene aquí, sin mirar el resto, y devuelve un iterador a numeros[${i}].`,
+              `true: find_if stops here, without looking at the rest, and returns an iterator to numbers[${i}].`));
             s.vis = { celdas: { [i]: "cumple" }, marcas: { [i]: "it" } };
-            paso("primerMultiplo", 5, "¿it == numeros.end()? No: sí encontró uno.");
+            paso("primerMultiplo", 5, tr("¿it == numeros.end()? No: sí encontró uno.", "it == numbers.end()? No: it did find one."));
             const r2 = copia(s, celda);
             f.retorno = r2;
             s.vis = { celdas: { [i]: "cumple" }, marcas: { [i]: "it" }, salida: celda.v };
-            paso("primerMultiplo", 8, `return *it: devuelve ${celda.v}. Revisó ${i + 1} de ${s.numeros.length} elementos.`, "exito");
+            paso("primerMultiplo", 8, tr(
+              `return *it: devuelve ${celda.v}. Revisó ${i + 1} de ${s.numeros.length} elementos.`,
+              `return *it: it returns ${celda.v}. It checked ${i + 1} of ${s.numeros.length} elements.`), "exito");
             return;
           }
           descartadas[i] = "no";
@@ -463,13 +627,17 @@
         asignar(f, "it", { tipo: "ref", texto: "numeros.end()" });
         s.vis = { celdas: Object.assign({}, descartadas), revisadas: n, marcas: { [n]: "it" }, activos: [idVar(f, "it")] };
         paso("primerMultiplo", 2, n
-          ? `Ningún elemento cumple: find_if llega al final y devuelve numeros.end(), la posición después del último.`
-          : "numeros está vacío: find_if no llama nunca a la lambda y devuelve numeros.end().");
+          ? tr("Ningún elemento cumple: find_if llega al final y devuelve numeros.end(), la posición después del último.",
+            "No element matches: find_if reaches the end and returns numbers.end(), the position after the last one.")
+          : tr("numeros está vacío: find_if no llama nunca a la lambda y devuelve numeros.end().",
+            "numbers is empty: find_if never calls the lambda and returns numbers.end()."));
         s.vis = { celdas: Object.assign({}, descartadas), revisadas: n, marcas: { [n]: "it" }, malos: [idVar(f, "it")] };
-        paso("primerMultiplo", 5, "¿it == numeros.end()? Sí: no hay ningún múltiplo.");
+        paso("primerMultiplo", 5, tr("¿it == numeros.end()? Sí: no hay ningún múltiplo.", "it == numbers.end()? Yes: there is no multiple."));
         f.retorno = ficha(s, -1);
         s.vis = { celdas: Object.assign({}, descartadas), revisadas: n, marcas: { [n]: "it" }, salida: -1, sacudir: true };
-        paso("primerMultiplo", 6, `return -1. Tuvo que revisar los ${n} elementos: el peor caso es O(n).`, "error");
+        paso("primerMultiplo", 6, tr(
+          `return -1. Tuvo que revisar los ${n} elementos: el peor caso es O(n).`,
+          `return -1. It had to check all ${n} elements: the worst case is O(n).`), "error");
       },
     },
   };
@@ -480,38 +648,38 @@
       texto: "a > b",
       codigo: "ordenarDescendente",
       firma: "[](int a, int b)",
-      etiqueta: "ordenarDescendente()",
+      etiqueta: traducir("ordenarDescendente()"),
       titulo: "ordenarDescendente(vector<int>& numeros)",
       fin: 4,
-      comparar: (a, b) => ({ r: a > b, linea: 3, detalle: `¿${a} > ${b}?` }),
+      comparar: (a, b) => ({ r: a > b, linea: 3, detalle: tr(`¿${a} > ${b}?`, `${a} > ${b}?`) }),
     },
     cercania: {
-      texto: "cercanía",
+      texto: tr("cercanía", "closeness"),
       codigo: "ordenarPorCercania",
       firma: "[centro](int a, int b)",
       captura: "centro",
-      etiqueta: "ordenarPorCercania(centro)",
+      etiqueta: traducir("ordenarPorCercania(centro)"),
       titulo: "ordenarPorCercania(vector<int>& numeros, int centro)",
       fin: 9,
       comparar(a, b, centro) {
         const da = Math.abs(a - centro);
         const db = Math.abs(b - centro);
         return da !== db
-          ? { r: da < db, linea: 6, detalle: `distancias ${da} y ${db}: ¿${da} < ${db}?`, extra: { da, db } }
-          : { r: a < b, linea: 8, detalle: `empatan en distancia (${da}); ¿${a} < ${b}?`, extra: { da, db } };
+          ? { r: da < db, linea: 6, detalle: tr(`distancias ${da} y ${db}: ¿${da} < ${db}?`, `distances ${da} and ${db}: ${da} < ${db}?`), extra: { da, db } }
+          : { r: a < b, linea: 8, detalle: tr(`empatan en distancia (${da}); ¿${a} < ${b}?`, `they tie in distance (${da}); ${a} < ${b}?`), extra: { da, db } };
       },
     },
     pares: {
-      texto: "pares primero",
+      texto: tr("pares primero", "evens first"),
       codigo: "ordenarParesPrimero",
       firma: "[](int a, int b)",
-      etiqueta: "ordenarParesPrimero()",
+      etiqueta: traducir("ordenarParesPrimero()"),
       titulo: "ordenarParesPrimero(vector<int>& numeros)",
       fin: 7,
       comparar(a, b) {
         return a % 2 !== b % 2
-          ? { r: a % 2 === 0, linea: 4, detalle: `uno es par y el otro no; ¿${a} es par?` }
-          : { r: a < b, linea: 6, detalle: `los dos son ${a % 2 ? "impares" : "pares"}; ¿${a} < ${b}?` };
+          ? { r: a % 2 === 0, linea: 4, detalle: tr(`uno es par y el otro no; ¿${a} es par?`, `one is even and the other isn't; is ${a} even?`) }
+          : { r: a < b, linea: 6, detalle: a % 2 ? tr(`los dos son impares; ¿${a} < ${b}?`, `both are odd; ${a} < ${b}?`) : tr(`los dos son pares; ¿${a} < ${b}?`, `both are even; ${a} < ${b}?`) };
       },
     },
   };
@@ -524,16 +692,20 @@
       const c = CRITERIOS[criterio];
       nuevaLlamada(s, 3);
       const f = abrir(s, c.titulo);
-      asignar(f, "numeros", { tipo: "ref", texto: "numeros (se modifica)" });
+      asignar(f, "numeros", { tipo: "ref", texto: tr("numeros (se modifica)", "numbers (modified)") });
       let fc = null;
       if (c.captura) fc = asignar(f, "centro", ficha(s, centro));
       s.vis = { activos: fc ? [fc.id] : [] };
-      paso(c.codigo, 1, `Vamos a ordenar ${lista(s)} con el criterio "${c.texto}". numeros llega por referencia sin const: sort lo modifica.`);
+      paso(c.codigo, 1, tr(
+        `Vamos a ordenar ${lista(s)} con el criterio "${c.texto}". numeros llega por referencia sin const: sort lo modifica.`,
+        `We are going to sort ${lista(s)} with the "${c.texto}" criterion. numbers arrives by reference without const: sort modifies it.`));
       const g = abrir(s, "std::sort", "biblioteca");
       const guardada = fc ? copia(s, fc) : null;
       const comp = asignar(g, "comp", lambda(s, c.firma, guardada ? [{ nombre: "centro", ficha: guardada }] : []));
       s.vis = { activos: [comp.id] };
-      paso(c.codigo, 2, "std::sort recibe la lambda como comp. Solo sabe hacer una pregunta: comp(a, b), «¿a debe ir antes que b?».");
+      paso(c.codigo, 2, tr(
+        "std::sort recibe la lambda como comp. Solo sabe hacer una pregunta: comp(a, b), «¿a debe ir antes que b?».",
+        "std::sort receives the lambda as comp. It only knows how to ask one question: comp(a, b), «must a go before b?»."));
       const n = s.numeros.length;
       // Algunas preguntas de ejemplo con vecinos; el orden real de las
       // comparaciones depende de la implementación de std::sort.
@@ -551,7 +723,9 @@
         const r = ficha(s, resp.r);
         h.retorno = r;
         s.vis = { celdas: { [i]: "actual", [i + 1]: "actual" }, marcas: { [i]: "a", [i + 1]: "b" }, activos: [ha.id, hb.id].concat(guardada ? [guardada.id] : []) };
-        paso(c.codigo, resp.linea, `sort pregunta comp(${fa.v}, ${fb.v}): ${resp.detalle} ${texto(resp.r)}` + (resp.r ? `: ${fa.v} va antes que ${fb.v}.` : `: ${fa.v} no tiene que ir antes que ${fb.v}.`));
+        paso(c.codigo, resp.linea, resp.r
+          ? tr(`sort pregunta comp(${fa.v}, ${fb.v}): ${resp.detalle} true: ${fa.v} va antes que ${fb.v}.`, `sort asks comp(${fa.v}, ${fb.v}): ${resp.detalle} true: ${fa.v} goes before ${fb.v}.`)
+          : tr(`sort pregunta comp(${fa.v}, ${fb.v}): ${resp.detalle} false: ${fa.v} no tiene que ir antes que ${fb.v}.`, `sort asks comp(${fa.v}, ${fb.v}): ${resp.detalle} false: ${fa.v} doesn't have to go before ${fb.v}.`));
         cerrar(s);
       }
       const ordenado = s.numeros.slice().sort((x, y) => {
@@ -563,28 +737,33 @@
       const todas = Object.fromEntries(ordenado.map((_, i) => [i, "cumple"]));
       s.vis = { celdas: todas };
       paso(c.codigo, 2, n > 1
-        ? `sort sigue preguntando (unas n·log n veces; el orden exacto de las preguntas depende de la biblioteca) y mueve cada valor a su lugar: ${lista(s)}.`
-        : "Con 0 o 1 elementos no hay nada que comparar: ya está ordenado.");
+        ? tr(`sort sigue preguntando (unas n·log n veces; el orden exacto de las preguntas depende de la biblioteca) y mueve cada valor a su lugar: ${lista(s)}.`,
+          `sort keeps asking (about n·log n times; the exact order of the questions depends on the library) and moves each value to its place: ${lista(s)}.`)
+        : tr("Con 0 o 1 elementos no hay nada que comparar: ya está ordenado.", "With 0 or 1 elements there is nothing to compare: it is already sorted."));
       cerrar(s);
       s.vis = { celdas: todas };
-      paso(c.codigo, c.fin, `Listo: ${lista(s)}. Cambiando solo la lambda, el mismo std::sort ordena con otro criterio.`, "exito");
+      paso(c.codigo, c.fin, tr(
+        `Listo: ${lista(s)}. Cambiando solo la lambda, el mismo std::sort ordena con otro criterio.`,
+        `Done: ${lista(s)}. By changing only the lambda, the same std::sort sorts with another criterion.`), "exito");
     },
   };
 
   OPS.agregar = {
-    etiqueta: "push_back(valor)",
+    etiqueta: tr("push_back(valor)", "push_back(value)"),
     usa: ["valor"],
     secundaria: true,
     ejecutar(s, { valor }, paso) {
       nuevaLlamada(s, 3);
       if (s.numeros.length >= MAXIMO) {
         s.vis = { sacudir: true };
-        paso("contarMayores", 0, `Para que el dibujo quepa en pantalla, numeros llega hasta ${MAXIMO} elementos. Pulsa Reiniciar para empezar de nuevo.`, "error");
+        paso("contarMayores", 0, tr(
+          `Para que el dibujo quepa en pantalla, numeros llega hasta ${MAXIMO} elementos. Pulsa Reiniciar para empezar de nuevo.`,
+          `So that the drawing fits on screen, numbers holds up to ${MAXIMO} elements. Press Reset to start again.`), "error");
         return;
       }
       s.numeros.push(ficha(s, valor));
       s.vis = { celdas: { [s.numeros.length - 1]: "cumple" } };
-      paso("contarMayores", 0, `numeros.push_back(${valor}) en main: ahora numeros = ${lista(s)}.`);
+      paso("contarMayores", 0, tr(`numeros.push_back(${valor}) en main: ahora numeros = ${lista(s)}.`, `numbers.push_back(${valor}) in main: now numbers = ${lista(s)}.`));
     },
   };
 
@@ -617,26 +796,27 @@
   function dibujarLambda(s, l) {
     const capturas = l.capturas.length
       ? l.capturas.map((c) => el("div", { class: `lam-captura${c.ref ? " ref" : ""}` },
-        el("span", { class: "lam-nombre", text: c.nombre }),
+        el("span", { class: "lam-nombre", text: traducir(c.nombre) }),
         c.ref
-          ? el("span", { class: "lam-ancla", "data-ancla": c.ref, title: "referencia a la variable original" })
+          ? el("span", { class: "lam-ancla", "data-ancla": c.ref, title: tr("referencia a la variable original", "reference to the original variable") })
           : dibujarFicha(s, c.ficha)))
       : [];
     return el("div", { class: claseValor(s, l.id, "lam-closure"), "data-id": l.id },
-      el("div", { class: "lam-firma" }, el("span", { class: "lam-lambda", "aria-hidden": "true", text: "λ" }), el("code", { text: l.firma })),
+      el("div", { class: "lam-firma" }, el("span", { class: "lam-lambda", "aria-hidden": "true", text: "λ" }), el("code", { text: traducir(l.firma) })),
       capturas.length ? el("div", { class: "lam-capturas" }, capturas) : "");
   }
 
   function dibujarValor(s, valor) {
     if (valor.tipo === "num") return dibujarFicha(s, valor);
     if (valor.tipo === "lambda") return dibujarLambda(s, valor);
-    return el("span", { class: "lam-ref", text: `→ ${valor.texto}` });
+    return el("span", { class: "lam-ref", text: `→ ${traducir(valor.texto)}` });
   }
 
   // "contarMayores(const vector<int>& numeros, int limite)" -> "contarMayores(numeros, limite)"
+  // (con los nombres en el idioma de la página).
   function tituloCorto(titulo) {
-    const m = titulo.match(/^([^(]+)\((.*)\)$/);
-    if (!m) return titulo;
+    const m = traducir(titulo).match(/^([^(]+)\((.*)\)$/);
+    if (!m) return traducir(titulo);
     const nombres = m[2].split(",").map((p) => p.trim().split(/[\s&*]+/).pop()).filter(Boolean);
     return `${m[1]}(${nombres.join(", ")})`;
   }
@@ -648,7 +828,7 @@
     const filas = m.vars.map((v) => {
       const id = idVar(m, v.nombre);
       return el("div", { class: claseValor(s, id, v.valor.tipo === "num" ? "lam-var" : "lam-var ancha"), "data-id": id },
-        el("span", { class: "lam-nombre", text: v.nombre }),
+        el("span", { class: "lam-nombre", text: nombre(v.nombre) }),
         el("span", { class: "lam-slot", "data-slot": id }, dibujarValor(s, v.valor)));
     });
     if (m.retorno) {
@@ -656,9 +836,9 @@
         el("span", { class: "lam-nombre", text: "return" }),
         el("span", { class: "lam-slot" }, dibujarValor(s, m.retorno))));
     }
-    const etiqueta = m.tipo === "lambda" ? "lambda" : m.tipo === "biblioteca" ? "biblioteca" : "función";
+    const etiqueta = m.tipo === "lambda" ? "lambda" : m.tipo === "biblioteca" ? tr("biblioteca", "library") : tr("función", "function");
     return el("div", { class: `lam-marco${m.tipo ? ` ${m.tipo}` : ""}${esActual ? " actual" : ""}${lejano ? " lejano" : ""}`, "data-id": m.id },
-      el("div", { class: "lam-marco-titulo", title: m.titulo }, el("span", { class: "lam-tipo", text: etiqueta }), el("code", { text: tituloCorto(m.titulo) })),
+      el("div", { class: "lam-marco-titulo", title: traducir(m.titulo) }, el("span", { class: "lam-tipo", text: etiqueta }), el("code", { text: tituloCorto(m.titulo) })),
       el("div", { class: "lam-vars" }, filas));
   }
 
@@ -683,16 +863,16 @@
         el("span", { class: "lam-marcas" }, el("span", { class: "marcador", "data-id": `marca-${marcas[n]}`, text: `▲ ${marcas[n]}` }))));
     }
     return el("div", { class: "lam-numeros" },
-      el("span", { class: "fila-titulo" }, "numeros", el("br"), el("small", { text: "(en main)" })),
-      el("div", { class: "lam-celdas" }, n || marcas[n] ? celdas : el("span", { class: "lam-sin", text: "vacío: {}" })));
+      el("span", { class: "fila-titulo" }, nombre("numeros"), el("br"), el("small", { text: tr("(en main)", "(in main)") })),
+      el("div", { class: "lam-celdas" }, n || marcas[n] ? celdas : el("span", { class: "lam-sin", text: tr("vacío: {}", "empty: {}") })));
   }
 
   function construir(s) {
     const vis = s.vis || {};
     const info = el("div", { class: "lam-info" },
-      el("div", { class: "pila-llamadas", "aria-label": "Pila de llamadas" },
-        s.marcos.length ? ["pila:", ...s.marcos.map((m) => el("span", { class: "llamada", text: m.titulo.split("(")[0] }))] : "pila vacía"),
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: "celda encontrada", text: texto(vis.salida) })) : "");
+      el("div", { class: "pila-llamadas", "aria-label": tr("Pila de llamadas", "Call stack") },
+        s.marcos.length ? [tr("pila:", "stack:"), ...s.marcos.map((m) => el("span", { class: "llamada", text: traducir(m.titulo.split("(")[0]) }))] : tr("pila vacía", "empty stack")),
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: "celda encontrada", text: texto(vis.salida) })) : "");
     const marcos = el("div", { class: `lam-marcos${s.amplio ? " amplio" : ""}${vis.sacudir ? " sacudir" : ""}` },
       s.marcos.map((m, k) => dibujarMarco(s, m, k === s.marcos.length - 1, k < s.marcos.length - 2)));
     return el("div", { class: "lam-contenido" }, info, s.numeros ? dibujarNumeros(s) : "", marcos);
@@ -834,7 +1014,7 @@
       incremental: true,
       dibujar,
       codigo: Object.fromEntries(claves.map((c) => [c, CODIGO[c]])),
-      tituloCodigo: (clave) => `${clave}()`,
+      tituloCodigo: (clave) => `${nombre(clave)}()`,
       codigoInicial: opciones.codigoInicial,
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial,
@@ -844,21 +1024,23 @@
   }
 
   const NUMEROS = [4, 7, 2, 9, 5];
-  const numero = (id, etiqueta, valor, min, max) => ({ id, etiqueta, valor, min: min ?? -99, max: max ?? 99 });
+  const numero = (id, etiqueta, valor, min, max) => ({ id, etiqueta: nombre(etiqueta), valor, min: min ?? -99, max: max ?? 99 });
   const LISTAS = [
     ["4,7,2,9,5", "{4, 7, 2, 9, 5}"],
     ["3,1,6", "{3, 1, 6}"],
     ["8,8,1,5", "{8, 8, 1, 5}"],
-    ["", "{} (vacío)"],
+    ["", tr("{} (vacío)", "{} (empty)")],
   ];
-  const elegirLista = { id: "lista", etiqueta: "numeros", opciones: LISTAS };
+  const elegirLista = { id: "lista", etiqueta: nombre("numeros"), opciones: LISTAS };
   const desdeLista = (valores) => estadoDesde(valores.lista ? valores.lista.split(",").map(Number) : []);
   // Elegir otro criterio muestra enseguida la función con su lambda.
   const criterio = {
-    id: "criterio", etiqueta: "Orden", opciones: Object.entries(CRITERIOS).map(([id, c]) => [id, c.texto]),
+    id: "criterio", etiqueta: tr("Orden", "Order"), opciones: Object.entries(CRITERIOS).map(([id, c]) => [id, c.texto]),
     alCambiar: (s, { criterio: c }) => ({
       codigo: CRITERIOS[c].codigo,
-      mensaje: `Criterio ${CRITERIOS[c].texto}: la lambda ${CRITERIOS[c].firma} decide quién va primero. Pulsa ${CRITERIOS[c].etiqueta} para ordenar con ella.`,
+      mensaje: tr(
+        `Criterio ${CRITERIOS[c].texto}: la lambda ${traducir(CRITERIOS[c].firma)} decide quién va primero. Pulsa ${CRITERIOS[c].etiqueta} para ordenar con ella.`,
+        `Criterion ${CRITERIOS[c].texto}: the lambda ${traducir(CRITERIOS[c].firma)} decides who goes first. Press ${CRITERIOS[c].etiqueta} to sort with it.`),
     }),
   };
   const codigoCriterio = (valores) => CRITERIOS[valores.criterio].codigo;
@@ -867,49 +1049,63 @@
     ops: ["elevarAlCuadrado"],
     entradas: [numero("n", "n", 5)],
     estadoInicial: () => estadoDesde(null),
-    mensajeInicial: "Pulsa elevarAlCuadrado(n) y fíjate en qué momento se ejecuta x * x: no es al crear la lambda.",
+    mensajeInicial: tr(
+      "Pulsa elevarAlCuadrado(n) y fíjate en qué momento se ejecuta x * x: no es al crear la lambda.",
+      "Press computeSquare(n) and notice when x * x runs: it isn't when the lambda is created."),
   });
 
   visualizador("vis-valor", {
     ops: ["capturaPorValor"],
     entradas: [numero("factor", "factor", 3, -999, 999), numero("x", "x", 4)],
     estadoInicial: () => estadoDesde(null),
-    mensajeInicial: "Antes de ejecutarlo: ¿la lambda va a usar factor = 3 o factor = 100?",
+    mensajeInicial: tr(
+      "Antes de ejecutarlo: ¿la lambda va a usar factor = 3 o factor = 100?",
+      "Before running it: will the lambda use factor = 3 or factor = 100?"),
   });
 
   visualizador("vis-referencia", {
     ops: ["sumarConReferencia"],
     entradas: [elegirLista],
     estadoInicial: desdeLista,
-    mensajeInicial: "Con & la lambda no se lleva una copia: modifica el total de afuera. Prueba también con el vector vacío.",
+    mensajeInicial: tr(
+      "Con & la lambda no se lleva una copia: modifica el total de afuera. Prueba también con el vector vacío.",
+      "With & the lambda doesn't take a copy: it modifies the outside total. Also try the empty vector."),
   });
 
   visualizador("vis-anidadas", {
     ops: ["sumaDeCuadrados"],
     entradas: [elegirLista],
     estadoInicial: desdeLista,
-    mensajeInicial: "Mira la pila de llamadas: llega a tener tres marcos, uno dentro de otro.",
+    mensajeInicial: tr(
+      "Mira la pila de llamadas: llega a tener tres marcos, uno dentro de otro.",
+      "Watch the call stack: it gets up to three frames, one inside another."),
   });
 
   visualizador("vis-fabrica", {
     ops: ["usarSumador"],
     entradas: [numero("base", "base", 10), numero("x", "x", 5)],
     estadoInicial: () => estadoDesde(null),
-    mensajeInicial: "Fíjate qué pasa con b cuando termina crearSumador.",
+    mensajeInicial: tr(
+      "Fíjate qué pasa con b cuando termina crearSumador.",
+      "Notice what happens to b when makeAdder finishes."),
   });
 
   visualizador("vis-contar", {
     ops: ["contarMayores"],
     entradas: [numero("limite", "limite", 4)],
     estadoInicial: () => estadoDesde(NUMEROS),
-    mensajeInicial: "Cuenta los mayores que 4. Después prueba con otro límite.",
+    mensajeInicial: tr(
+      "Cuenta los mayores que 4. Después prueba con otro límite.",
+      "Count the ones greater than 4. Then try another limit."),
   });
 
   visualizador("vis-buscar", {
     ops: ["primerMultiplo"],
     entradas: [numero("k", "k", 3, 0, 20)],
     estadoInicial: () => estadoDesde(NUMEROS),
-    mensajeInicial: "Busca el primer múltiplo de 3. Prueba también k = 8 (no hay ninguno) y k = 0.",
+    mensajeInicial: tr(
+      "Busca el primer múltiplo de 3. Prueba también k = 8 (no hay ninguno) y k = 0.",
+      "Find the first multiple of 3. Also try k = 8 (there is none) and k = 0."),
   });
 
   visualizador("vis-ordenar", {
@@ -917,7 +1113,9 @@
     entradas: [criterio, numero("centro", "centro", 6)],
     codigoInicial: codigoCriterio,
     estadoInicial: () => estadoDesde(NUMEROS),
-    mensajeInicial: "Elige un criterio y ordena. Cambia de criterio y vuelve a ordenar el resultado.",
+    mensajeInicial: tr(
+      "Elige un criterio y ordena. Cambia de criterio y vuelve a ordenar el resultado.",
+      "Choose a criterion and sort. Change the criterion and sort the result again."),
   });
 
   // centro solo es un argumento de ordenarPorCercania: con los otros criterios no se muestra.
@@ -940,8 +1138,8 @@
     return Object.assign({}, op, {
       usa: [...new Set(usa)],
       etiqueta: typeof op.etiqueta === "function"
-        ? (valores) => op.etiqueta(valores).replace(/\(centro\)$/, "(n)")
-        : op.etiqueta.replace(/\(numeros\)$/, "()").replace(/\((numeros, )?(limite|k|valor)\)$/, "(n)"),
+        ? (valores) => op.etiqueta(valores).replace(/\((centro|center)\)$/, "(n)")
+        : op.etiqueta.replace(/\((numeros|numbers)\)$/, "()").replace(/\(((numeros|numbers), )?(limite|limit|k|valor|value)\)$/, "(n)"),
       ejecutar: (s, args, paso) => op.ejecutar(s, Object.assign({ limite: args.valor, k: args.valor, centro: args.valor }, args), paso),
     });
   };
@@ -952,6 +1150,8 @@
     entradas: [numero("valor", "n", 3, 0, 99), criterio],
     codigoInicial: "sumarConReferencia",
     estadoInicial: () => estadoDesde(NUMEROS),
-    mensajeInicial: "El vector numeros de main() con las funciones que reciben lambdas. n es el valor que se agrega, y también limite, k o centro.",
+    mensajeInicial: tr(
+      "El vector numeros de main() con las funciones que reciben lambdas. n es el valor que se agrega, y también limite, k o centro.",
+      "The numbers vector from main() with the functions that receive lambdas. n is the value that is added, and also limit, k or center."),
   });
 })();

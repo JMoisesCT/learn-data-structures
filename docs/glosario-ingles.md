@@ -33,6 +33,14 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Lista enlazada | `obtener(i)` | `get(i)` |
 | Lista enlazada | `insertarAlInicio` / `insertarAlFinal` / `insertarEn` | `insertAtFront` / `insertAtBack` / `insertAt` |
 | Lista enlazada | `buscar` / `eliminar` / `eliminarEn` | `find` / `remove` / `removeAt` |
+| Lambdas | `elevarAlCuadrado` / `cuadrado` / `resultado` | `computeSquare` / `square` / `result` |
+| Lambdas | `capturaPorValor` / `multiplicar` | `captureByValue` / `multiply` |
+| Lambdas | `sumarConReferencia` / `numeros` / `acumular` | `sumWithReference` / `numbers` / `addToTotal` |
+| Lambdas | `sumaDeCuadrados` / `sumarCuadrados` / `suma` | `sumOfSquares` / `sumSquares` / `sum` |
+| Lambdas | `usarSumador` / `crearSumador` / `sumarBase` | `useAdder` / `makeAdder` / `addBase` |
+| Lambdas | `contarMayores` / `limite` / `primerMultiplo` | `countGreater` / `limit` / `firstMultiple` |
+| Lambdas | `ordenarDescendente` / `ordenarPorCercania` / `centro` / `ordenarParesPrimero` | `sortDescending` / `sortByCloseness` / `center` / `sortEvensFirst` |
+| Lambdas | `imprimir` / `mayor` / `llamadas` / `contar` / `copiaTodo` / `refTodo` / `menorPrimero` / `cola` | `print` / `larger` / `calls` / `counter` / `copyAll` / `refAll` / `smallestFirst` / `pq` |
 | Notación algorítmica | `pasos` / `datos` / `suma` | `steps` / `data` / `total` |
 | Notación algorítmica | `obtener` / `sumar` / `hayRepetidos` | `get` / `sum` / `hasDuplicates` |
 | Notación algorítmica | `busquedaBinaria` / `objetivo` / `medio` | `binarySearch` / `target` / `mid` |
