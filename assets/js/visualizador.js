@@ -910,6 +910,8 @@
   //   estadoInicial: (valores) => objeto              // estado plano (se clona en cada paso);
   //                                                   // recibe los valores actuales de las entradas
   //   entradas:      [{ id, etiqueta, valor, min, max, aleatorio }]   // número
+  //                                                   // (min y max se ven en una muesca bajo la caja,
+  //                                                   // y la caja se pone roja apenas se pasan)
   //                  [{ id, etiqueta, opciones: [[valor, texto]] }]   // lista; al cambiarla se reinicia
   //                  [{ ..., opciones, reinicia: false }]             // lista que no reinicia (solo es un argumento)
   //                  [{ ..., alCambiar(estado, valores) }]            // número o lista que se refleja apenas
@@ -1019,11 +1021,20 @@
       } else {
         input = el("input", { type: "number", id: `${prefijo}-${e.id}`, min: e.min, max: e.max, step: 1, inputmode: "numeric" });
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
+        // La caja tiene el ancho del número más largo que acepta.
+        input.style.setProperty("--cifras", Math.max(String(e.min == null ? "" : e.min).length, String(e.max == null ? "" : e.max).length));
         input.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !temporizador) cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
+        input.addEventListener("input", () => revisarCampo(e.id, true));
         if (e.alCambiar) input.addEventListener("input", () => cambiarEntrada(e, input));
       }
-      campos[e.id] = { cfg: e, input };
-      controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta, input));
+      // El rango va a la vista, en una muesca sobre el borde inferior de la
+      // caja (no ocupa alto): así se sabe el límite antes de escribir.
+      const rango = e.opciones ? null : textoRango(e);
+      const muesca = rango ? el("span", { class: "campo-rango", "aria-hidden": "true", text: rango }) : null;
+      if (rango) input.title = tr(`Entre ${e.min} y ${e.max}`, `Between ${e.min} and ${e.max}`);
+      campos[e.id] = { cfg: e, input, muesca, rango };
+      controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta,
+        muesca ? el("span", { class: "campo-caja" }, input, muesca) : input));
     }
     const botones = [];
     for (const op of cfg.operaciones) {
@@ -1255,6 +1266,51 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    // Números en la muesca: con espacio fino entre miles (99 999) y signo
+    // menos tipográfico, iguales en los dos idiomas.
+    function numeroCorto(n) {
+      const texto = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, Math.abs(n) >= 10000 ? "\u202f" : "");
+      return n < 0 ? `\u2212${texto}` : texto;
+    }
+    function textoRango(e) {
+      if (e.min != null && e.max != null) return tr(`${numeroCorto(e.min)} a ${numeroCorto(e.max)}`, `${numeroCorto(e.min)} to ${numeroCorto(e.max)}`);
+      if (e.min != null) return `≥ ${numeroCorto(e.min)}`;
+      if (e.max != null) return `≤ ${numeroCorto(e.max)}`;
+      return null;
+    }
+
+    // Qué le falta a un número: null si está bien.
+    function problemaDe(e, valor) {
+      const n = Number(valor);
+      if (valor.trim() === "" || !Number.isInteger(n)) return "entero";
+      if (e.max != null && n > e.max) return "max";
+      if (e.min != null && n < e.min) return "min";
+      return null;
+    }
+
+    // Un número fuera de rango se nota apenas se escribe: la caja y la muesca
+    // se ponen rojas y la muesca dice el límite que se pasó.
+    function revisarCampo(id, alEscribir) {
+      const { cfg: e, input, muesca, rango } = campos[id];
+      if (e.opciones) return null;
+      const problema = problemaDe(e, input.value);
+      const antes = input.getAttribute("aria-invalid") === "true";
+      input.setAttribute("aria-invalid", problema ? "true" : "false");
+      if (!muesca) return problema;
+      muesca.parentElement.classList.toggle("invalido", !!problema);
+      muesca.textContent = problema === "max" ? tr(`máx. ${numeroCorto(e.max)}`, `max ${numeroCorto(e.max)}`)
+        : problema === "min" ? tr(`mín. ${numeroCorto(e.min)}`, `min ${numeroCorto(e.min)}`)
+          : rango;
+      if (problema && (!antes || !alEscribir)) sacudirCampo(muesca.parentElement);
+      return problema;
+    }
+
+    function sacudirCampo(caja) {
+      caja.classList.remove("sacude");
+      void caja.offsetWidth;
+      caja.classList.add("sacude");
+    }
+
     function leerArgumentos(op) {
       const args = {};
       for (const id of op.usa || []) {
@@ -1264,11 +1320,12 @@
           continue;
         }
         const n = Number(input.value);
-        if (input.value.trim() === "" || !Number.isInteger(n)) {
-          return { error: tr(`Escribe un número entero en "${e.etiqueta}".`, `Type a whole number in "${e.etiqueta}".`) };
+        const problema = problemaDe(e, input.value);
+        if (problema === "entero") {
+          return { id, error: tr(`Escribe un número entero en "${e.etiqueta}".`, `Type a whole number in "${e.etiqueta}".`) };
         }
-        if ((e.min != null && n < e.min) || (e.max != null && n > e.max)) {
-          return { error: tr(`"${e.etiqueta}" debe estar entre ${e.min} y ${e.max}.`, `"${e.etiqueta}" must be between ${e.min} and ${e.max}.`) };
+        if (problema) {
+          return { id, error: tr(`"${e.etiqueta}" debe estar entre ${e.min} y ${e.max}.`, `"${e.etiqueta}" must be between ${e.min} and ${e.max}.`) };
         }
         args[id] = n;
       }
@@ -1484,8 +1541,11 @@
     function ejecutar(op) {
       if (temporizador) return; // los botones están bloqueados mientras corre la animación
       detener();
-      const { args, error } = leerArgumentos(op);
+      const { args, error, id: campoMalo } = leerArgumentos(op);
       if (error) {
+        // La caja que falla se sacude y queda lista para corregirla.
+        revisarCampo(campoMalo, false);
+        campos[campoMalo].input.focus({ preventScroll: true });
         pasos = [pasoInicial(error)];
         pasos[0].tipo = "error";
         ir(0);
@@ -1531,11 +1591,7 @@
     // válido), sin esperar a ejecutar una operación y sin perder lo que el tema
     // quiera conservar, como los puntos de una gráfica.
     function cambiarEntrada(e, input) {
-      if (!e.opciones) {
-        const n = Number(input.value);
-        if (input.value.trim() === "" || !Number.isInteger(n)) return;
-        if ((e.min != null && n < e.min) || (e.max != null && n > e.max)) return;
-      }
+      if (!e.opciones && problemaDe(e, input.value)) return;
       detener();
       invitarAvanzar(false);
       aleatoriosPendientes = [];
@@ -1724,6 +1780,7 @@
         for (const id of aleatoriosPendientes) {
           const input = campos[id].input;
           input.value = aleatorio(campos[id].cfg);
+          revisarCampo(id, false);
           input.title = tr("Nuevo valor al azar para la próxima operación", "New random value for the next operation");
           input.classList.remove("renovado");
           void input.offsetWidth;

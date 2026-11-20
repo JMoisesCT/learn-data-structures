@@ -747,6 +747,31 @@ body.con-leccion.leccion-final > .pie { display: block; }
 }
 
 .campo select { width: auto; }
+/* Un número: la caja mide lo que su número más largo (--cifras) y lleva el
+   rango en una muesca sobre su borde inferior, sin ocupar alto. */
+.campo input[type="number"] { width: max(5.2rem, calc(var(--cifras, 0) * 0.62em + 2.6rem)); font-variant-numeric: tabular-nums; }
+.campo-caja { position: relative; display: inline-flex; }
+.campo-rango {
+  position: absolute;
+  left: 0.55rem;
+  bottom: 0;
+  transform: translateY(50%);
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  /* Mitad sobre la caja y mitad sobre el panel: el fondo de cada lado. */
+  background: linear-gradient(to bottom, var(--fondo) 50%, var(--superficie) 50%);
+  color: var(--texto-suave);
+  font-size: 0.62rem;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.campo-caja.invalido input { border-color: var(--peligro); box-shadow: 0 0 0 2px color-mix(in srgb, var(--peligro) 25%, transparent); }
+.campo-caja.invalido input:focus-visible { outline: 2px solid var(--peligro); outline-offset: 1px; }
+.campo-caja.invalido .campo-rango { color: var(--peligro); font-weight: 600; }
+.campo-caja.sacude { animation: sacudir 0.35s ease; }
+@media (prefers-reduced-motion: reduce) { .campo-caja.sacude { animation: none; } }
 /* Una entrada al azar que ya tiene el valor de la próxima operación. */
 .campo input.renovado { animation: renovado 1.2s ease; }
 @keyframes renovado { 0%, 40% { border-color: var(--acento); background: var(--acento-suave); } 100% { border-color: var(--borde); background: var(--fondo); } }
