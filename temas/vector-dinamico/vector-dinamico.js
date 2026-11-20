@@ -339,7 +339,7 @@
         const nueva = nuevaFicha(s, valor);
         s.datos.celdas[pos] = nueva;
         s.vis = { vars, ocupadas: s.tamano + 1, escrita: pos, cae: nueva.id, marcas: { [pos]: "pos" } };
-        paso("insertar", 11, `datos[${pos}] = ${valor}.`);
+        paso("insertar", 11, `${tr("datos", "data")}[${pos}] = ${valor}.`);
         s.tamano++;
         s.vis = { vars, cambio: ["tamano"] };
         paso("insertar", 12, corridos
