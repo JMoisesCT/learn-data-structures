@@ -7,6 +7,7 @@
   const SVG = "http://www.w3.org/2000/svg";
   const DURACION = 450;
   const DIGITOS = "0123456789ABCDEF";
+  const MAXIMO_LL = 9223372036854775807n; // el long long más grande
 
   // ------------------------------------------------------------------
   // Fragmentos de C++ (copiados de ejemplos/cpp/recursion.cpp y de
@@ -221,11 +222,12 @@
     };
   }
 
-  // Si la recursión va a ser profunda, los marcos son más bajos.
+  // Si la recursión va a ser profunda, los marcos son más bajos (y más
+  // todavía con más de 8 niveles, como aBase(999, 2)).
   // Cada operación empieza de cero (los ids siguen contando, para que nada
   // de la operación anterior se confunda con lo nuevo).
   function nuevaLlamada(s, profundidad) {
-    Object.assign(s, estadoVacio(), { sig: s.sig, apretado: profundidad > 4 });
+    Object.assign(s, estadoVacio(), { sig: s.sig, apretado: profundidad > 8 ? 2 : profundidad > 4 ? 1 : 0 });
   }
 
   // ------------------------------------------------------------------
@@ -608,7 +610,6 @@
         nuevaLlamada(s, exponente ? Math.floor(Math.log2(exponente)) + 2 : 1);
         s.contador = { llamadas: 0, multiplicaciones: 0, conFor: Math.max(0, exponente - 1) };
         const P = conNivel(s, paso);
-        const MAXIMO = 9223372036854775807n;
         const b = BigInt(base);
         function rec(e) {
           const m = llamar(s, `${F}(${base}, ${e})`);
@@ -642,13 +643,13 @@
           const r = par ? sub * sub : sub * sub * b;
           const lineaR = par ? 7 : 9;
           const cuenta = par ? `${sub} × ${sub}` : `${sub} × ${sub} × ${base}`;
-          if (r > MAXIMO || r < -MAXIMO - 1n) {
+          if (r > MAXIMO_LL || r < -MAXIMO_LL - 1n) {
             m.error = true;
             m.expr = [txt(cuenta, "mal")];
             s.vis = { sacudir: true, salida: "error", error: true };
             P(C, lineaR, tr(
-              `${cuenta} = ${r} no cabe en un long long (máximo ${MAXIMO}): se desborda. En C++ eso es comportamiento indefinido; el resultado sería basura.`,
-              `${cuenta} = ${r} doesn't fit in a long long (maximum ${MAXIMO}): it overflows. In C++ that is undefined behavior; the result would be garbage.`), "error");
+              `${cuenta} = ${r} no cabe en un long long (máximo ${MAXIMO_LL}): se desborda. En C++ eso es comportamiento indefinido; el resultado sería basura.`,
+              `${cuenta} = ${r} doesn't fit in a long long (maximum ${MAXIMO_LL}): it overflows. In C++ that is undefined behavior; the result would be garbage.`), "error");
             return null;
           }
           s.contador.multiplicaciones += par ? 1 : 2;
@@ -928,7 +929,7 @@
 
   function construir(s) {
     const total = s.marcos.length;
-    return el("div", { class: `rec-contenido${s.apretado ? " apretado" : ""}` },
+    return el("div", { class: `rec-contenido${s.apretado ? " apretado" : ""}${s.apretado > 1 ? " muy-apretado" : ""}` },
       infoPila(s),
       s.numero ? dibujarNumero(s) : "",
       s.tabla ? dibujarTabla(s) : "",
@@ -1154,7 +1155,7 @@
   }
 
   // ------------------------------------------------------------------
-  // Visualizadores de la lección
+  // Un visualizador: DS.tema con las operaciones elegidas
   // ------------------------------------------------------------------
 
   function visualizador(contenedor, opciones) {
@@ -1171,7 +1172,7 @@
     });
   }
 
-  const numero = (id, etiqueta, valor, min, max) => ({ id, etiqueta, valor, min, max });
+  const numero = (id, etiqueta, valor, min, max, alCambiar) => ({ id, etiqueta, valor, min, max, alCambiar });
   // Los textos de esPalindromo cumplen papeles: un palíndromo largo, uno que
   // falla recién en la tercera pareja, uno impar corto, uno par, uno que
   // falla enseguida, una letra y el vacío. En inglés, palabras con los
@@ -1184,37 +1185,186 @@
     return s;
   }
 
+  // ------------------------------------------------------------------
+  // Vista previa al escribir: el número que se escribe se dibuja enseguida,
+  // sin llamadas. Conserva el contador de ids: las cifras que ya estaban se
+  // quedan, las nuevas aparecen y los marcos de la operación anterior se
+  // desvanecen.
+  // ------------------------------------------------------------------
+
+  function previa(s, armar) {
+    const p = Object.assign(estadoVacio(), { sig: s.sig });
+    if (armar) armar(p);
+    return p;
+  }
+  const conCifras = (s, n, pantalla) => previa(s, (p) => {
+    conNumero(p, n);
+    if (pantalla) p.pantalla = [];
+  });
+  const digitos = (n) => (String(n).length === 1 ? tr("un solo dígito", "a single digit") : tr(`${String(n).length} dígitos`, `${String(n).length} digits`));
+  // base^exponente escrito sin ambigüedad: (−3)^5, no −3^5.
+  const elevado = (base, e) => `${base < 0 ? `(${base})` : base}^${e}`;
+
+  // ¿potencia(base, e) se desborda? Igual que la animación: alguna llamada
+  // da un resultado que no cabe en un long long.
+  function desborda(base, e) {
+    const b = BigInt(base);
+    function rec(e) {
+      if (e === 0) return 1n;
+      const mitad = rec(Math.floor(e / 2));
+      if (mitad == null) return null;
+      const r = e % 2 === 0 ? mitad * mitad : mitad * mitad * b;
+      return r > MAXIMO_LL || r < -MAXIMO_LL - 1n ? null : r;
+    }
+    return rec(e) == null;
+  }
+  // El primer exponente (de 0 a 64) que ya no cabe, o null si ninguno.
+  function inicioDesborde(base) {
+    for (let e = 0; e <= 64; e++) if (desborda(base, e)) return e;
+    return null;
+  }
+
+  // ------------------------------------------------------------------
+  // Ejemplos de un clic: ponen los valores como si se escribieran (así la
+  // muesca, el dibujo y el mensaje se actualizan) y ejecutan la operación.
+  // Se bloquean junto con los botones mientras corre una animación.
+  // ------------------------------------------------------------------
+
+  // enLinea: junto a los botones (cuando sobra espacio); si no, en su propia
+  // fila bajo los botones, más baja que una fila de botones.
+  function ejemplos(contenedor, lista, enLinea) {
+    if (typeof document === "undefined") return;
+    const raiz = document.getElementById(contenedor);
+    const controles = raiz && raiz.querySelector(".controles");
+    if (!controles) return;
+    const botones = [...controles.querySelectorAll("button.principal")];
+    const chips = lista.map((ej) => el("button", {
+      type: "button", class: "rec-ejemplo", title: ej.titulo || null, text: ej.texto,
+      onclick: () => {
+        const boton = botones[ej.op || 0];
+        if (!boton || boton.disabled) return;
+        for (const [id, v] of Object.entries(ej.valores)) {
+          const input = document.getElementById(`${contenedor}-${id}`);
+          input.value = v;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        boton.click();
+      },
+    }));
+    const grupo = el("span", { class: `rec-ejemplos${enLinea ? " en-linea" : ""}` }, el("span", { class: "rec-ejemplos-titulo", text: tr("Prueba:", "Try:") }), chips);
+    if (enLinea) controles.insertBefore(grupo, controles.querySelector(".separador"));
+    else controles.append(grupo);
+    const sincronizar = () => { for (const c of chips) c.disabled = botones[0].disabled; };
+    new MutationObserver(sincronizar).observe(botones[0], { attributes: true, attributeFilter: ["disabled"] });
+  }
+
+  // ------------------------------------------------------------------
+  // Deslizador del exponente: el riel se pone rojo desde el primer exponente
+  // que no cabe en un long long con la base elegida.
+  // ------------------------------------------------------------------
+
+  function deslizadorExponente(contenedor) {
+    if (typeof document === "undefined") return;
+    const inExp = document.getElementById(`${contenedor}-exponente`);
+    const inBase = document.getElementById(`${contenedor}-base`);
+    if (!inExp || !inBase) return;
+    const desl = el("input", { type: "range", class: "rec-deslizador", min: 0, max: 64, step: 1, "aria-label": nombre("exponente") });
+    desl.value = inExp.value;
+    const pintar = () => {
+      const base = Number(inBase.value);
+      const zona = Number.isInteger(base) ? inicioDesborde(base) : null;
+      // El corte cae entre zona − 1 y zona, medido como el centro del pulgar (16 px).
+      desl.style.setProperty("--corte", zona == null ? "100%" : `calc(8px + ${(zona - 0.5) / 64} * (100% - 16px))`);
+      desl.classList.toggle("en-zona", zona != null && Number(desl.value) >= zona);
+      desl.title = zona == null
+        ? tr(`Con base ${base}, ningún exponente se desborda`, `With base ${base}, no exponent overflows`)
+        : tr(`Desde ${elevado(base, zona)} no cabe en un long long`, `From ${elevado(base, zona)} on, it doesn't fit in a long long`);
+    };
+    desl.addEventListener("input", () => {
+      inExp.value = desl.value;
+      inExp.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    inExp.addEventListener("input", () => {
+      const e = Number(inExp.value);
+      if (inExp.value.trim() !== "" && Number.isInteger(e) && e >= 0 && e <= 64) desl.value = e;
+      pintar();
+    });
+    inBase.addEventListener("input", pintar);
+    inExp.closest(".campo").after(desl);
+    pintar();
+  }
+
+  // ------------------------------------------------------------------
+  // Visualizadores de la lección
+  // ------------------------------------------------------------------
+
   visualizador("vis-suma", {
     ops: ["sumaDigitos"],
-    entradas: [numero("n", "n", 1234, 0, 99999)],
+    entradas: [numero("n", "n", 1234, 0, 99999, (s, { n }) => ({
+      estado: conCifras(s, n),
+      mensaje: tr(`n = ${n}, con ${digitos(n)}. Pulsa ${nombre("sumaDigitos")}(n) y cuenta los marcos que abre la pila.`,
+        `n = ${n}, with ${digitos(n)}. Press ${nombre("sumaDigitos")}(n) and count the frames the stack opens.`),
+    }))],
     mensajeInicial: tr(
       "Pulsa sumaDigitos(n) y mira la pila: baja hasta el caso base y las sumas se hacen al volver.",
       "Press digitSum(n) and watch the stack: it goes down to the base case and the sums are done on the way back."),
   });
+  ejemplos("vis-suma", [{ texto: "7", valores: { n: 7 } }, { texto: "1234", valores: { n: 1234 } }, { texto: "90817", valores: { n: 90817 } }], true);
 
   visualizador("vis-imprimir", {
     ops: ["imprimirDigitos", "imprimirAlReves"],
-    entradas: [numero("n", "n", 1234, 0, 999999)],
+    entradas: [numero("n", "n", 1234, 0, 999999, (s, { n }) => ({
+      estado: conCifras(s, n, true),
+      mensaje: tr(`n = ${n}. ¿En qué orden saldrán sus dígitos con cada función? Pruébalas y compara la pantalla.`,
+        `n = ${n}. In what order will its digits come out with each function? Try both and compare the screen.`),
+    }))],
     mensajeInicial: tr(
       "Las dos funciones son casi iguales: solo cambia si el cout va antes o después de la llamada. Pruébalas y compara la pantalla.",
       "The two functions are almost the same: the only change is whether the cout goes before or after the call. Try both and compare the screen."),
   });
+  ejemplos("vis-imprimir", [
+    { texto: `${nombre("imprimirDigitos")}(507)`, valores: { n: 507 }, op: 0 },
+    { texto: `${nombre("imprimirAlReves")}(507)`, valores: { n: 507 }, op: 1 },
+  ]);
 
   visualizador("vis-invertir", {
     ops: ["invertir"],
-    entradas: [numero("n", "n", 1234, 0, 999999)],
+    entradas: [numero("n", "n", 1234, 0, 999999, (s, { n }) => ({
+      estado: conCifras(s, n),
+      mensaje: tr(`n = ${n}: ${nombre("acumulado")} empieza en 0 y cada llamada le pasa el último dígito que queda.`,
+        `n = ${n}: ${nombre("acumulado")} starts at 0 and each call hands it the last digit left.`),
+    }))],
     mensajeInicial: tr(
       "Fíjate en acumulado: el resultado se arma de ida. Prueba también n = 1200.",
       "Watch accumulated: the result is built on the way down. Also try n = 1200."),
   });
+  ejemplos("vis-invertir", [{ texto: "1234", valores: { n: 1234 } }, { texto: "1200", valores: { n: 1200 } }], true);
 
+  // aBase: al escribir, DIGITOS muestra qué símbolos usa la base.
+  const previaBase = (s, { n, base }) => {
+    const F = nombre("aBase");
+    return {
+      estado: previa(s, (p) => { p.tabla = { base }; }),
+      mensaje: n < 0
+        ? tr(`n = ${n} es negativo: ${F} lanzará std::invalid_argument.`, `n = ${n} is negative: ${F} will throw std::invalid_argument.`)
+        : base < 2 || base > 16
+          ? tr(`base = ${base}: fuera de 2 a 16, ${F} lanzará std::invalid_argument.`, `base = ${base}: outside 2 to 16, ${F} will throw std::invalid_argument.`)
+          : tr(`${n} en base ${base}: cada llamada divide entre ${base} y el resto elige el símbolo de ${nombre("DIGITOS")}.`,
+            `${n} in base ${base}: each call divides by ${base} and the remainder picks the symbol from ${nombre("DIGITOS")}.`),
+    };
+  };
   visualizador("vis-base", {
     ops: ["aBase"],
-    entradas: [numero("n", "n", 13, -9, 999), numero("base", "base", 2, -1, 20)],
+    entradas: [numero("n", "n", 13, -9, 999, previaBase), numero("base", "base", 2, -1, 20, previaBase)],
     mensajeInicial: tr(
       "Convierte 13 a base 2. Después prueba 255 en base 16 y una base inválida, como 1.",
       "Convert 13 to base 2. Then try 255 in base 16 and an invalid base, like 1."),
   });
+  ejemplos("vis-base", [
+    { texto: tr("13 en base 2", "13 in base 2"), valores: { n: 13, base: 2 } },
+    { texto: tr("255 en base 16", "255 in base 16"), valores: { n: 255, base: 16 } },
+    { texto: tr("base 1", "base 1"), titulo: tr("Una base inválida: lanza std::invalid_argument", "An invalid base: it throws std::invalid_argument"), valores: { n: 13, base: 1 } },
+  ]);
 
   visualizador("vis-palindromo", {
     ops: ["esPalindromo"],
@@ -1236,18 +1386,42 @@
       "Choose a text: each call compares a pair of letters, from the outside in."),
   });
 
+  // potencia: al escribir, el contador muestra cuánto costaría con un for y
+  // el mensaje dice si el resultado cabe en un long long.
+  const previaPotencia = (s, { base, exponente }) => {
+    const zona = inicioDesborde(base);
+    const conFor = Math.max(0, exponente - 1);
+    return {
+      estado: previa(s, (p) => { p.contador = { llamadas: 0, multiplicaciones: 0, conFor }; }),
+      mensaje: zona != null && exponente >= zona
+        ? tr(`${elevado(base, exponente)} no cabe en un long long: desde ${elevado(base, zona)} se desborda (la zona roja del riel).`,
+          `${elevado(base, exponente)} doesn't fit in a long long: from ${elevado(base, zona)} on it overflows (the red zone of the track).`)
+        : tr(`${elevado(base, exponente)} cabe en un long long. Con un for serían ${conFor} multiplicaciones; ¿cuántas hará ${nombre("potencia")}?`,
+          `${elevado(base, exponente)} fits in a long long. With a for loop it would take ${conFor} multiplications; how many will ${nombre("potencia")} make?`),
+    };
+  };
   visualizador("vis-potencia", {
     ops: ["potencia"],
-    entradas: [numero("base", "base", 2, -99, 99), numero("exponente", nombre("exponente"), 10, 0, 64)],
+    entradas: [numero("base", "base", 2, -99, 99, previaPotencia), numero("exponente", nombre("exponente"), 10, 0, 64, previaPotencia)],
     mensajeInicial: tr(
-      "Calcula 2^10 y cuenta las multiplicaciones. Prueba un exponente grande, como 2^62, y uno que no quepa, como 10^19.",
-      "Compute 2^10 and count the multiplications. Try a large exponent, like 2^62, and one that doesn't fit, like 10^19."),
+      "Calcula 2^10 y cuenta las multiplicaciones. Mueve el exponente: la zona roja del riel no cabe en un long long.",
+      "Compute 2^10 and count the multiplications. Move the exponent: the red zone of the track doesn't fit in a long long."),
   });
+  deslizadorExponente("vis-potencia");
+  ejemplos("vis-potencia", [
+    { texto: "2¹⁰", valores: { base: 2, exponente: 10 } },
+    { texto: "2⁶²", valores: { base: 2, exponente: 62 } },
+    { texto: "10¹⁹", titulo: tr("No cabe en un long long", "It doesn't fit in a long long"), valores: { base: 10, exponente: 19 } },
+  ], true);
 
   visualizador("vis-fibonacci", {
     ops: ["fibonacci", "fibonacciMemo"],
     dibujar: dibujarArbol,
-    entradas: [numero("n", "n", 5, 0, 6)],
+    entradas: [numero("n", "n", 5, 0, 6, (s, { n }) => ({
+      estado: previa(s),
+      mensaje: tr(`n = ${n}. Ejecuta fibonacci(${n}) y después fibonacciMemo(${n}, memo), y compara las llamadas.`,
+        `n = ${n}. Run fibonacci(${n}) and then fibonacciMemo(${n}, memo), and compare the calls.`),
+    }))],
     mensajeInicial: tr(
       "Cada nodo es una llamada. Ejecuta fibonacci(5) y cuenta cuántas veces aparece f(2); después, fibonacciMemo.",
       "Each node is a call. Run fibonacci(5) and count how many times f(2) appears; then, fibonacciMemo."),
@@ -1264,11 +1438,16 @@
     }
     return op;
   };
+  const previaTodo = (s, { n, b }) => ({
+    estado: conCifras(s, n),
+    mensaje: tr(`n = ${n}, b = ${b}: b es la base de ${nombre("aBase")} o el exponente de ${nombre("potencia")}.`,
+      `n = ${n}, b = ${b}: b is the base of ${nombre("aBase")} or the exponent of ${nombre("potencia")}.`),
+  });
 
   visualizador("vis-todo", {
     ops: ["sumaDigitos", "imprimirDigitos", "imprimirAlReves", "invertir", "aBase", "potencia"],
     adaptar: conDosCampos,
-    entradas: [numero("n", "n", 156, 0, 999), numero("b", "b", 16, 0, 64)],
+    entradas: [numero("n", "n", 156, 0, 999, previaTodo), numero("b", "b", 16, 0, 64, previaTodo)],
     mensajeInicial: tr(
       "Todas las funciones con la pila a la vista. b es la base de aBase o el exponente de potencia.",
       "Every function with the stack in view. b is the base of toBase or the exponent of power."),
