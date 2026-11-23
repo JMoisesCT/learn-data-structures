@@ -1667,6 +1667,24 @@
       }
     }
 
+    // Las entradas al azar de la operación que se ve pasan a un valor nuevo,
+    // el de la próxima operación: la caja lo avisa con un destello (el mensaje
+    // sigue hablando del valor que se usó) y el botón Ejecutar lo muestra.
+    function renovarAleatorios() {
+      if (!aleatoriosPendientes.length) return;
+      for (const id of aleatoriosPendientes) {
+        const input = campos[id].input;
+        input.value = aleatorio(campos[id].cfg);
+        revisarCampo(id, false);
+        input.title = tr("Nuevo valor al azar para la próxima operación", "New random value for the next operation");
+        input.classList.remove("renovado");
+        void input.offsetWidth;
+        input.classList.add("renovado");
+      }
+      aleatoriosPendientes = [];
+      actualizarEtiquetas();
+    }
+
     // fijos: los argumentos que se leyeron al pulsar Ejecutar, si antes hubo
     // que terminar la operación anterior (al terminar, las entradas al azar
     // cambian de valor, y tiene que correr la llamada que se anunció).
@@ -1676,6 +1694,9 @@
       // pausa): primero se terminan a la vista sus pasos pendientes, así el
       // dibujo no salta de golpe al estado final.
       if (opMostrada && actual < pasos.length - 1) {
+        // Los valores al azar de la próxima operación se sortean ya (no al
+        // terminar la anterior): así la llamada que se anuncia es la que corre.
+        renovarAleatorios();
         const leidos = leerArgumentos(op);
         terminarYLuego(() => ejecutar(op, leidos.error ? null : leidos.args), op.secundaria ? etiquetaDe(op) : llamadaDe(op));
         return;
@@ -1985,18 +2006,7 @@
       if (actual === pasos.length - 1) {
         detener();
         invitarAvanzar(false);
-        // La caja ya muestra el valor de la próxima operación: lo avisa con un
-        // destello (el mensaje sigue hablando del valor que se usó).
-        for (const id of aleatoriosPendientes) {
-          const input = campos[id].input;
-          input.value = aleatorio(campos[id].cfg);
-          revisarCampo(id, false);
-          input.title = tr("Nuevo valor al azar para la próxima operación", "New random value for the next operation");
-          input.classList.remove("renovado");
-          void input.offsetWidth;
-          input.classList.add("renovado");
-        }
-        aleatoriosPendientes = [];
+        renovarAleatorios();
       }
       bPlay.textContent = temporizador ? "❚❚" : "▶";
       bPlay.disabled = pasos.length < 2;
