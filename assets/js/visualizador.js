@@ -1088,12 +1088,12 @@
     const escenario = el("div", { class: "escenario" });
     const mensaje = el("p", { class: "mensaje", "aria-live": "polite" });
 
-    const bInicio = el("button", { class: "boton", type: "button", title: tr("Primer paso", "First step"), "aria-label": tr("Primer paso", "First step"), text: "«", onclick: () => ir(0) });
-    const bAtras = el("button", { class: "boton", type: "button", title: tr("Paso anterior", "Previous step"), "aria-label": tr("Paso anterior", "Previous step"), text: "‹", onclick: () => ir(actual - 1) });
+    const bInicio = el("button", { class: "boton", type: "button", title: tr("Primer paso", "First step"), "aria-label": tr("Primer paso", "First step"), text: "«", onclick: () => irAMano(0) });
+    const bAtras = el("button", { class: "boton", type: "button", title: tr("Paso anterior", "Previous step"), "aria-label": tr("Paso anterior", "Previous step"), text: "‹", onclick: () => irAMano(actual - 1) });
     // Ancho fijo: si ▶ y ❚❚ midieran distinto, la fila podría partirse en dos al empezar a
     // reproducir, después de que ajustarEscala midió el alto disponible.
     const bPlay = el("button", { class: "boton boton-play", type: "button", title: tr("Reproducir / pausar", "Play / pause"), "aria-label": tr("Reproducir o pausar", "Play or pause"), onclick: alternar });
-    const bAdelante = el("button", { class: "boton", type: "button", title: tr("Paso siguiente", "Next step"), "aria-label": tr("Paso siguiente", "Next step"), text: "›", onclick: () => ir(actual + 1) });
+    const bAdelante = el("button", { class: "boton", type: "button", title: tr("Paso siguiente", "Next step"), "aria-label": tr("Paso siguiente", "Next step"), text: "›", onclick: () => irAMano(actual + 1) });
     const bFin = el("button", { class: "boton", type: "button", title: tr("Último paso", "Last step"), "aria-label": tr("Último paso", "Last step"), text: "»", onclick: () => ir(pasos.length - 1) });
     const contador = el("span", { class: "contador-pasos" });
     const rango = el("input", { type: "range", min: 0, max: VELOCIDADES.length - 1, step: 1, "aria-label": tr("Velocidad", "Speed"), title: tr("Velocidad", "Speed") });
@@ -1101,8 +1101,17 @@
     rango.addEventListener("input", () => { velocidad = Number(rango.value); if (temporizador) { detener(); reproducir(); } });
     const etiquetaVelocidad = el("label", { class: "velocidad" }, el("span", { class: "texto-velocidad", text: tr("Velocidad", "Speed") }), rango);
 
-    // Modo al ejecutar una operación: reproducir solo o avanzar con ›.
-    const bAuto = el("button", { type: "button", text: tr("▶ Automático", "▶ Automatic"), onclick: () => cambiarModo("auto", true) });
+    // Modo al ejecutar una operación: reproducir solo o avanzar con ›. Está
+    // sincronizado con la reproducción: ▶ marca Automático, y pausar (con ❚❚
+    // o con ‹ › mientras corre) marca Paso a paso. Elegir Automático con una
+    // operación a medio ver la sigue reproduciendo.
+    const bAuto = el("button", {
+      type: "button", text: tr("▶ Automático", "▶ Automatic"),
+      onclick: () => {
+        cambiarModo("auto", true);
+        if (opMostrada && actual < pasos.length - 1 && !temporizador && !avance) reproducir();
+      },
+    });
     const bManual = el("button", { type: "button", text: tr("Paso a paso", "Step by step"), onclick: () => cambiarModo("manual", true) });
     const selectorModo = el("div", { class: "selector-modo", role: "group", "aria-label": tr("Al ejecutar una operación", "When an operation runs"), title: tr("Al ejecutar una operación", "When an operation runs") }, bAuto, bManual);
 
@@ -1154,7 +1163,6 @@
       invitarAvanzar(false);
       bAuto.setAttribute("aria-pressed", String(modo === "auto"));
       bManual.setAttribute("aria-pressed", String(modo === "manual"));
-      etiquetaVelocidad.hidden = modo === "manual";
       bAdelante.classList.toggle("principal", modo === "manual");
       if (!elegidoAqui) return;
       if (modo === "manual") detener();
@@ -2079,9 +2087,19 @@
       }, { threshold: 0.3 }).observe(contenedor);
     }
 
+    // ▶ reproduce y deja el modo en Automático; ❚❚ pausa y lo deja en Paso a paso.
     function alternar() {
-      if (temporizador) detener();
-      else reproducir();
+      if (temporizador) cambiarModo("manual", true);
+      else {
+        cambiarModo("auto", true);
+        reproducir();
+      }
+    }
+
+    // « ‹ › mientras corre la animación: la pausan (Paso a paso) y se mueven.
+    function irAMano(k) {
+      if (temporizador) cambiarModo("manual", true);
+      ir(k);
     }
 
     reiniciar();
