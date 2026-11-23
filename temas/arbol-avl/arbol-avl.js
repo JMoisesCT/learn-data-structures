@@ -1233,11 +1233,13 @@
   const OPS = {
     factorBalance: {
       etiqueta: "factorBalance(nodo)",
+      llamada: ({ valor }) => `factorBalance(nodo ${valor})`,
       usa: ["valor"],
       ejecutar(s, { valor }, paso) { animarFactorBalance(s, valor, paso); },
     },
     rotarDerecha: {
       etiqueta: "rotarDerecha(y)",
+      llamada: ({ valor }) => `rotarDerecha(nodo ${valor})`,
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         const id = buscarDirecto(s, valor);
@@ -1251,6 +1253,7 @@
     },
     rotarIzquierda: {
       etiqueta: "rotarIzquierda(x)",
+      llamada: ({ valor }) => `rotarIzquierda(nodo ${valor})`,
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         const id = buscarDirecto(s, valor);
@@ -1264,6 +1267,7 @@
     },
     rebalancear: {
       etiqueta: "rebalancear(nodo)",
+      llamada: ({ valor }) => `rebalancear(nodo ${valor})`,
       usa: ["valor"],
       ejecutar(s, { valor }, paso) {
         const id = buscarDirecto(s, valor);

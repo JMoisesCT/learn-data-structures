@@ -797,7 +797,7 @@ body.con-leccion.leccion-final > .pie { display: block; }
 .boton:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Guía para quien no sabe qué pulsar (ver "Guía" en visualizador.js): el
-   primer botón de operación pulsa una vez si nadie toca el visualizador, y en
+   botón Ejecutar pulsa una vez si nadie toca el visualizador, y en
    modo Paso a paso el botón › pulsa hasta que se usa. */
 .boton.invita { animation: invita 1.1s ease-in-out 3; }
 .boton.invita-continua:not(:disabled) { animation: invita 1.4s ease-in-out infinite; }
@@ -817,11 +817,27 @@ body.con-leccion.leccion-final > .pie { display: block; }
 
 .separador { flex: 1 0 0; }
 
+/* Elegir una operación no la ejecuta (ver "elegir" en visualizador.js): el
+   selector dice cuál, el botón Ejecutar muestra la llamada con sus valores y
+   las entradas que la elegida no usa se atenúan. */
+.selector-ops { flex-wrap: wrap; border-radius: 12px; }
+.selector-ops button { border-radius: 10px; padding: 0.2rem 0.42rem; }
+.selector-ops button code { background: none; border: 0; padding: 0; font-size: 0.76rem; color: inherit; }
+.selector-ops button[aria-pressed="true"] { color: var(--acento); }
+.boton-ejecutar { padding-left: 0.65rem; padding-right: 0.65rem; }
+.boton-ejecutar .ejecutar-verbo { font-weight: 600; }
+.boton.boton-ejecutar code { font-size: 0.8em; }
+.campo.sin-uso { opacity: 0.5; }
+.campo.sin-uso:focus-within { opacity: 1; }
+
 /* Visualizadores con muchas operaciones: botones y cajas más angostos para que los controles ocupen menos filas. */
-.controles-compactos .controles { gap: 0.4rem; }
+.controles-compactos .controles { gap: 0.4rem 0.3rem; padding-top: 0.45rem; padding-bottom: 0.45rem; }
 .controles-compactos .controles .boton { padding: 0.4rem 0.45rem; }
 .controles-compactos .controles .boton code { font-size: 0.72em; }
+.controles-compactos .controles .boton.boton-ejecutar code { font-size: 0.72em; }
+.controles-compactos .selector-ops button { padding: 0.2rem 0.36rem; }
 .controles-compactos .campo input { width: 4.2rem; }
+.controles-compactos .campo select { padding-left: 0.35rem; padding-right: 0.2rem; }
 
 .escenario {
   position: relative;

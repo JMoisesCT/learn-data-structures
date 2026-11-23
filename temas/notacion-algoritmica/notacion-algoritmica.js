@@ -991,8 +991,8 @@
     // Con un repetido elegido, el nuevo n lo conserva y lo vuelve a marcar.
     alCambiar: (s, { n, caso }) => (s.op === "hayRepetidos" && caso && caso !== "sin" ? cambiarCaso(s, { n, caso }) : {
       estado: cambiarN(s, n),
-      mensaje: tr(`n = ${n}: ahora el arreglo tiene ${n} elemento(s). Pulsa la operación para contar sus pasos; los puntos de la gráfica se conservan.`,
-        `n = ${n}: the array now has ${n} element(s). Press the operation to count its steps; the points on the chart are kept.`),
+      mensaje: tr(`n = ${n}: ahora el arreglo tiene ${n} elemento(s). Pulsa Ejecutar para contar sus pasos; los puntos de la gráfica se conservan.`,
+        `n = ${n}: the array now has ${n} element(s). Press Run to count its steps; the points on the chart are kept.`),
     }),
   });
   const CASO = { id: "caso", etiqueta: "", alCambiar: cambiarCaso, opciones: [

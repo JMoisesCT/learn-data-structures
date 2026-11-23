@@ -1039,8 +1039,8 @@
     alCambiar: (s, { criterio: c }) => ({
       codigo: CRITERIOS[c].codigo,
       mensaje: tr(
-        `Criterio ${CRITERIOS[c].texto}: la lambda ${traducir(CRITERIOS[c].firma)} decide quién va primero. Pulsa ${CRITERIOS[c].etiqueta} para ordenar con ella.`,
-        `Criterion ${CRITERIOS[c].texto}: the lambda ${traducir(CRITERIOS[c].firma)} decides who goes first. Press ${CRITERIOS[c].etiqueta} to sort with it.`),
+        `Criterio ${CRITERIOS[c].texto}: la lambda ${traducir(CRITERIOS[c].firma)} decide quién va primero. Pulsa Ejecutar para ordenar con ella.`,
+        `Criterion ${CRITERIOS[c].texto}: the lambda ${traducir(CRITERIOS[c].firma)} decides who goes first. Press Run to sort with it.`),
     }),
   };
   const codigoCriterio = (valores) => CRITERIOS[valores.criterio].codigo;

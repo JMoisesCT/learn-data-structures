@@ -842,7 +842,7 @@
     id: "tipo", etiqueta: "Recorrido", opciones: Object.entries(RECORRIDOS).map(([k, t]) => [k, t.nombre]), valor: "inorden",
     alCambiar: (s, { tipo }) => ({
       codigo: tipo,
-      mensaje: `${RECORRIDOS[tipo].nombre}: primero ${RECORRIDOS[tipo].orden.map((x) => PARTES[x]).join(", después ")}. Pulsa ${RECORRIDOS[tipo].publica}() para verlo.`,
+      mensaje: `${RECORRIDOS[tipo].nombre}: primero ${RECORRIDOS[tipo].orden.map((x) => PARTES[x]).join(", después ")}. Pulsa Ejecutar para verlo.`,
     }),
   };
 

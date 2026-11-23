@@ -431,7 +431,7 @@
       },
       {
         id: "anagramas",
-        etiqueta: "+ los 4 anagramas",
+        etiqueta: "+ anagramas",
         secundaria: true,
         ejecutar(s, args, paso) {
           const f = TEXTO[s.funcion];

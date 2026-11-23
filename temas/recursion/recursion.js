@@ -1238,18 +1238,21 @@
     const raiz = document.getElementById(contenedor);
     const controles = raiz && raiz.querySelector(".controles");
     if (!controles) return;
-    const botones = [...controles.querySelectorAll("button.principal")];
+    // El motor pone un selector si hay varias operaciones (ej.op es su índice)
+    // y un botón Ejecutar que corre la elegida.
+    const ejecutar = controles.querySelector(".boton-ejecutar");
+    const opciones = [...controles.querySelectorAll(".selector-ops button")];
     const chips = lista.map((ej) => el("button", {
       type: "button", class: "rec-ejemplo", title: ej.titulo || null, text: ej.texto,
       onclick: () => {
-        const boton = botones[ej.op || 0];
-        if (!boton || boton.disabled || bloqueadas()) return;
+        if (!ejecutar || ejecutar.disabled || bloqueadas()) return;
+        if (ej.op != null && opciones[ej.op]) opciones[ej.op].click();
         for (const [id, v] of Object.entries(ej.valores)) {
           const input = document.getElementById(`${contenedor}-${id}`);
           input.value = v;
           input.dispatchEvent(new Event("input", { bubbles: true }));
         }
-        boton.click();
+        ejecutar.click();
       },
     }));
     const grupo = el("span", { class: `rec-ejemplos${enLinea ? " en-linea" : ""}` }, el("span", { class: "rec-ejemplos-titulo", text: tr("Prueba:", "Try:") }), chips);
@@ -1257,9 +1260,9 @@
     else controles.append(grupo);
     const entradas = [...controles.querySelectorAll("input, select")];
     const bloqueadas = () => entradas.some((e) => e.disabled);
-    const sincronizar = () => { for (const c of chips) c.disabled = botones[0].disabled || bloqueadas(); };
+    const sincronizar = () => { for (const c of chips) c.disabled = !ejecutar || ejecutar.disabled || bloqueadas(); };
     const observador = new MutationObserver(sincronizar);
-    for (const nodo of [botones[0], ...entradas]) observador.observe(nodo, { attributes: true, attributeFilter: ["disabled"] });
+    for (const nodo of [ejecutar, ...entradas].filter(Boolean)) observador.observe(nodo, { attributes: true, attributeFilter: ["disabled"] });
   }
 
   // ------------------------------------------------------------------
