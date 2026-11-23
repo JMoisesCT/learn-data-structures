@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Queue · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a queue is (FIFO), how to use std::queue (push, front, pop and their traps), a real use with the Josephus problem, and how a queue is built with a linked list and two pointers (enqueue, dequeue and front in O(1)). Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="cola">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Queue</div>
+      <h1>Queue</h1>
+      <p class="resumen">A collection where <strong>the first one in is the first one out</strong> (FIFO, <em>First In, First Out</em>). You'll see it in two versions: <code>std::queue</code>, the STL one, and a <strong>linked queue</strong> built with nodes, to see what happens inside.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="First in, first out">
+        <h2>First in, first out</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>It's the line at the bank: whoever arrives gets in at the <strong>back</strong>, and the one at the <strong>front</strong>, who has been waiting the longest, is served first. Unlike the <a href="../pila/">stack</a>, you work at both ends: you enter at one and leave from the other.</p>
+          </div>
+          <div>
+            <p>C++ already has it: <code>std::queue&lt;int&gt;</code> (from <code>&lt;queue&gt;</code>). <code>push</code> enters at the back, <code>front</code> reads the first one, <code>back</code> the last one and <code>pop</code> takes out the first one. All of them are <strong>O(1)</strong>. As with the stack, <code>front</code> and <code>pop</code> on an empty queue don't warn you.</p>
+          </div>
+        </div>
+        <div id="vis-queue"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">You do <code>push(5)</code>, <code>push(9)</code>, <code>push(2)</code> and then <code>pop()</code>. What does <code>front()</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="5 was the first one in, so it was the one that left with pop().">5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="They leave in the same order they went in: 5 left and now 9 is at the front.">9</button>
+            <button type="button" class="opcion" data-explicacion="2 is back(), the last one in. In a stack it would be the top; in a queue it's the last one out.">2</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="josefo" data-titulo="A use: the circle">
+        <h2>A real use: the Josephus circle</h2>
+        <p><code>n</code> people in a circle; you count <code>k</code> at a time and the one you land on at <code>k</code> leaves, until one is left. With a queue it's natural: the <code>k - 1</code> people you count go from the <strong>front to the back</strong> (<code>push(front())</code> and <code>pop()</code>), and the next one leaves. A processor's turns work the same way (<em>round robin</em>).</p>
+        <div id="vis-josefo"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why first <code>circle.push(circle.front())</code> and then <code>circle.pop()</code>, and not the other way around?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="pop() returns nothing: if you take it out first, the value is lost. That's why it's copied to the back with push(front()) and only then removed from the front.">Because <code>pop()</code> doesn't return the value: you have to copy it first</button>
+            <button type="button" class="opcion" data-explicacion="The order changes the result: after the pop, front() is already someone else.">The order doesn't matter</button>
+            <button type="button" class="opcion" data-explicacion="push never fails because of the size: std::queue grows as much as needed.">Because the queue would fill up</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="encolar" data-titulo="Inside: enqueue">
+        <h2>Inside: a linked list with two pointers</h2>
+        <p>You leave from the head of a <a href="../lista-enlazada/">linked list</a> (<code>head</code>) and enter at the end. To avoid walking the list on every <code>enqueue</code>, the queue keeps a second pointer, <code>tail</code>: hooking up the new node is <strong>O(1)</strong>. If the queue is empty, the new node is the first and the last one at the same time.</p>
+        <div id="vis-encolar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What if, instead of keeping <code>tail</code>, you used <code>nodeAt(count - 1)</code> to reach the end?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It would work, but nodeAt walks the list from the head.">It would be just as fast</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="nodeAt makes count - 1 jumps: each enqueue would be O(n), and filling the queue with n values would cost O(n²). One more pointer keeps it at O(1).">Each <code>enqueue</code> would be O(n)</button>
+            <button type="button" class="opcion" data-explicacion="nodeAt works with any list; the problem is what it costs.">It wouldn't compile</button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why not enqueue at the front and dequeue at the end?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="To delete the last one you have to change the second to last one's next, and in a singly linked list there's no way to go back: you'd have to walk it, O(n). Inserting at the end with tail is O(1).">Because deleting the last one needs the second to last: O(n)</button>
+            <button type="button" class="opcion" data-explicacion="Inserting at the front is O(1); the problem is at the other end.">Because inserting at the front is O(n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desencolar" data-titulo="dequeue">
+        <h2><code>dequeue</code>: the first one leaves</h2>
+        <p>It's deleting the head of the list: <code>temp</code> keeps the first one, its value is read, <code>head</code> moves to the next one and the node is freed. There's a detail: if the queue becomes empty, <code>tail</code> also has to go back to <code>nullptr</code>. This version returns the value and throws <code>std::underflow_error</code> if the queue is empty.</p>
+        <div id="vis-desencolar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If you deleted the lines <code>if (head == nullptr) { tail = nullptr; }</code>, what would happen when you enqueue after emptying the queue?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The problem doesn't show up when emptying it, but on the next enqueue.">Nothing: head is already nullptr</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="tail would still point to the freed node (a dangling pointer). enqueue would see tail != nullptr and do tail->next = newNode: writing to freed memory, and head would stay nullptr. AddressSanitizer catches it.">It would write to memory that was already freed</button>
+            <button type="button" class="opcion" data-explicacion="It's not a leak: the node was freed. The problem is the pointer that still points to it.">A memory leak</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="frente" data-titulo="front">
+        <h2><code>front</code>: look without taking out</h2>
+        <p>It returns the value of the node <code>head</code> points to, without changing anything: <strong>O(1)</strong>. It's the <code>front()</code> of <code>std::queue</code>, but on an empty queue it throws an exception instead of reading garbage.</p>
+        <div id="vis-frente"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How would you write <code>int back() const</code> (the <code>back()</code> of <code>std::queue</code>) in O(1)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="tail already points to the last node: just check it isn't nullptr and return tail->value.">By returning <code>tail-&gt;value</code></button>
+            <button type="button" class="opcion" data-explicacion="It works, but it walks the whole list: O(n). That's what tail is for.">By walking from <code>head</code> to the end</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>The same buttons for both versions. Switch versions and compare: <code>std::queue</code> hides how it stores the values; in <code>LinkedQueue</code> you see the nodes and the two pointers.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th><code>std::queue</code></th><th><code>LinkedQueue</code></th><th>Time</th><th>On an empty queue</th></tr></thead>
+            <tbody>
+              <tr><td>Enter at the back</td><td><code>push(x)</code></td><td><code>enqueue(x)</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+              <tr><td>Read the first one</td><td><code>front()</code></td><td><code>front()</code></td><td class="o-grande bueno">O(1)</td><td><code>std::queue</code>: undefined behavior; <code>LinkedQueue</code>: exception</td></tr>
+              <tr><td>Take out the first one</td><td><code>pop()</code> (returns nothing)</td><td><code>dequeue()</code> (returns the value)</td><td class="o-grande bueno">O(1)</td><td><code>pop</code>: undefined behavior; <code>dequeue</code>: exception</td></tr>
+              <tr><td>Read the last one</td><td><code>back()</code></td><td>(exercise: <code>tail-&gt;value</code>)</td><td class="o-grande bueno">O(1)</td><td>undefined behavior</td></tr>
+              <tr><td>Is it empty? / size</td><td><code>empty()</code> / <code>size()</code></td><td><code>isEmpty()</code> / <code>size()</code></td><td class="o-grande bueno">O(1)</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li><strong>Inside <code>std::queue</code></strong> there's a <code>std::deque</code>, which grows and shrinks at both ends in O(1). <code>std::vector</code> won't do: taking out from the start would shift all the elements.</li>
+          <li><strong>With an array</strong> it's possible too: a <strong>circular array</strong> with two indices, <code>start</code> and <code>end</code>, that wrap around with <code>%</code>. It doesn't ask for memory on every operation, but it has a fixed capacity (or you have to resize it).</li>
+          <li><strong>Where it's used:</strong> print, task and message queues; a processor's turns (<em>round robin</em>); keyboard, audio and network buffers; and breadth-first search (BFS) of trees and graphs.</li>
+          <li>If you need the most <strong>important</strong> one to leave first, not the oldest, what you're looking for is a priority queue: a <a href="../monticulo/">heap</a> (<code>std::priority_queue</code>).</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Both versions in a single file. Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra queue.cpp -o queue &amp;&amp; ./queue</span></pre>
+        <div data-codigo-completo="en/queue.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Add the method <code>int back() const</code> to <code>LinkedQueue</code>, in O(1).</li>
+          <li>Simulate a print queue: each job has a number of pages and the printer handles 2 pages per turn; if a job still has pages left, it goes back to the end of the queue.</li>
+          <li>Implement a queue with a fixed-capacity <strong>circular array</strong>: <code>start</code>, <code>end</code> and <code>count</code>, moving forward with <code>(i + 1) % CAPACITY</code>. Why do you need <code>count</code> to tell a full queue from an empty one?</li>
+          <li>Implement a queue using <strong>two stacks</strong> (<code>std::stack</code>). How much does each operation cost on average?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/cola/cola.js"></script>
+</body>
+</html>
