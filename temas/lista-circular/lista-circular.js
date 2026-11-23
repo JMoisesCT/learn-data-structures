@@ -445,7 +445,8 @@
   // Tamaño del anillo según cuántos nodos tiene (fijo para un mismo n).
   function geometria(n) {
     const rx = n <= 1 ? 0 : Math.max(120, 30 * n);
-    const ry = n <= 1 ? 0 : Math.max(62, 15 * n);
+    // El alto deja de crecer a los 7 nodos: así el anillo de 8 cabe en la pantalla.
+    const ry = n <= 1 ? 0 : Math.max(62, Math.min(15 * n, 96));
     const ancho = Math.max(380, 2 * 1.32 * rx + 60);
     const margen = Math.max(ARRIBA, 0.32 * ry + 14);
     return { rx, ry, cx: ancho / 2, cy: margen + ry + ALTO / 2, ancho, alto: 2 * margen + 2 * ry + ALTO + (n <= 1 ? 50 : 0) };
@@ -577,10 +578,16 @@
         // sale hacia arriba del campo siguiente y baja sobre el valor del destino.
         const ini = { x: o.x + ANCHO / 2 - 14, y: o.y - ALTO / 2 };
         const fin = { x: d.x - ANCHO / 2 + 22, y: d.y - ALTO / 2 - 3 };
-        const techo = Math.min(...saltados.map(([, c]) => c.y - ALTO / 2)) - 30;
-        const cima = Math.min(ini.y, fin.y) - techo; // cuánto tiene que subir
-        const h = cima / 0.75; // una curva con los dos controles a esa altura sube 3/4 de ella
-        dPath = `M ${ini.x} ${ini.y} C ${ini.x} ${ini.y - h}, ${fin.x} ${fin.y - h}, ${fin.x} ${fin.y}`;
+        // Sube hasta por encima de las marcas, pasa en horizontal sobre los
+        // nodos saltados y baja al destino; las esquinas se redondean con los
+        // dos controles en la esquina (la curva queda del lado de afuera).
+        const techo = Math.min(Math.min(...saltados.map(([, c]) => c.y - ALTO / 2)) - 30, Math.min(ini.y, fin.y) - 20);
+        const xs = saltados.map(([, c]) => c.x);
+        const haciaDerecha = fin.x >= ini.x;
+        const xa = haciaDerecha ? Math.min(...xs) : Math.max(...xs);
+        const xb = haciaDerecha ? Math.max(...xs) : Math.min(...xs);
+        dPath = `M ${ini.x} ${ini.y} C ${ini.x} ${techo}, ${ini.x} ${techo}, ${xa} ${techo}` +
+          ` L ${xb} ${techo} C ${fin.x} ${techo}, ${fin.x} ${techo}, ${fin.x} ${fin.y}`;
       }
       path.setAttribute("d", dPath);
     }
