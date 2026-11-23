@@ -38,6 +38,10 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Lista enlazada | `insertarAlInicio` / `insertarAlFinal` / `insertarEn` | `insertAtFront` / `insertAtBack` / `insertAt` |
 | Lista enlazada | `buscar` / `eliminar` / `eliminarEn` | `find` / `remove` / `removeAt` |
 | Lista enlazada | `tamano` (variable) / `actual` / `anterior` (variable local) / `nodo` / `lista` | `size` / `current` / `prev` / `node` / `list` |
+| Lista doblemente enlazada | `ListaDoble` | `DoublyLinkedList` |
+| Lista doblemente enlazada | `anterior` / `siguiente` (campos del nodo y variables locales de `insertarEn`) | `prev` / `next` |
+| Lista doblemente enlazada | `eliminarAlInicio` / `eliminarAlFinal` / `desenganchar` | `removeFront` / `removeBack` / `unlink` |
+| Lista doblemente enlazada | `imprimirAlReves` | `printBackward` |
 | Lambdas | `elevarAlCuadrado` / `cuadrado` / `resultado` | `computeSquare` / `square` / `result` |
 | Lambdas | `capturaPorValor` / `multiplicar` | `captureByValue` / `multiply` |
 | Lambdas | `sumarConReferencia` / `numeros` / `acumular` | `sumWithReference` / `numbers` / `addToTotal` |

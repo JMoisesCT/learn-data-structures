@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doubly linked list · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a doubly linked list is (like std::list), how head and tail make inserting and removing at both ends O(1), how the four pointers are hooked up when inserting in the middle, why removing a node doesn't need to find its previous one, and how to reach a position from the nearest end. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="lista-doble">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Doubly linked list</div>
+      <h1>Doubly linked list</h1>
+      <p class="resumen">Each node knows who comes <strong>after</strong> it and also who comes <strong>before</strong> it. It is the idea behind <code>std::list</code>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Two pointers per node">
+        <h2>Two pointers per node, and a list with two ends</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Like the <a href="../lista-enlazada/">linked list</a>, but each node also stores <code>prev</code>, and the list stores <code>head</code> and <code>tail</code>. It's like a train: from any car you can move to the one in front or the one behind.</p>
+          </div>
+          <div>
+            <p>Reaching a position is still O(n), but <code>nodeAt</code> picks the <strong>nearest end</strong>: if <code>pos</code> is in the second half, it walks backward from the tail. At most <code>n / 2</code> jumps.</p>
+          </div>
+        </div>
+        <div id="vis-obtener"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In a list of 1000 nodes, how many jumps does <code>nodeAt(990)</code> make?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That would be in a singly linked list, which can only move forward from the head.">990</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="990 is in the second half: it starts at the tail (position 999) and goes back 999 − 990 = 9 times.">9</button>
+            <button type="button" class="opcion" data-explicacion="It's still a list: there is no calculation to jump straight there, like in an array.">1</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="extremos" data-titulo="Inserting at the ends">
+        <h2>Inserting at both ends: O(1)</h2>
+        <p>At the front, the new node points to the head and the head points <strong>back</strong> to the new node. At the back the same happens with <code>tail</code>: nothing has to be walked to reach the last one. If the list was empty, the new node is head <strong>and</strong> tail.</p>
+        <div id="vis-extremos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How many pointers does <code>insertAtBack</code> change in a list that isn't empty?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="One is missing: tail also has to move to the new node.">Two: <code>newNode->prev</code> and <code>tail->next</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="newNode->prev, tail->next and tail itself. The new node's next already starts as nullptr.">Three</button>
+            <button type="button" class="opcion" data-explicacion="The new node's next is nullptr from the moment it's created, and head doesn't change.">Four</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertar-en" data-titulo="Inserting in the middle">
+        <h2><code>insertAt</code>: four pointers</h2>
+        <p><code>nodeAt(pos)</code> gives the node that is at <code>pos</code> right now, and its <code>prev</code> comes for free. The new node slips in between them by changing <strong>four pointers</strong>: the new node's two and one of each neighbor. The ends reuse <code>insertAtFront</code> and <code>insertAtBack</code>.</p>
+        <div id="vis-insertar-en"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What happens if you forget <code>next->prev = newNode</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The compiler sees nothing wrong: the pointers are valid, they just point to the wrong place.">It doesn't compile</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Going forward the new node shows up, but going backward the neighbor still jumps to the old previous node: walking backward skips it.">Walking backward, the new node doesn't show up</button>
+            <button type="button" class="opcion" data-explicacion="The new node did get hooked in going forward: prev->next already points to it.">The new node is lost and memory leaks</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Removing without finding the previous">
+        <h2><code>remove</code>: the node knows who comes before</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>In the singly linked list, to take a node out you had to find its <strong>previous</strong> node. Here each node stores it: <code>unlink</code> makes its two neighbors point to each other. That's <strong>O(1)</strong>.</p>
+          </div>
+          <div>
+            <p><code>remove(value)</code> is still O(n), but only because it has to <strong>find</strong> the value. If you already have the node (or a <code>std::list</code> iterator), deleting it doesn't walk anything.</p>
+          </div>
+        </div>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">When unlinking the head, what does the first part of the <code>if</code> do?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The head has no previous node: that's exactly the else case.">It changes <code>prev->next</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Since node->prev is nullptr, it goes into the else: head becomes the second node.">It moves <code>head</code> to the next node</button>
+            <button type="button" class="opcion" data-explicacion="The second part decides that, by looking at node->next.">It moves <code>tail</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar-extremos" data-titulo="Removing at the ends">
+        <h2>Removing at the ends: O(1) at the back too</h2>
+        <p>This is the big difference from the singly linked list: to remove the <strong>last</strong> node, there you had to walk to the second to last. Here <code>tail->prev</code> already tells you. With the list empty, both functions throw <code>out_of_range</code>.</p>
+        <div id="vis-eliminar-extremos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With a single node, <code>removeBack()</code> leaves…</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="If head still pointed to the deleted node, it would be a dangling pointer.">tail as nullptr and head unchanged</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="It has no previous or next node: the first if moves head to nullptr and the second one, tail to nullptr.">head and tail as nullptr</button>
+            <button type="button" class="opcion" data-explicacion="unlink checks both sides, so no pointer to a deleted node is ever left.">A dangling pointer in head</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>All together</h2>
+        <p>All the operations on the same list. Notice in which cases <code>nodeAt</code> walks backward.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th>Singly linked</th><th>Doubly linked</th><th>In <code>std::list</code></th></tr></thead>
+            <tbody>
+              <tr><td>Insert at the front</td><td class="o-grande bueno">O(1)</td><td class="o-grande bueno">O(1)</td><td><code>push_front(x)</code></td></tr>
+              <tr><td>Insert at the back</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>push_back(x)</code></td></tr>
+              <tr><td>Remove at the back</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>pop_back()</code></td></tr>
+              <tr><td>Remove a node you already have</td><td class="o-grande malo">O(n)</td><td class="o-grande bueno">O(1)</td><td><code>erase(it)</code></td></tr>
+              <tr><td>Reach position <code>pos</code></td><td class="o-grande malo">O(n)</td><td class="o-grande malo">O(n), ≤ n / 2</td><td><code>std::next(l.begin(), pos)</code></td></tr>
+              <tr><td>Extra memory per node</td><td>1 pointer</td><td>2 pointers</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li>Use it when you add and remove a lot at <strong>both ends</strong>, or delete nodes you have already located.</li>
+          <li>An <strong>LRU cache</strong> (least recently used items go out first) combines a doubly linked list with a <a href="../tabla-hash/">hash table</a>: moving an item to the front is O(1).</li>
+          <li>A browser's back/forward history or an editor's undo/redo are walked in both directions.</li>
+          <li>To read by position or traverse a lot, <code>std::vector</code> is still faster and uses less memory.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra doubly_linked_list.cpp -o doubly_linked_list &amp;&amp; ./doubly_linked_list</span></pre>
+        <div data-codigo-completo="en/doubly_linked_list.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>removeAt(int pos)</code> using <code>nodeAt</code> and <code>unlink</code>.</li>
+          <li>Write <code>void reverse()</code>: it's enough to swap <code>prev</code> and <code>next</code> in each node, and then <code>head</code> and <code>tail</code>.</li>
+          <li>Write <code>bool isPalindrome() const</code> walking with two pointers, one from each end.</li>
+          <li>Add <code>moveToFront(int value)</code>: it finds the node and, without deleting it, hooks it in at the front (that's what an LRU cache does).</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/lista-doble/lista-doble.js"></script>
+</body>
+</html>

@@ -108,6 +108,7 @@
         titulo: "Doubly linked list",
         resumen: "Each node points to the next and the previous one, and the list keeps a head and a tail: inserting and removing at both ends is O(1). The idea behind std::list.",
         etiquetas: ["O(1) ends", "prev and next"],
+        archivo: "doubly_linked_list.cpp",
       },
     },
     {
