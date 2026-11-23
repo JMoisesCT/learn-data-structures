@@ -1,8 +1,11 @@
 // Lista circular: el último nodo apunta al primero y la lista solo guarda ultimo.
+// Los fragmentos de código coinciden línea por línea con ejemplos/cpp/lista_circular.cpp,
+// y en inglés con ejemplos/cpp/en/circular_list.cpp (scripts/verificar-fragmentos.mjs
+// lo revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
   "use strict";
 
-  const { el } = DS;
+  const { el, tr } = DS;
   const SVG = "http://www.w3.org/2000/svg";
   const MAXIMO = 8; // límite solo para que la animación quepa en pantalla
   const ANCHO = 76;
@@ -10,8 +13,9 @@
   const ARRIBA = 30; // lugar para las marcas sobre el nodo de más arriba
   const EJEMPLO = [5, 10, 20, 30]; // la lista que arma main()
 
-  // Copia exacta de las funciones de ejemplos/cpp/lista_circular.cpp.
-  const CODIGO = {
+  // Copia exacta de las funciones de ejemplos/cpp/lista_circular.cpp y de
+  // ejemplos/cpp/en/circular_list.cpp, con las mismas líneas.
+  const CODIGO = tr({
     buscar: `
       bool buscar(int valor) const {
           if (ultimo == nullptr) {
@@ -77,7 +81,88 @@
           procesos.rotar();
           return quedan;
       }`,
+  }, {
+    buscar: `
+      bool find(int value) const {
+          if (last == nullptr) {
+              return false;
+          }
+          Node* current = last->next;
+          do {
+              if (current->value == value) {
+                  return true;
+              }
+              current = current->next;
+          } while (current != last->next);
+          return false;
+      }`,
+    insertarAlInicio: `
+      void insertAtFront(int value) {
+          Node* newNode = new Node(value);
+          if (last == nullptr) {
+              newNode->next = newNode;  // a single node: it points to itself
+              last = newNode;
+          } else {
+              newNode->next = last->next;
+              last->next = newNode;
+          }
+          size++;
+      }`,
+    insertarAlFinal: `
+      void insertAtBack(int value) {
+          insertAtFront(value);
+          last = last->next;
+      }`,
+    rotar: `
+      void rotate() {
+          if (last != nullptr) {
+              last = last->next;
+          }
+      }`,
+    eliminarPrimero: `
+      int removeFirst() {
+          if (last == nullptr) {
+              throw std::out_of_range("empty list");
+          }
+          Node* first = last->next;
+          int value = first->value;
+          if (first == last) {
+              last = nullptr;  // it was the only one
+          } else {
+              last->next = first->next;
+          }
+          delete first;
+          size--;
+          return value;
+      }`,
+    unTurno: `
+      int takeTurn(CircularList& processes, int quantum) {
+          int& remaining = processes.first();
+          remaining -= std::min(remaining, quantum);
+          if (remaining == 0) {
+              processes.removeFirst();
+              return 0;
+          }
+          int leftover = remaining;
+          processes.rotate();
+          return leftover;
+      }`,
+  });
+
+  const CLASE = tr("ListaCircular", "CircularList");
+  // Nombre de cada función en el idioma de la página (las claves quedan en español).
+  const F = tr(
+    { buscar: "buscar", insertarAlInicio: "insertarAlInicio", insertarAlFinal: "insertarAlFinal", rotar: "rotar", eliminarPrimero: "eliminarPrimero", unTurno: "unTurno" },
+    { buscar: "find", insertarAlInicio: "insertAtFront", insertarAlFinal: "insertAtBack", rotar: "rotate", eliminarPrimero: "removeFirst", unTurno: "takeTurn" });
+
+  // Nombres del C++ que se dibujan (variables, punteros y marcas). Los estados
+  // usan los de español y se traducen al pintar, así son iguales en los dos idiomas.
+  const NOMBRES = {
+    ultimo: "last", primero: "first", tamano: "size", valor: "value", nuevo: "newNode",
+    actual: "current", falta: "remaining", quedan: "leftover",
   };
+  const ident = (k) => tr(k, NOMBRES[k] || k);
+  const traducirVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [ident(k), v]));
 
   const LLAMA = {
     insertarAlFinal: ["insertarAlInicio"],
@@ -120,8 +205,10 @@
   }
 
   const tamano = (s) => vuelta(s).length;
-  const nombre = (s, id) => (id == null ? "nullptr" : `nodo ${s.nodos[id].v}`);
-  const texto = (s) => (tamano(s) ? `${vuelta(s).map((id) => s.nodos[id].v).join(" → ")} → (vuelve al ${s.nodos[primero(s)].v})` : "vacía");
+  const nombre = (s, id) => (id == null ? "nullptr" : `${tr("nodo", "node")} ${s.nodos[id].v}`);
+  const texto = (s) => (tamano(s)
+    ? `${vuelta(s).map((id) => s.nodos[id].v).join(" → ")} → (${tr("vuelve al", "back to")} ${s.nodos[primero(s)].v})`
+    : tr("vacía", "empty"));
 
   function ver(s, vis) {
     s.vis = vis;
@@ -129,7 +216,8 @@
 
   function limite(s, clave, paso) {
     ver(s, { error: true });
-    paso(clave, 0, `Para que quepa en pantalla, la lista llega hasta ${MAXIMO} nodos. Saca alguno o pulsa Reiniciar.`, "error");
+    paso(clave, 0, tr(`Para que quepa en pantalla, la lista llega hasta ${MAXIMO} nodos. Saca alguno o pulsa Reiniciar.`,
+      `Up to ${MAXIMO} nodes, so it fits on screen: remove some or press Reset.`), "error");
   }
 
   // ------------------------------------------------------------------
@@ -140,25 +228,26 @@
     const C = "buscar";
     if (s.ultimo == null) {
       ver(s, { vars: { valor, ultimo: "nullptr" }, salida: "false", error: true });
-      paso(C, 3, "ultimo es nullptr: la lista está vacía. Devuelve false.", "error");
+      paso(C, 3, tr("ultimo es nullptr: la lista está vacía. Devuelve false.", "last is nullptr: the list is empty. It returns false."), "error");
       return;
     }
     let actual = primero(s);
     s.ptrs = { actual };
     const vars = () => ({ valor, actual: nombre(s, actual) });
     ver(s, { vars: vars(), cambio: ["actual"], activo: actual, flecha: s.ultimo });
-    paso(C, 5, `actual = ultimo->siguiente: empezamos por el primero, el ${s.nodos[actual].v}.`);
+    paso(C, 5, tr(`actual = ultimo->siguiente: empezamos por el primero, el ${s.nodos[actual].v}.`,
+      `current = last->next: we start at the first one, ${s.nodos[actual].v}.`));
     const revisados = [];
     let vueltas = 0;
     for (;;) {
       if (s.nodos[actual].v === valor) {
         ver(s, { vars: vars(), revisados, encontrado: actual, salida: "true" });
-        paso(C, 8, `¡${valor} == ${valor}! Lo encontramos.`, "exito");
+        paso(C, 8, tr(`¡${valor} == ${valor}! Lo encontramos.`, `${valor} == ${valor}! We found it.`), "exito");
         s.ptrs = {};
         return;
       }
       ver(s, { vars: vars(), revisados, activo: actual });
-      paso(C, 7, `¿${s.nodos[actual].v} == ${valor}? No.`);
+      paso(C, 7, tr(`¿${s.nodos[actual].v} == ${valor}? No.`, `${s.nodos[actual].v} == ${valor}? No.`));
       revisados.push(actual);
       const de = actual;
       actual = s.nodos[actual].sig;
@@ -167,82 +256,92 @@
       const otraVez = actual === primero(s);
       ver(s, { vars: vars(), cambio: ["actual"], revisados, activo: actual, flecha: de, completa: otraVez });
       paso(C, 11, otraVez
-        ? `actual = actual->siguiente: ¡volvimos al primero! actual == ultimo->siguiente, la vuelta terminó (${vueltas} nodos). Sin esta condición, el ciclo no terminaría nunca.`
-        : `actual = actual->siguiente: el ${s.nodos[actual].v}. ¿Ya volvimos al primero? Todavía no.`);
+        ? tr(`actual = actual->siguiente: ¡volvimos al primero! actual == ultimo->siguiente, la vuelta terminó (${vueltas} nodos). Sin esta condición, el ciclo no terminaría nunca.`,
+          `current = current->next: we're back at the first one! current == last->next, the lap is over (${vueltas} nodes). Without this condition, the loop would never end.`)
+        : tr(`actual = actual->siguiente: el ${s.nodos[actual].v}. ¿Ya volvimos al primero? Todavía no.`,
+          `current = current->next: ${s.nodos[actual].v}. Are we back at the first one? Not yet.`));
       if (otraVez) break;
     }
     ver(s, { vars: vars(), revisados, salida: "false", error: true });
-    paso(C, 12, `${valor} no está: devuelve false.`, "error");
+    paso(C, 12, tr(`${valor} no está: devuelve false.`, `${valor} isn't there: it returns false.`), "error");
     s.ptrs = {};
   }
 
   function animarAlInicio(s, valor, paso, pila, final) {
     const C = "insertarAlInicio";
-    const llamadas = [...pila, `insertarAlInicio(${valor})`];
+    const llamadas = [...pila, `${F.insertarAlInicio}(${valor})`];
     const id = crearNodo(s, valor);
     s.nodos[id].entrando = true;
     s.ptrs = { nuevo: id };
     const vars = () => ({ valor, nuevo: nombre(s, id) });
     ver(s, { pila: llamadas, vars: vars(), cambio: ["nuevo"], nuevo: id });
-    paso(C, 2, `new Nodo(${valor}): todavía no está en la vuelta.`);
+    paso(C, 2, tr(`new Nodo(${valor}): todavía no está en la vuelta.`, `new Node(${valor}): it isn't in the ring yet.`));
     if (s.ultimo == null) {
       s.nodos[id].sig = id;
       ver(s, { pila: llamadas, vars: vars(), flecha: id, celda: id });
-      paso(C, 4, "La lista estaba vacía: nuevo->siguiente = nuevo. Un solo nodo es una vuelta completa: se apunta a sí mismo.");
+      paso(C, 4, tr("La lista estaba vacía: nuevo->siguiente = nuevo. Un solo nodo es una vuelta completa: se apunta a sí mismo.",
+        "The list was empty: newNode->next = newNode. A single node is a full lap: it points to itself."));
       s.ultimo = id;
       s.ancla = id;
       delete s.nodos[id].entrando;
       ver(s, { pila: llamadas, vars: vars(), global: "ultimo" });
-      paso(C, 5, "ultimo = nuevo: es el último y, a la vez, el primero (ultimo->siguiente).");
+      paso(C, 5, tr("ultimo = nuevo: es el último y, a la vez, el primero (ultimo->siguiente).",
+        "last = newNode: it's the last one and, at the same time, the first one (last->next)."));
     } else {
       const p = primero(s);
       s.nodos[id].sig = p;
       ver(s, { pila: llamadas, vars: vars(), flecha: id, celda: id });
-      paso(C, 7, `nuevo->siguiente = ultimo->siguiente: el nuevo apunta al que hoy es el primero (el ${s.nodos[p].v}).`);
+      paso(C, 7, tr(`nuevo->siguiente = ultimo->siguiente: el nuevo apunta al que hoy es el primero (el ${s.nodos[p].v}).`,
+        `newNode->next = last->next: the new node points to the one that is first right now (${s.nodos[p].v}).`));
       s.nodos[s.ultimo].sig = id;
       delete s.nodos[id].entrando;
       ver(s, { pila: llamadas, vars: vars(), flecha: s.ultimo, celda: s.ultimo });
-      paso(C, 8, `ultimo->siguiente = nuevo: el último (el ${s.nodos[s.ultimo].v}) ahora apunta al nuevo, que pasa a ser el primero. El anillo se abrió y se volvió a cerrar.`);
+      paso(C, 8, tr(`ultimo->siguiente = nuevo: el último (el ${s.nodos[s.ultimo].v}) ahora apunta al nuevo, que pasa a ser el primero. El anillo se abrió y se volvió a cerrar.`,
+        `last->next = newNode: the last one (${s.nodos[s.ultimo].v}) now points to the new node, which becomes the first. The ring opened and closed again.`));
     }
     s.ptrs = {};
     ver(s, { pila: llamadas, vars: { tamano: tamano(s) }, cambio: ["tamano"], encontrado: id });
-    paso(C, 10, `tamano++: ${texto(s)}. Dos punteros: O(1).`, final ? "exito" : "");
+    paso(C, 10, tr(`tamano++: ${texto(s)}. Dos punteros: O(1).`, `size++: ${texto(s)}. Two pointers: O(1).`), final ? "exito" : "");
     return id;
   }
 
   function animarAlFinal(s, valor, paso) {
     const C = "insertarAlFinal";
-    const pila = [`insertarAlFinal(${valor})`];
+    const pila = [`${F.insertarAlFinal}(${valor})`];
     ver(s, { pila, vars: { valor } });
-    paso(C, 2, "Truco: insertar al final es insertar al inicio y después correr ultimo un lugar.");
+    paso(C, 2, tr("Truco: insertar al final es insertar al inicio y después correr ultimo un lugar.",
+      "Trick: inserting at the back is inserting at the front and then moving last one place."));
     const id = animarAlInicio(s, valor, paso, pila, false);
     s.ultimo = s.nodos[s.ultimo].sig;
     ver(s, { pila, vars: { ultimo: nombre(s, s.ultimo) }, cambio: ["ultimo"], global: "ultimo", encontrado: id });
-    paso(C, 3, `ultimo = ultimo->siguiente: ahora el ${valor} es el último, y el primero vuelve a ser el de antes. Ningún nodo se movió en memoria: ${texto(s)}.`, "exito");
+    paso(C, 3, tr(`ultimo = ultimo->siguiente: ahora el ${valor} es el último, y el primero vuelve a ser el de antes. Ningún nodo se movió en memoria: ${texto(s)}.`,
+      `last = last->next: now ${valor} is the last one, and the first one is the same as before. No node moved in memory: ${texto(s)}.`), "exito");
   }
 
   function animarRotar(s, paso, pila, final) {
     const C = "rotar";
-    const llamadas = [...(pila || []), "rotar()"];
+    const llamadas = [...(pila || []), `${F.rotar}()`];
     if (s.ultimo == null) {
       ver(s, { pila: llamadas, vars: { ultimo: "nullptr" }, error: final });
-      paso(C, 2, "ultimo es nullptr: la lista está vacía, no hay nada que rotar.", final ? "error" : "");
+      paso(C, 2, tr("ultimo es nullptr: la lista está vacía, no hay nada que rotar.", "last is nullptr: the list is empty, there is nothing to rotate."), final ? "error" : "");
       return;
     }
     const antes = s.ultimo;
     ver(s, { pila: llamadas, vars: { ultimo: nombre(s, antes) }, flecha: antes, global: "ultimo" });
-    paso(C, 2, `ultimo != nullptr: el último es el ${s.nodos[antes].v} y el primero, el ${s.nodos[primero(s)].v}.`);
+    paso(C, 2, tr(`ultimo != nullptr: el último es el ${s.nodos[antes].v} y el primero, el ${s.nodos[primero(s)].v}.`,
+      `last != nullptr: the last one is ${s.nodos[antes].v} and the first one, ${s.nodos[primero(s)].v}.`));
     s.ultimo = s.nodos[antes].sig;
     ver(s, { pila: llamadas, vars: { ultimo: nombre(s, s.ultimo) }, cambio: ["ultimo"], global: "ultimo" });
-    paso(C, 3, `ultimo = ultimo->siguiente: el ${s.nodos[s.ultimo].v} pasa a ser el último y el ${s.nodos[primero(s)].v}, el primero. Solo se movió un puntero: O(1).`, final ? "exito" : "");
+    paso(C, 3, tr(`ultimo = ultimo->siguiente: el ${s.nodos[s.ultimo].v} pasa a ser el último y el ${s.nodos[primero(s)].v}, el primero. Solo se movió un puntero: O(1).`,
+      `last = last->next: ${s.nodos[s.ultimo].v} becomes the last one and ${s.nodos[primero(s)].v}, the first. Only one pointer moved: O(1).`), final ? "exito" : "");
   }
 
   function animarEliminarPrimero(s, paso, pila, final) {
     const C = "eliminarPrimero";
-    const llamadas = [...(pila || []), "eliminarPrimero()"];
+    const llamadas = [...(pila || []), `${F.eliminarPrimero}()`];
     if (s.ultimo == null) {
       ver(s, { pila: llamadas, vars: { ultimo: "nullptr" }, error: true });
-      paso(C, 3, "ultimo es nullptr: la lista está vacía. Lanza out_of_range.", "error");
+      paso(C, 3, tr("ultimo es nullptr: la lista está vacía. Lanza out_of_range.", "last is nullptr: the list is empty. It throws out_of_range."), "error");
       return null;
     }
     const p = primero(s);
@@ -250,58 +349,66 @@
     s.ptrs = { primero: p };
     const valor = s.nodos[p].v;
     ver(s, { pila: llamadas, vars: { primero: nombre(s, p) }, cambio: ["primero"], activo: p, flecha: s.ultimo });
-    paso(C, 5, `primero = ultimo->siguiente: el ${valor}.`);
+    paso(C, 5, tr(`primero = ultimo->siguiente: el ${valor}.`, `first = last->next: ${valor}.`));
     ver(s, { pila: llamadas, vars: { primero: nombre(s, p), valor }, cambio: ["valor"], condenado: p });
-    paso(C, 6, `int valor = primero->valor = ${valor}: se guarda antes de borrarlo.`);
+    paso(C, 6, tr(`int valor = primero->valor = ${valor}: se guarda antes de borrarlo.`, `int value = first->value = ${valor}: it's saved before deleting it.`));
     if (p === s.ultimo) {
       s.ultimo = null;
       ver(s, { pila: llamadas, vars: { primero: nombre(s, p), valor, ultimo: "nullptr" }, cambio: ["ultimo"], condenado: p });
-      paso(C, 8, "primero == ultimo: era el único nodo. ultimo = nullptr, la lista queda vacía.");
+      paso(C, 8, tr("primero == ultimo: era el único nodo. ultimo = nullptr, la lista queda vacía.", "first == last: it was the only node. last = nullptr, the list is now empty."));
     } else {
       s.nodos[s.ultimo].sig = s.nodos[p].sig;
       ver(s, { pila: llamadas, vars: { primero: nombre(s, p), valor }, condenado: p, flecha: s.ultimo, celda: s.ultimo });
-      paso(C, 10, `ultimo->siguiente = primero->siguiente: el último salta al ${s.nodos[s.nodos[p].sig].v}, que pasa a ser el primero. Nadie apunta ya al ${valor}.`);
+      const vSig = s.nodos[s.nodos[p].sig].v;
+      paso(C, 10, tr(`ultimo->siguiente = primero->siguiente: el último salta al ${vSig}, que pasa a ser el primero. Nadie apunta ya al ${valor}.`,
+        `last->next = first->next: the last one jumps to ${vSig}, which becomes the first. Nobody points to ${valor} anymore.`));
     }
     delete s.nodos[p];
     if (s.ancla === p) s.ancla = primero(s);
     delete s.congelado;
     s.ptrs = {};
     ver(s, { pila: llamadas, vars: { valor } });
-    paso(C, 12, `delete primero: se libera el ${valor} y el anillo se cierra sin él.`);
+    paso(C, 12, tr(`delete primero: se libera el ${valor} y el anillo se cierra sin él.`, `delete first: ${valor} is freed and the ring closes without it.`));
     ver(s, { pila: llamadas, vars: { valor }, salida: valor });
-    paso(C, 14, `tamano-- y devuelve ${valor}: ${texto(s)}.`, final ? "exito" : "");
+    paso(C, 14, tr(`tamano-- y devuelve ${valor}: ${texto(s)}.`, `size-- and it returns ${valor}: ${texto(s)}.`), final ? "exito" : "");
     return valor;
   }
 
   function animarTurno(s, quantum, paso) {
     const C = "unTurno";
-    const pila = [`unTurno(procesos, ${quantum})`];
+    const pila = [`${F.unTurno}(${tr("procesos", "processes")}, ${quantum})`];
     if (s.ultimo == null) {
       ver(s, { pila, vars: { quantum }, error: true });
-      paso(C, 2, "Todos los procesos terminaron: la lista está vacía y primero() lanzaría out_of_range. Pulsa Reiniciar.", "error");
+      paso(C, 2, tr("Todos los procesos terminaron: la lista está vacía y primero() lanzaría out_of_range. Pulsa Reiniciar.",
+        "All the processes finished: the list is empty and first() would throw out_of_range. Press Reset."), "error");
       return;
     }
     const p = primero(s);
     const n = s.nodos[p];
     ver(s, { pila, vars: { quantum, falta: n.v }, cambio: ["falta"], activo: p, flecha: s.ultimo });
-    paso(C, 2, `int& falta = procesos.primero(): al proceso del frente le faltan ${n.v} unidades. Es una referencia: cambiarla cambia el valor del nodo.`);
+    paso(C, 2, tr(`int& falta = procesos.primero(): al proceso del frente le faltan ${n.v} unidades. Es una referencia: cambiarla cambia el valor del nodo.`,
+      `int& remaining = processes.first(): the process at the front still needs ${n.v} units. It's a reference: changing it changes the node's value.`));
     const trabajo = Math.min(n.v, quantum);
     n.v -= trabajo;
     ver(s, { pila, vars: { quantum, falta: n.v }, cambio: ["falta"], activo: p, trabaja: p });
-    paso(C, 3, `Trabaja ${trabajo} unidad(es) (lo que le falta, o el quantum si es menor): falta = ${n.v}.`);
+    paso(C, 3, tr(`Trabaja ${trabajo} unidad(es) (lo que le falta, o el quantum si es menor): falta = ${n.v}.`,
+      `It works ${trabajo} unit(s) (what it still needs, or the quantum if that's smaller): remaining = ${n.v}.`));
     if (n.v === 0) {
       ver(s, { pila, vars: { quantum, falta: 0 }, encontrado: p });
-      paso(C, 5, "falta == 0: ¡terminó! Sale de la lista.");
+      paso(C, 5, tr("falta == 0: ¡terminó! Sale de la lista.", "remaining == 0: it's done! It leaves the list."));
       animarEliminarPrimero(s, paso, pila, false);
       ver(s, { pila, vars: { quantum }, salida: 0 });
-      paso(C, 6, tamano(s) ? `Devuelve 0. Siguen ${tamano(s)} proceso(s).` : "Devuelve 0. ¡Todos los procesos terminaron!", "exito");
+      paso(C, 6, tamano(s)
+        ? tr(`Devuelve 0. Siguen ${tamano(s)} proceso(s).`, `It returns 0. ${tamano(s)} process(es) left.`)
+        : tr("Devuelve 0. ¡Todos los procesos terminaron!", "It returns 0. All the processes finished!"), "exito");
       return;
     }
     ver(s, { pila, vars: { quantum, falta: n.v, quedan: n.v }, cambio: ["quedan"], activo: p });
-    paso(C, 8, `Le faltan ${n.v}: se guarda en quedan antes de rotar.`);
+    paso(C, 8, tr(`Le faltan ${n.v}: se guarda en quedan antes de rotar.`, `It still needs ${n.v}: that's saved in leftover before rotating.`));
     animarRotar(s, paso, pila, false);
     ver(s, { pila, vars: { quantum, quedan: n.v }, salida: n.v });
-    paso(C, 10, `Devuelve ${n.v}. El ${n.v} quedó al final de la vuelta: le toca de nuevo cuando pasen los demás.`, "exito");
+    paso(C, 10, tr(`Devuelve ${n.v}. El ${n.v} quedó al final de la vuelta: le toca de nuevo cuando pasen los demás.`,
+      `It returns ${n.v}. ${n.v} ended up at the back of the ring: its turn comes again after the others.`), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -354,7 +461,7 @@
       `<marker id="punta-circ-${n}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       `<marker id="punta-circ-activa-${n}" class="activa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>` +
       "</defs>";
-    const vacia = el("div", { class: "circ-vacia", text: "ultimo = nullptr" });
+    const vacia = el("div", { class: "circ-vacia", text: tr("ultimo = nullptr", "last = nullptr") });
     const lienzo = el("div", { class: "lienzo-circ", "data-n": n }, svg, vacia);
     escenario.append(el("div", { class: "info-circ", "data-alto-estable": true }), el("div", { class: "marco-circ" }, lienzo));
     return lienzo;
@@ -488,11 +595,11 @@
     const malo = vis.salida === "false";
     escenario.querySelector(".info-circ").replaceChildren(
       vis.pila && vis.pila.length > 1
-        ? el("div", { class: "pila-llamadas", "aria-label": "Llamadas en curso" },
+        ? el("div", { class: "pila-llamadas", "aria-label": tr("Llamadas en curso", "Calls in progress") },
           vis.pila.flatMap((t, k) => [k ? "›" : "", el("span", { class: "llamada", text: t })]))
         : "",
-      DS.variables(vis.vars || { tamano: tamano(s) }, vis.cambio),
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
+      DS.variables(traducirVars(vis.vars || { tamano: tamano(s) }), (vis.cambio || []).map(ident)),
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: `celda ${malo ? "error" : "encontrada"}`, text: vis.salida })) : "");
 
     // Nodos.
     const vivos = new Set(Object.keys(s.nodos));
@@ -558,7 +665,7 @@
           marca.style.top = `${y}px`;
           lienzo.append(marca);
         }
-        marca.textContent = `${nombres.join(", ")} ↓`;
+        marca.textContent = `${nombres.map(ident).join(", ")} ↓`;
         marca.style.left = `${x}px`;
         marca.style.top = `${y}px`;
         marca.classList.toggle("oculta", i > 0);
@@ -597,24 +704,24 @@
   // Visualizadores de la lección
   // ------------------------------------------------------------------
 
-  const VALOR = { id: "valor", etiqueta: "Valor", min: 0, max: 99, aleatorio: true };
+  const VALOR = { id: "valor", etiqueta: tr("Valor", "Value"), min: 0, max: 99, aleatorio: true };
   const lleno = (s) => tamano(s) >= MAXIMO;
 
   const OPS = {
-    buscar: { etiqueta: "buscar(valor)", usa: ["valor"], ejecutar(s, { valor }, paso) { animarBuscar(s, valor, paso); } },
+    buscar: { etiqueta: tr("buscar(valor)", "find(value)"), usa: ["valor"], ejecutar(s, { valor }, paso) { animarBuscar(s, valor, paso); } },
     insertarAlInicio: {
-      etiqueta: "insertarAlInicio(valor)",
+      etiqueta: tr("insertarAlInicio(valor)", "insertAtFront(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) { if (lleno(s)) return limite(s, "insertarAlInicio", paso); animarAlInicio(s, valor, paso, [], true); },
     },
     insertarAlFinal: {
-      etiqueta: "insertarAlFinal(valor)",
+      etiqueta: tr("insertarAlFinal(valor)", "insertAtBack(value)"),
       usa: ["valor"],
       ejecutar(s, { valor }, paso) { if (lleno(s)) return limite(s, "insertarAlFinal", paso); animarAlFinal(s, valor, paso); },
     },
-    rotar: { etiqueta: "rotar()", ejecutar(s, args, paso) { animarRotar(s, paso, [], true); } },
-    eliminarPrimero: { etiqueta: "eliminarPrimero()", ejecutar(s, args, paso) { animarEliminarPrimero(s, paso, [], true); } },
-    unTurno: { etiqueta: "unTurno(procesos, quantum)", usa: ["quantum"], ejecutar(s, { quantum }, paso) { animarTurno(s, quantum, paso); } },
+    rotar: { etiqueta: tr("rotar()", "rotate()"), ejecutar(s, args, paso) { animarRotar(s, paso, [], true); } },
+    eliminarPrimero: { etiqueta: tr("eliminarPrimero()", "removeFirst()"), ejecutar(s, args, paso) { animarEliminarPrimero(s, paso, [], true); } },
+    unTurno: { etiqueta: tr("unTurno(procesos, quantum)", "takeTurn(processes, quantum)"), usa: ["quantum"], ejecutar(s, { quantum }, paso) { animarTurno(s, quantum, paso); } },
   };
 
   function visualizador(contenedor, opciones) {
@@ -625,7 +732,7 @@
       incremental: true,
       dibujar,
       codigo: Object.fromEntries([...claves].map((k) => [k, CODIGO[k]])),
-      tituloCodigo: (clave) => (clave === "unTurno" ? "unTurno()" : `ListaCircular::${clave}()`),
+      tituloCodigo: (clave) => (clave === "unTurno" ? `${F.unTurno}()` : `${CLASE}::${F[clave]}()`),
       mensajeInicial: opciones.mensajeInicial,
       estadoInicial: opciones.estadoInicial || (() => estadoDesde(EJEMPLO)),
       entradas: opciones.entradas || [],
@@ -636,46 +743,53 @@
   visualizador("vis-buscar", {
     ops: ["buscar"],
     entradas: [Object.assign({}, VALOR, { aleatorio: false, valor: 30 })],
-    mensajeInicial: "La lista de main(). Busca 30 (está) y 99 (no está): mira cómo la vuelta termina al volver al primero.",
+    mensajeInicial: tr("La lista de main(). Busca 30 (está) y 99 (no está): mira cómo la vuelta termina al volver al primero.",
+      "The list from main(). Find 30 (it's there) and 99 (it isn't): watch how the lap ends when it gets back to the first one."),
   });
 
   visualizador("vis-inicio", {
     ops: ["insertarAlInicio"],
-    entradas: [VALOR, { id: "inicial", etiqueta: "Lista", opciones: [["llena", "10, 20, 30"], ["vacia", "vacía"]], valor: "llena" }],
+    entradas: [VALOR, { id: "inicial", etiqueta: tr("Lista", "List"), opciones: [["llena", "10, 20, 30"], ["vacia", tr("vacía", "empty")]], valor: "llena" }],
     estadoInicial: ({ inicial }) => estadoDesde(inicial === "vacia" ? [] : [10, 20, 30]),
     mensajeInicial: ({ inicial }) => (inicial === "vacia"
-      ? "La lista está vacía: ultimo = nullptr. El primer nodo tiene que apuntarse a sí mismo."
-      : "Inserta al inicio: el nuevo se mete entre el último (30) y el primero (10). Prueba también con la lista vacía."),
+      ? tr("La lista está vacía: ultimo = nullptr. El primer nodo tiene que apuntarse a sí mismo.",
+        "The list is empty: last = nullptr. The first node has to point to itself.")
+      : tr("Inserta al inicio: el nuevo se mete entre el último (30) y el primero (10). Prueba también con la lista vacía.",
+        "Insert at the front: the new node slips in between the last one (30) and the first one (10). Also try it with the empty list.")),
   });
 
   visualizador("vis-final", {
     ops: ["insertarAlFinal"],
     entradas: [VALOR],
     estadoInicial: () => estadoDesde([10, 20, 30]),
-    mensajeInicial: "Inserta al final y mira la pila de llamadas: llama a insertarAlInicio y después solo corre ultimo.",
+    mensajeInicial: tr("Inserta al final y mira la pila de llamadas: llama a insertarAlInicio y después solo corre ultimo.",
+      "Insert at the back and watch the call stack: it calls insertAtFront and then just moves last."),
   });
 
   visualizador("vis-rotar", {
     ops: ["rotar"],
-    mensajeInicial: "Pulsa rotar() varias veces: los nodos no se mueven, solo las marcas ultimo y primero.",
+    mensajeInicial: tr("Pulsa rotar() varias veces: los nodos no se mueven, solo las marcas ultimo y primero.",
+      "Press rotate() several times: the nodes don't move, only the last and first labels."),
   });
 
   visualizador("vis-eliminar", {
     ops: ["eliminarPrimero"],
     estadoInicial: () => estadoDesde([5, 10, 20]),
-    mensajeInicial: "Saca el primero hasta vaciar la lista: el último nodo se apunta a sí mismo antes de irse. Después, una vez más para ver el error.",
+    mensajeInicial: tr("Saca el primero hasta vaciar la lista: el último nodo se apunta a sí mismo antes de irse. Después, una vez más para ver el error.",
+      "Remove the first one until the list is empty: the last node points to itself before it goes. Then once more to see the error."),
   });
 
   visualizador("vis-turnos", {
     ops: ["unTurno"],
     entradas: [{ id: "quantum", etiqueta: "quantum", min: 1, max: 9, valor: 3 }],
     estadoInicial: () => estadoDesde([5, 3, 7]),
-    mensajeInicial: "Tres procesos: a cada uno le faltan 5, 3 y 7 unidades de trabajo. Pulsa unTurno con quantum = 3 hasta que terminen todos.",
+    mensajeInicial: tr("Tres procesos: a cada uno le faltan 5, 3 y 7 unidades de trabajo. Pulsa unTurno con quantum = 3 hasta que terminen todos.",
+      "Three processes: they still need 5, 3 and 7 units of work. Press takeTurn with quantum = 3 until they all finish."),
   });
 
   visualizador("vis-todo", {
     ops: ["insertarAlInicio", "insertarAlFinal", "buscar", "rotar", "eliminarPrimero"],
     entradas: [VALOR],
-    mensajeInicial: "Todas las operaciones sobre la lista de main().",
+    mensajeInicial: tr("Todas las operaciones sobre la lista de main().", "All the operations on the list from main()."),
   });
 })();
