@@ -894,13 +894,6 @@
   // Paso 8: todo junto.
   visualizador("vis-todo", {
     ops: ["busquedaBinaria", "busquedaRecursiva", "lowerBound", "upperBound", "contarApariciones"],
-    etiquetas: {
-      busquedaBinaria: "busquedaBinaria",
-      busquedaRecursiva: "busquedaRecursiva",
-      lowerBound: "lowerBound",
-      upperBound: "upperBound",
-      contarApariciones: "contarApariciones",
-    },
     entradas: [
       { id: "arreglo", etiqueta: "v", opciones: [["muchos", "con repetidos"], ["ordenado", "15 distintos"], ["desordenado", "sin ordenar"]] },
       objetivo(3, "x"),

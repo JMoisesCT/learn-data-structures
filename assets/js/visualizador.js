@@ -925,8 +925,13 @@
   //                                                   // el dibujo o en el código: si no cambia el estado
   //                                                   // (un argumento), que muestre el fragmento que
   //                                                   // va a correr.
-  //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, ejecutar(s, args, paso) }]
-  //                  secundaria: true -> botón normal (para acciones que no son una función del C++)
+  //   operaciones:   [{ id, etiqueta, usa: ["valor"], codigo: "clave", secundaria, llamada, ejecutar(s, args, paso) }]
+  //                  Con varias operaciones, un selector elige cuál corre el botón Ejecutar; el botón
+  //                  muestra la llamada con los valores de las entradas: en la etiqueta, cada
+  //                  parámetro con el nombre de una entrada (su id o su etiqueta) se cambia por su valor.
+  //                  llamada: (textos) => "rotarDerecha(nodo 30)" si los nombres no coinciden
+  //                  secundaria: true -> botón normal que se ejecuta al pulsarlo (para acciones que no
+  //                  son una función del C++, como "Nuevo ejemplo")
   //                  etiqueta puede ser (valores) => texto si depende de una lista
   //   dibujar(escenario, estado)                      // pinta un estado en el escenario
   //                                                   // una fila con data-alto-estable (variables, pila de
@@ -1012,11 +1017,25 @@
     // La operación cuyos pasos se ven (null en el estado inicial) y el
     // temporizador que termina rápido sus pasos pendientes antes de otra.
     let opMostrada = null;
+    let llamadaMostrada = "";
     let avance = null;
 
     // --- Construcción de la interfaz ---
     const campos = {};
     const controles = el("div", { class: "controles" });
+    // Las operaciones que son funciones del C++ no se ejecutan al elegirlas:
+    // con varias, un selector elige cuál y el botón Ejecutar la corre. Ese
+    // botón muestra la llamada con los valores de las entradas (insertarEn(2, 9)),
+    // así se sabe qué va a correr antes de pulsarlo. Las secundarias (acciones
+    // que no son una función, como "Nuevo ejemplo") se ejecutan al pulsarlas.
+    const principales = cfg.operaciones.filter((op) => !op.secundaria);
+    let opElegida = principales[0] || null;
+    const chipsOps = principales.length > 1
+      ? principales.map((op) => el("button", { type: "button", "data-op": op.id, onclick: () => elegir(op) }))
+      : [];
+    if (chipsOps.length) {
+      controles.append(el("div", { class: "selector-modo selector-ops", role: "group", "aria-label": tr("Operación", "Operation") }, chipsOps));
+    }
     for (const e of cfg.entradas || []) {
       let input;
       if (e.opciones) {
@@ -1030,8 +1049,13 @@
         input.value = e.aleatorio ? aleatorio(e) : e.valor;
         // La caja tiene el ancho del número más largo que acepta.
         input.style.setProperty("--cifras", Math.max(String(e.min == null ? "" : e.min).length, String(e.max == null ? "" : e.max).length));
-        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") cfg.operaciones[0] && ejecutar(cfg.operaciones[0]); });
-        input.addEventListener("input", () => revisarCampo(e.id, true));
+        input.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && opElegida) ejecutar(opElegida); });
+        input.addEventListener("input", () => {
+          revisarCampo(e.id, true);
+          const op = operacionDeEntrada(e.id);
+          if (op && op !== opElegida && !e.alCambiar) elegir(op);
+          else actualizarLlamadas();
+        });
         if (e.alCambiar) input.addEventListener("input", () => cambiarEntrada(e, input));
       }
       // El rango va a la vista, en una muesca sobre el borde inferior de la
@@ -1039,13 +1063,22 @@
       const rango = e.opciones ? null : textoRango(e);
       const muesca = rango ? el("span", { class: "campo-rango", "aria-hidden": "true", text: rango }) : null;
       if (rango) input.title = tr(`Entre ${e.min} y ${e.max}`, `Between ${e.min} and ${e.max}`);
-      campos[e.id] = { cfg: e, input, muesca, rango };
-      controles.append(el("label", { class: "campo", for: input.id }, e.etiqueta,
-        muesca ? el("span", { class: "campo-caja" }, input, muesca) : input));
+      const etiquetaCampo = el("label", { class: "campo", for: input.id }, e.etiqueta,
+        muesca ? el("span", { class: "campo-caja" }, input, muesca) : input);
+      campos[e.id] = { cfg: e, input, muesca, rango, etiqueta: etiquetaCampo };
+      controles.append(etiquetaCampo);
     }
+    // Botones que ejecutan algo: Ejecutar (la operación elegida) y las secundarias.
     const botones = [];
-    for (const op of cfg.operaciones) {
-      const boton = el("button", { class: op.secundaria ? "boton" : "boton principal", type: "button", onclick: () => ejecutar(op) });
+    const bEjecutar = opElegida
+      ? el("button", { class: "boton principal boton-ejecutar", type: "button", onclick: () => opElegida && ejecutar(opElegida) })
+      : null;
+    if (bEjecutar) {
+      botones.push([null, bEjecutar]);
+      controles.append(bEjecutar);
+    }
+    for (const op of cfg.operaciones.filter((o) => o.secundaria)) {
+      const boton = el("button", { class: "boton", type: "button", onclick: () => ejecutar(op) });
       botones.push([op, boton]);
       controles.append(boton);
     }
@@ -1348,17 +1381,98 @@
     }
 
     // Las etiquetas pueden depender de las listas (p. ej. insertMax / insertMin).
+    const etiquetaDe = (op, valores) => (typeof op.etiqueta === "function" ? op.etiqueta(valores || valoresEntradas()) : op.etiqueta) || op.id;
+    // Nombre de la función, sin los parámetros: lo que dice cada opción del selector.
+    const nombreOp = (op, valores) => etiquetaDe(op, valores).replace(/\(.*$/, "");
+
+    // La llamada con los valores de las entradas: en la etiqueta, cada
+    // parámetro que se llama como una entrada numérica de la operación (por su
+    // id o por su etiqueta: "valor", "pos", "Value") se cambia por lo que dice
+    // la caja. insertarEn(pos, valor) → insertarEn(2, 9). Si los nombres no
+    // coinciden, la operación puede dar op.llamada(textos) => texto, que
+    // recibe lo que dice cada caja tal cual (o el valor de cada lista).
+    function llamadaDe(op, valores) {
+      const vals = valores || valoresEntradas();
+      if (op.llamada) {
+        const textos = {};
+        for (const [id, c] of Object.entries(campos)) textos[id] = c.cfg.opciones ? c.input.value : c.input.value.trim() || "?";
+        return op.llamada(textos);
+      }
+      const texto = etiquetaDe(op, vals);
+      const abre = texto.indexOf("(");
+      if (abre < 0 || !texto.endsWith(")")) return texto;
+      const cambios = new Map();
+      for (const id of op.usa || []) {
+        const c = campos[id];
+        if (!c || c.cfg.opciones) continue;
+        const escrito = c.input.value.trim() || "?";
+        cambios.set(id, escrito);
+        if (typeof c.cfg.etiqueta === "string") cambios.set(c.cfg.etiqueta.trim().toLowerCase(), escrito);
+      }
+      if (!cambios.size) return texto;
+      const params = texto.slice(abre + 1, -1).replace(/[\p{L}_][\p{L}\p{N}_]*/gu, (nombre) => {
+        const v = cambios.get(nombre) ?? cambios.get(nombre.toLowerCase());
+        return v == null ? nombre : v;
+      });
+      return `${texto.slice(0, abre)}(${params})`;
+    }
+
     function actualizarEtiquetas(valores) {
       for (const [op, boton] of botones) {
-        const texto = typeof op.etiqueta === "function" ? op.etiqueta(valores) : op.etiqueta;
-        if (op.secundaria) boton.textContent = texto;
-        else boton.innerHTML = `<code>${escapar(texto)}</code>`;
+        if (op) boton.textContent = op.secundaria && op.usa && op.usa.length ? llamadaDe(op, valores) : etiquetaDe(op, valores);
       }
+      principales.forEach((op, k) => {
+        if (!chipsOps[k]) return;
+        chipsOps[k].replaceChildren(el("code", { text: nombreOp(op, valores) }));
+        chipsOps[k].setAttribute("aria-pressed", String(op === opElegida));
+        chipsOps[k].title = etiquetaDe(op, valores);
+      });
+      if (bEjecutar && opElegida) {
+        bEjecutar.replaceChildren(el("span", { class: "ejecutar-verbo", text: tr("▶ Ejecutar", "▶ Run") }), " ", el("code", { text: llamadaDe(opElegida, valores) }));
+      }
+      // Con varias operaciones, las entradas que la elegida no usa se atenúan
+      // (las listas no: suelen cambiar los datos, no ser un argumento).
+      if (chipsOps.length) {
+        const usadas = new Set(opElegida.usa || []);
+        const deAlguna = new Set(principales.flatMap((op) => op.usa || []));
+        for (const [id, c] of Object.entries(campos)) {
+          c.etiqueta.classList.toggle("sin-uso", !c.cfg.opciones && deAlguna.has(id) && !usadas.has(id));
+        }
+      }
+    }
+    const actualizarLlamadas = () => actualizarEtiquetas();
+
+    // Cambiar una entrada que solo usa una de las operaciones (u y v de
+    // agregarArista, el recorrido del ABB) elige esa operación.
+    function operacionDeEntrada(id) {
+      const usan = principales.filter((op) => (op.usa || []).includes(id));
+      return usan.length === 1 && chipsOps.length ? usan[0] : null;
+    }
+
+    // Elegir otra operación no la ejecuta: cambia la llamada del botón
+    // Ejecutar y, si no hay otra operación en curso, muestra su código.
+    function elegir(op, mostrar = true) {
+      if (!op || op.secundaria) return;
+      opElegida = op;
+      actualizarEtiquetas();
+      const enCurso = (opMostrada && actual < pasos.length - 1) || temporizador || avance;
+      if (!mostrar || enCurso) return;
+      const clave = op.codigo || op.id;
+      if (!fragmentos[clave]) return;
+      opMostrada = null;
+      invitarAvanzar(false);
+      aleatoriosPendientes = [];
+      liberarAlturas();
+      pasos = [pasoInicial(tr(`Pulsa Ejecutar para correr ${nombreOp(op)} con los valores de arriba.`,
+        `Press Run to call ${nombreOp(op)} with the values above.`), clave)];
+      reservarEspacio();
+      ir(0);
     }
 
     function pasoInicial(texto, codigo) {
       const inicial = codigo || (typeof cfg.codigoInicial === "function" ? cfg.codigoInicial(valoresEntradas()) : cfg.codigoInicial);
-      const clave = inicial || cfg.operaciones[0].codigo || cfg.operaciones[0].id;
+      const porDefecto = opElegida || cfg.operaciones[0];
+      const clave = inicial || porDefecto.codigo || porDefecto.id;
       return { estado: clonar(estado), clave, linea: 0, mensaje: texto, tipo: "" };
     }
 
@@ -1545,17 +1659,30 @@
       }
     }
 
-    function ejecutar(op) {
+    // fijos: los argumentos que se leyeron al pulsar Ejecutar, si antes hubo
+    // que terminar la operación anterior (al terminar, las entradas al azar
+    // cambian de valor, y tiene que correr la llamada que se anunció).
+    function ejecutar(op, fijos) {
       if (temporizador || avance) return; // los botones están bloqueados mientras corre la animación
       // Otra operación con la anterior a medio ver (en Paso a paso o en
       // pausa): primero se terminan a la vista sus pasos pendientes, así el
       // dibujo no salta de golpe al estado final.
       if (opMostrada && actual < pasos.length - 1) {
-        terminarYLuego(() => ejecutar(op));
+        const leidos = leerArgumentos(op);
+        terminarYLuego(() => ejecutar(op, leidos.error ? null : leidos.args), op.secundaria ? etiquetaDe(op) : llamadaDe(op));
         return;
       }
       detener();
-      const { args, error, id: campoMalo } = leerArgumentos(op);
+      if (fijos) {
+        // Las cajas vuelven a mostrar los valores con que se llama.
+        for (const [id, v] of Object.entries(fijos)) {
+          if (campos[id].cfg.opciones) continue;
+          campos[id].input.value = v;
+          revisarCampo(id, false);
+        }
+        actualizarEtiquetas();
+      }
+      const { args, error, id: campoMalo } = fijos ? { args: fijos } : leerArgumentos(op);
       if (error) {
         // La caja que falla se sacude y queda lista para corregirla.
         revisarCampo(campoMalo, false);
@@ -1578,6 +1705,7 @@
       anotarRastro(lista);
       pasos = lista.length ? lista : [pasoInicial(tr("Listo.", "Done."))];
       opMostrada = op;
+      llamadaMostrada = op.secundaria ? etiquetaDe(op) : llamadaDe(op);
       aleatoriosPendientes = (op.usa || []).filter((id) => campos[id].cfg.aleatorio);
       reservarEspacio();
       ir(0);
@@ -1592,15 +1720,16 @@
     const AVANCE_CUADROS = 6;
     const AVANCE_MS = 260;
     const AVANCE_PAUSA_MS = 550;
-    function terminarYLuego(despues) {
+    function terminarYLuego(despues, siguiente) {
       detener();
       invitarAvanzar(false);
       const desde = actual;
       const faltan = pasos.length - 1 - desde;
       const cuadros = Math.min(faltan, AVANCE_CUADROS);
       const indices = Array.from({ length: cuadros }, (_, k) => desde + Math.round(((k + 1) * faltan) / cuadros));
-      const etiqueta = opMostrada.etiqueta || opMostrada.id;
-      const aviso = tr(`Terminando ${etiqueta}…`, `Finishing ${etiqueta}…`);
+      const aviso = siguiente
+        ? tr(`Terminando ${llamadaMostrada}… Después: ${siguiente}`, `Finishing ${llamadaMostrada}… Next: ${siguiente}`)
+        : tr(`Terminando ${llamadaMostrada}…`, `Finishing ${llamadaMostrada}…`);
       let k = 0;
       const cuadro = () => {
         const indice = indices[k++];
@@ -1668,6 +1797,10 @@
       const valores = valoresEntradas();
       const r = e.alCambiar(estado, valores) || {};
       if (r.estado) estado = r.estado;
+      // Si muestra el código de una operación (otro recorrido, otro criterio),
+      // esa operación queda elegida para Ejecutar.
+      const deCodigo = (r.codigo && principales.find((op) => (op.codigo || op.id) === r.codigo)) || operacionDeEntrada(e.id);
+      if (deCodigo) opElegida = deCodigo;
       actualizarEtiquetas(valores);
       const texto = r.mensaje || (typeof cfg.mensajeInicial === "function" ? cfg.mensajeInicial(valores) : cfg.mensajeInicial) || "";
       pasos = [pasoInicial(texto, r.codigo)];
@@ -1879,7 +2012,7 @@
       bloquearOperaciones(false);
     }
 
-    // Mientras corre la animación, los botones de operación esperan: así no se
+    // Mientras corre la animación, Ejecutar y los botones secundarios esperan: así no se
     // interrumpe sin querer lo que se está viendo. Se desbloquean al terminar o
     // al pausar.
     function bloquearOperaciones(si) {
@@ -1907,7 +2040,7 @@
 
     // --- Guía para quien no sabe qué pulsar ---
     // 1. Si el visualizador está a la vista y nadie lo toca en unos segundos,
-    //    el primer botón de operación pulsa (una sola vez por visualizador).
+    //    el botón Ejecutar pulsa (una sola vez por visualizador).
     // 2. En modo Paso a paso, después de ejecutar una operación, el botón ›
     //    pulsa hasta que se use por primera vez.
     let avanzoAMano = false;
@@ -1922,7 +2055,7 @@
     const ESPERA_INVITACION = 4000;
     let invitado = false;
     let esperaInvitacion = null;
-    const primeraOperacion = (botones.find(([op]) => !op.secundaria) || botones[0] || [])[1];
+    const primeraOperacion = bEjecutar || (botones[0] || [])[1];
     function cancelarInvitacion() {
       clearTimeout(esperaInvitacion);
       esperaInvitacion = null;
