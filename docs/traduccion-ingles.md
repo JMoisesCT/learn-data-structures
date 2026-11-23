@@ -10,14 +10,15 @@ Para cada tema, en el mismo PR (`[<Tema>] Agregar la lección en inglés`, rama 
 2. `temas/<slug>/<slug>.js` con `DS.tr`:
    - **Código:** `CODIGO` en los dos idiomas, con las mismas claves y las mismas líneas.
    - **Mensajes:** los de cada `paso(...)`, `mensajeInicial`, los que devuelve `alCambiar` de las entradas y los errores de "lleno" o "vacío". Algunos temas todavía sin traducir ya tienen mensajes de `alCambiar` solo en español (recorridos del ABB, pivote de Quicksort, algoritmo de Ordenamientos elementales, palabra de Recursión): pasan a `DS.tr` al traducir el tema.
-   - **Controles:** etiquetas de botones y entradas, opciones de las listas y títulos del código (`TITULOS`).
+   - **Controles:** etiquetas de las operaciones y de las entradas, opciones de las listas y títulos del código (`TITULOS`). El botón Ejecutar ("Run") muestra la llamada con los valores (`insertAt(2, 9)`): cada parámetro de la `etiqueta` que se llama como una entrada (su `id` o su `etiqueta`, sin distinguir mayúsculas) se cambia por su valor. En inglés los parámetros también tienen que coincidir (`insertAt(pos, value)` con la entrada "Value"); si no, la operación da `llamada` en los dos idiomas. Comprueba en cada operación que Run muestre los valores, no los nombres.
+   - **Mensajes que mandan a pulsar algo:** "Pulsa Ejecutar" / "Press Run", no "Pulsa insertarEn()": el botón de cada operación solo la elige.
    - **Lo que se dibuja:** nombres de variables, punteros y marcas, títulos de filas y ejes, "devuelve", leyendas, `title` y `aria-label`.
    - **Widgets propios del tema** (carreras, experimentos, comparadores).
    - Los números con formato (`toLocaleString`) usan el idioma de la página.
    - Si conviene, los nombres que se dibujan se traducen al pintar (como `nombre()` en Notación algorítmica), así los estados quedan iguales en los dos idiomas.
 3. `en/temas/<slug>/index.html`: la lección completa con los mismos pasos e `id`, preguntas con su explicación en cada opción, tabla de complejidad, comando de compilación y ejercicios.
 4. `DS.TEMAS`: `en.archivo`. Glosario (`docs/glosario-ingles.md`): los nombres nuevos. ROADMAP.md: el tema como hecho.
-5. **Pruebas** en los dos idiomas (ver CLAUDE.md, "Antes de cada push"). En inglés los textos suelen ser más cortos, pero no siempre: hay que medir otra vez que cada paso quepa a 1280 × 800, en especial las preguntas que van junto al código y los mensajes más largos de cada operación.
+5. **Pruebas** en los dos idiomas (ver CLAUDE.md, "Antes de cada push", y sus consejos para Playwright). En inglés los textos suelen ser más cortos, pero no siempre: hay que medir otra vez que cada paso quepa a 1280 × 800, en especial las preguntas que van junto al código y los mensajes más largos de cada operación.
 
 ## Tareas por tema
 
