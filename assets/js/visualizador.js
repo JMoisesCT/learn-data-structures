@@ -121,6 +121,7 @@
         titulo: "Circular list",
         resumen: "The last node points to the first: a single pointer reaches both ends. Insert, rotate and hand out turns (round-robin) in O(1).",
         etiquetas: ["O(1) rotate", "round-robin"],
+        archivo: "circular_list.cpp",
       },
     },
     {

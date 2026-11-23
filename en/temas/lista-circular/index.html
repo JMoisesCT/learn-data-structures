@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Circular list · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: what a circular list is (the last node points to the first), why a pointer to the last node is enough, how to insert at the front and at the back in O(1), rotate without moving nodes, remove the first node, walk it with do-while without looping forever, and hand out turns (round-robin). Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="lista-circular">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Circular list</div>
+      <h1>Circular list</h1>
+      <p class="resumen">A linked list where the last node, instead of pointing to <code>nullptr</code>, <strong>points to the first one</strong>. Great for handing out turns.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="The last points to the first">
+        <h2>The last points to the first</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Like a round of players: after the last one comes the first one again. Storing <code>last</code> is enough, because the first one is <code>last->next</code>: <strong>both ends</strong> in O(1).</p>
+          </div>
+          <div>
+            <p>There's no <code>nullptr</code> at the end: you walk it with <code>do … while</code> until you're <strong>back at the first one</strong>. Otherwise, the loop would go around forever.</p>
+          </div>
+        </div>
+        <div id="vis-buscar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does <code>find</code> use <code>do … while</code> and not <code>while (current != last->next)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Both are just as fast: the difference is when the condition is checked.">Because it's faster</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="current starts right at last->next: with a plain while, the condition would be false from the start and no node would be checked.">Because with <code>while</code> it would never enter the loop</button>
+            <button type="button" class="opcion" data-explicacion="With the right while condition it wouldn't loop forever either; the problem is something else.">So it doesn't loop forever</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="inicio" data-titulo="Inserting at the front">
+        <h2><code>insertAtFront</code>: opening the ring and closing it</h2>
+        <p>The new node slips in between the last and the first: it points to the one that is first right now, and the last one starts pointing to it. That's two pointers, O(1). If the list was empty, the only node <strong>points to itself</strong>.</p>
+        <div id="vis-inicio"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">After <code>insertAtFront</code>, did <code>last</code> change?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="The last one is still the same node; only the node its next points to changed. The new node is the first because it's last->next.">No, only <code>last->next</code> changed</button>
+            <button type="button" class="opcion" data-explicacion="If last pointed to the new node, the new node would be the last one, not the first.">Yes, it now points to the new node</button>
+            <button type="button" class="opcion" data-explicacion="Only when the list was empty: then the new node is the only one and last starts pointing to it.">It always stays <code>nullptr</code></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="final" data-titulo="Inserting at the back">
+        <h2><code>insertAtBack</code>: inserting at the front and moving <code>last</code></h2>
+        <p>The front and the back are <strong>at the same spot in the ring</strong>: between the last and the first. The only difference is which node <code>last</code> points to. That's why inserting at the back is inserting at the front and moving <code>last</code> forward one node: O(1).</p>
+        <div id="vis-final"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In a singly linked list with only <code>head</code>, inserting at the back cost…</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Without a pointer to the end, you have to walk the whole list to reach the last one.">O(1)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="You had to walk to the last one. Here last already has it, and from it you also reach the first one.">O(n): you had to reach the last one</button>
+            <button type="button" class="opcion" data-explicacion="Reaching the last one is walking, not sorting: O(n), not O(n log n).">O(n log n)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="rotar" data-titulo="Rotating">
+        <h2><code>rotate</code>: the first one goes to the back without moving</h2>
+        <p>In an array, moving the first element to the end forces you to shift all the others. Here it's enough to move <code>last</code> forward one node: the one that was first is now the last. <strong>No node moves in memory</strong>, just one pointer: O(1).</p>
+        <div id="vis-rotar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With 4 nodes, how many times do you have to call <code>rotate()</code> for everything to be as it was at the start?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="With one call, last moves forward a single node.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Each rotate moves last forward one node: after 4, it points to the same one again.">4</button>
+            <button type="button" class="opcion" data-explicacion="The ring never runs out: rotate can be repeated forever, and every 4 calls it's back to the start.">Never</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Removing the first">
+        <h2><code>removeFirst</code>: the last one jumps to the second</h2>
+        <p>The first one is <code>last->next</code>: to take it out, the last one starts pointing to the second one and the first one is freed. O(1). If it was the only node, the list is left empty (<code>last = nullptr</code>); if it was already empty, it throws <code>out_of_range</code>.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">How does <code>removeFirst</code> know that there's only one node left?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="If the first one is also the last one, the node points to itself: it's the only one.">Because <code>first == last</code></button>
+            <button type="button" class="opcion" data-explicacion="In a circular list no next is nullptr while there are nodes.">Because <code>first->next == nullptr</code></button>
+            <button type="button" class="opcion" data-explicacion="size would also work, but the code looks at the pointers: first == last.">It doesn't know</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="turnos" data-titulo="Turns (round-robin)">
+        <h2>A real use: handing out turns</h2>
+        <p>An operating system shares the processor among programs in turns (<em>round-robin</em>): each one works up to a time <code>quantum</code>; if it finishes, it leaves the round, and if not, it goes to the back. Each node stores how much work a process <strong>still needs</strong>.</p>
+        <div id="vis-turnos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With <code>quantum = 3</code> and processes of 5, 3 and 7, which one finishes first?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The 5 has 2 left after its first turn: it goes back to the end.">The 5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The 3 finishes in its first turn (3 ≤ 3), which is the second turn of the round.">The 3</button>
+            <button type="button" class="opcion" data-explicacion="The 7 still needs 4 after its first turn and 1 after its second.">The 7</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>All together</h2>
+        <p>All the operations on the same ring. Notice that none of them walks the list, except <code>find</code>.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and where it's used</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th>Time</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>insertAtFront</code> / <code>insertAtBack</code></td><td class="o-grande bueno">O(1)</td><td>Both ends are right next to <code>last</code>.</td></tr>
+              <tr><td><code>rotate</code></td><td class="o-grande bueno">O(1)</td><td>It just moves <code>last</code> forward; the nodes don't move.</td></tr>
+              <tr><td><code>removeFirst</code></td><td class="o-grande bueno">O(1)</td><td>The last one jumps to the second.</td></tr>
+              <tr><td><code>find</code></td><td class="o-grande malo">O(n)</td><td>One full lap with <code>do … while</code>.</td></tr>
+              <tr><td>Removing the last one</td><td class="o-grande malo">O(n)</td><td>You have to find the second to last (with a circular doubly linked list, O(1)).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Turns:</strong> an operating system's process scheduler, the players of a turn-based game, a playlist on repeat.</li>
+          <li><strong>Circular buffers:</strong> the same idea with an array (the indices wrap around with <code>% capacity</code>); that's how fixed-size <a href="../cola/">queues</a> are usually implemented.</li>
+          <li>The STL has no circular list, but you can imitate one with <code>std::list</code> and an iterator that goes back to <code>begin()</code> when it reaches <code>end()</code>.</li>
+          <li>The <a href="../cola/#josefo">Josephus</a> problem is exactly a round: count, take one out and keep going.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra circular_list.cpp -o circular_list &amp;&amp; ./circular_list</span></pre>
+        <div data-codigo-completo="en/circular_list.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>bool remove(int value)</code>. Hint: walk with a <code>prev</code> pointer that starts at <code>last</code>, and take care of the single-node case and of deleting the last one.</li>
+          <li>Write <code>int josephus(int n, int k)</code>: n people in a circle, you count k at a time and the one you land on leaves. Who is left?</li>
+          <li>Change the list so it's <strong>circular and doubly linked</strong> (each node with prev). How much does removing the last one cost now?</li>
+          <li>Write <code>void printFrom(int value)</code>, which goes one full lap starting at that value.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/lista-circular/lista-circular.js"></script>
+</body>
+</html>
