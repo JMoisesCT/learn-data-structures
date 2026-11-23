@@ -68,3 +68,8 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Pila | `tope` (puntero a la cima) | `top` |
 | Pila | `usarStack` | `useStack` |
 | Pila | `estanBalanceados` / `abiertos` / `esperado` | `isBalanced` / `openers` / `expected` |
+| Cola | `ColaEnlazada` | `LinkedQueue` |
+| Cola | `encolar` / `desencolar` / `frente()` | `enqueue` / `dequeue` / `front()` |
+| Cola | `primero` / `ultimo` (punteros de `ColaEnlazada`) | `head` / `tail` (no `front`, que es el método) |
+| Cola | `usarQueue` / `josefo` / `ronda` / `cola` (variable) | `useQueue` / `josephus` / `circle` / `queue` |
+| Cola | `fondo()` (ejercicio) / `inicio` / `fin` (arreglo circular) | `back()` / `start` / `end` |

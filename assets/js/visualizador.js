@@ -147,6 +147,7 @@
         titulo: "Queue",
         resumen: "The first one in is the first one out (FIFO). std::queue and a queue built from nodes and two pointers.",
         etiquetas: ["FIFO", "O(1) push/pop"],
+        archivo: "queue.cpp",
       },
     },
     {

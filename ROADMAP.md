@@ -43,7 +43,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Lista enlazada simple | Hecho: lección, comparador de costos contra el vector, animaciones y `ejemplos/cpp/en/linked_list.cpp` (`LinkedList` con `nodeAt`, `get`, `insertAtFront`, `insertAt`, `insertAtBack`, `find`, `remove` y `removeAt`) |
 | Lista doblemente enlazada | Hecho: lección, animaciones y `ejemplos/cpp/en/doubly_linked_list.cpp` (`DoublyLinkedList` con `head`, `tail`, `insertAtFront`, `insertAtBack`, `insertAt`, `get`, `nodeAt` desde el extremo más cercano, `remove`, `removeFront`, `removeBack` y `unlink`) |
 | Lista circular | Hecho: lección, animaciones y `ejemplos/cpp/en/circular_list.cpp` (`CircularList` con `last`, `insertAtFront`, `insertAtBack`, `rotate`, `removeFirst`, `find`, `first` y el turno de round-robin `takeTurn`) |
-| Cola | Pendiente |
+| Cola | Hecho: lección, problema de Josefo, animaciones y `ejemplos/cpp/en/queue.cpp` (`std::queue` con `useQueue` y `josephus`, y `LinkedQueue` con `head`, `tail`, `enqueue`, `dequeue` y `front`) |
 | Ordenamientos elementales | Pendiente |
 | Merge sort y quicksort | Pendiente |
 | Ordenamientos sin comparaciones | Pendiente |
