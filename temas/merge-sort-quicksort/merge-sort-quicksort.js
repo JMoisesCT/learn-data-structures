@@ -1,9 +1,10 @@
 // Lección de merge sort y quicksort (divide y vencerás), en pasos. Los
 // fragmentos de código deben coincidir línea por línea con
-// ejemplos/cpp/merge_sort_quicksort.cpp (scripts/verificar-fragmentos.mjs
-// lo revisa).
+// ejemplos/cpp/merge_sort_quicksort.cpp, y en inglés con
+// ejemplos/cpp/en/merge_sort_quicksort.cpp (scripts/verificar-fragmentos.mjs
+// lo revisa). Los textos que se ven van en los dos idiomas con DS.tr.
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const PASO = 50; // de una barra a la siguiente
   const ANCHO_BARRA = 40;
   const MARGEN = 44; // deja lugar a la izquierda para i = bajo - 1
@@ -15,10 +16,12 @@
   const EJEMPLO = [38, 27, 43, 3, 9, 82, 10]; // el mismo arreglo que usa main()
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/merge_sort_quicksort.cpp)
+  // Fragmentos de C++
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  // Copia exacta de las funciones de ejemplos/cpp/merge_sort_quicksort.cpp y de
+  // ejemplos/cpp/en/merge_sort_quicksort.cpp, con las mismas líneas.
+  const CODIGO = tr({
     mezclar: `
       void mezclar(vector<int>& v, int izq, int medio, int der) {
           vector<int> aux;
@@ -108,7 +111,114 @@
               return quickselect(v, p + 1, alto, k);
           }
       }`,
+  }, {
+    mezclar: `
+      void merge(vector<int>& v, int left, int mid, int right) {
+          vector<int> aux;
+          int i = left, j = mid + 1;
+          while (i <= mid && j <= right) {
+              if (v[i] <= v[j]) aux.push_back(v[i++]);
+              else aux.push_back(v[j++]);
+          }
+          while (i <= mid) aux.push_back(v[i++]);
+          while (j <= right) aux.push_back(v[j++]);
+          for (int k = 0; k < (int)aux.size(); k++) {
+              v[left + k] = aux[k];
+          }
+      }`,
+    mergeSort: `
+      void mergeSort(vector<int>& v, int left, int right) {
+          if (left >= right) {
+              return;
+          }
+          int mid = left + (right - left) / 2;
+          mergeSort(v, left, mid);
+          mergeSort(v, mid + 1, right);
+          merge(v, left, mid, right);
+      }`,
+    mergeSortIterativo: `
+      void iterativeMergeSort(vector<int>& v) {
+          int n = v.size();
+          for (int width = 1; width < n; width *= 2) {
+              for (int left = 0; left < n - width; left += 2 * width) {
+                  int mid = left + width - 1;
+                  int right = min(left + 2 * width - 1, n - 1);
+                  merge(v, left, mid, right);
+              }
+          }
+      }`,
+    particionar: `
+      int partition(vector<int>& v, int low, int high) {
+          int pivot = v[high];
+          int i = low - 1;
+          for (int j = low; j < high; j++) {
+              if (v[j] <= pivot) {
+                  i++;
+                  swap(v[i], v[j]);
+              }
+          }
+          swap(v[i + 1], v[high]);
+          return i + 1;
+      }`,
+    quickSort: `
+      void quickSort(vector<int>& v, int low, int high) {
+          if (low >= high) {
+              return;
+          }
+          int p = partition(v, low, high);
+          quickSort(v, low, p - 1);
+          quickSort(v, p + 1, high);
+      }`,
+    particionarAleatorio: `
+      int randomPartition(vector<int>& v, int low, int high) {
+          int k = low + rand() % (high - low + 1);
+          swap(v[k], v[high]);
+          return partition(v, low, high);
+      }`,
+    quickSortAleatorio: `
+      void randomQuickSort(vector<int>& v, int low, int high) {
+          if (low >= high) {
+              return;
+          }
+          int p = randomPartition(v, low, high);
+          randomQuickSort(v, low, p - 1);
+          randomQuickSort(v, p + 1, high);
+      }`,
+    quickselect: `
+      int quickselect(vector<int>& v, int low, int high, int k) {
+          if (k < low || k > high) {
+              throw out_of_range("k out of range");
+          }
+          if (low == high) {
+              return v[low];
+          }
+          int p = partition(v, low, high);
+          if (k == p) {
+              return v[p];
+          } else if (k < p) {
+              return quickselect(v, low, p - 1, k);
+          } else {
+              return quickselect(v, p + 1, high, k);
+          }
+      }`,
+  });
+
+  // Nombre de cada función en el idioma de la página (las claves quedan en español).
+  const F = tr({}, {
+    mezclar: "merge", mergeSortIterativo: "iterativeMergeSort", particionar: "partition",
+    particionarAleatorio: "randomPartition", quickSortAleatorio: "randomQuickSort",
+  });
+  const nombreF = (clave) => F[clave] || clave;
+
+  // Nombres del C++ que se dibujan (variables, contadores y punteros). Los
+  // estados usan los de español y se traducen al pintar, así son iguales en
+  // los dos idiomas.
+  const NOMBRES = {
+    izq: "left", der: "right", medio: "mid", bajo: "low", alto: "high", pivote: "pivot", ancho: "width",
+    comparaciones: "comparisons", "copias a aux": "copies to aux", "profundidad máx.": "max depth",
   };
+  const ident = (k) => tr(k, NOMBRES[k] || k);
+  const traducirVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [ident(k), v]));
 
   const fragmentos = (...claves) => Object.fromEntries(claves.map((c) => [c, CODIGO[c]]));
 
@@ -199,7 +309,7 @@
 
   function animarMezclar(s, paso, izq, medio, der, detalle, extra) {
     const K = "mezclar";
-    const base = (o) => Object.assign({ rango: [izq, der], mitades: [izq, medio, der], llamada: `mezclar(v, ${izq}, ${medio}, ${der})` }, extra, o);
+    const base = (o) => Object.assign({ rango: [izq, der], mitades: [izq, medio, der], llamada: `${nombreF("mezclar")}(v, ${izq}, ${medio}, ${der})` }, extra, o);
     s.aux = [];
     s.auxDesde = izq;
     let i = izq;
@@ -218,14 +328,17 @@
       while (j <= der) aAux(s, j++);
       s.cuenta.comparaciones += comparaciones;
       ver(s, base({ vars: { "aux.size()": s.aux.length }, cambio: ["comparaciones", "copias a aux"], vueltas: { 4: comparaciones } }));
-      paso(K, 4, `Mezclamos { ${izquierda} } y { ${derecha} } tomando siempre el menor de los dos frentes: aux = { ${s.aux.map(texto).join(", ")} }. ${comparaciones} comparación(es).`);
+      const enAux = s.aux.map(texto).join(", ");
+      paso(K, 4, tr(`Mezclamos { ${izquierda} } y { ${derecha} } tomando siempre el menor de los dos frentes: aux = { ${enAux} }. ${comparaciones} comparación(es).`,
+        `We merge { ${izquierda} } and { ${derecha} }, always taking the smaller of the two fronts: aux = { ${enAux} }. ${comparaciones} comparison(s).`));
       deAux(s, izq);
       ver(s, base({ vars: { "aux.size()": s.aux.length }, escritas: [izq, der], vueltas: { 10: s.aux.length } }));
-      paso(K, 11, `v[${izq}..${der}] = aux: los ${s.aux.length} valores vuelven ordenados a su lugar en v.`);
+      paso(K, 11, tr(`v[${izq}..${der}] = aux: los ${s.aux.length} valores vuelven ordenados a su lugar en v.`, `v[${izq}..${der}] = aux: the ${s.aux.length} values go back to their place in v, sorted.`));
       return;
     }
     ver(s, base({ vars: { "aux.size()": s.aux.length }, punteros: { i, j } }));
-    paso(K, 3, `aux empieza vacío. i = ${i} apunta al frente de la mitad izquierda y j = ${j} al de la derecha. Las dos ya están ordenadas.`);
+    paso(K, 3, tr(`aux empieza vacío. i = ${i} apunta al frente de la mitad izquierda y j = ${j} al de la derecha. Las dos ya están ordenadas.`,
+      `aux starts empty. i = ${i} points to the front of the left half and j = ${j} to the front of the right one. Both are already sorted.`));
     let vuelta = 0;
     while (i <= medio && j <= der) {
       vuelta++;
@@ -237,7 +350,8 @@
       aAux(s, desde);
       if (izqGana) i++; else j++;
       ver(s, base({ vars: { i, j }, punteros: { i, j }, veredicto: { texto: texto1, si: izqGana }, cambio: ["comparaciones", "copias a aux"], vueltas: { 4: vuelta } }));
-      paso(K, izqGana ? 5 : 6, `${izqGana ? "Sí" : "No"}: ${quien} es el menor de los dos frentes y baja a aux[${s.aux.length - 1}]. ${izqGana ? "i" : "j"} avanza.`);
+      paso(K, izqGana ? 5 : 6, tr(`${izqGana ? "Sí" : "No"}: ${quien} es el menor de los dos frentes y baja a aux[${s.aux.length - 1}]. ${izqGana ? "i" : "j"} avanza.`,
+        `${izqGana ? "Yes" : "No"}: ${quien} is the smaller of the two fronts and goes down to aux[${s.aux.length - 1}]. ${izqGana ? "i" : "j"} moves forward.`));
     }
     const resto = i <= medio ? "izquierda" : "derecha";
     let n8 = 0;
@@ -245,20 +359,26 @@
       n8++;
       aAux(s, i++);
       ver(s, base({ vars: { i, j }, punteros: { i, j }, cambio: ["copias a aux"], vueltas: { 8: n8 } }));
-      paso(K, 8, `La mitad derecha se acabó: lo que queda de la izquierda ya está ordenado y baja tal cual (${texto(s.aux[s.aux.length - 1])}).`);
+      paso(K, 8, tr(`La mitad derecha se acabó: lo que queda de la izquierda ya está ordenado y baja tal cual (${texto(s.aux[s.aux.length - 1])}).`,
+        `The right half ran out: what's left of the left one is already sorted and goes down as is (${texto(s.aux[s.aux.length - 1])}).`));
     }
     let n9 = 0;
     while (j <= der) {
       n9++;
       aAux(s, j++);
       ver(s, base({ vars: { i, j }, punteros: { i, j }, cambio: ["copias a aux"], vueltas: { 9: n9 } }));
-      paso(K, 9, `La mitad izquierda se acabó: lo que queda de la derecha baja tal cual (${texto(s.aux[s.aux.length - 1])}).`);
+      paso(K, 9, tr(`La mitad izquierda se acabó: lo que queda de la derecha baja tal cual (${texto(s.aux[s.aux.length - 1])}).`,
+        `The left half ran out: what's left of the right one goes down as is (${texto(s.aux[s.aux.length - 1])}).`));
     }
     if (!n8 && !n9) ver(s, base({ vars: { i, j } }));
     deAux(s, izq);
     ver(s, base({ vars: { "aux.size()": s.aux.length }, escritas: [izq, der], vueltas: { 10: s.aux.length } }));
-    paso(K, 11, `for: v[izq + k] = aux[k]. Los ${s.aux.length} valores vuelven a v[${izq}..${der}], ya mezclados.`
-      + (n8 + n9 ? ` (Al final sobraban valores de la ${resto}: no hizo falta compararlos.)` : ""));
+    paso(K, 11, tr(`for: v[izq + k] = aux[k]. Los ${s.aux.length} valores vuelven a v[${izq}..${der}], ya mezclados.`,
+      `for: v[left + k] = aux[k]. The ${s.aux.length} values go back to v[${izq}..${der}], already merged.`)
+      + (n8 + n9
+        ? tr(` (Al final sobraban valores de la ${resto}: no hizo falta compararlos.)`,
+          ` (At the end there were values left over on the ${resto === "izquierda" ? "left" : "right"}: they didn't need comparing.)`)
+        : ""));
   }
 
   // ------------------------------------------------------------------
@@ -274,23 +394,26 @@
     if (izq >= der) {
       ver(s, base({}));
       paso(K, 3, izq === der
-        ? `${llamada}: un solo elemento (${val(s, izq)}) ya está ordenado. return.`
-        : `${llamada}: rango vacío. return.`);
+        ? tr(`${llamada}: un solo elemento (${val(s, izq)}) ya está ordenado. return.`, `${llamada}: a single element (${val(s, izq)}) is already sorted. return.`)
+        : tr(`${llamada}: rango vacío. return.`, `${llamada}: empty range. return.`));
       cerrarLlamada(s, pila);
       return;
     }
     const medio = izq + Math.floor((der - izq) / 2);
     s.arbol[nodo].medio = medio;
     ver(s, base({ vars: { izq, der, medio }, mitades: [izq, medio, der], cambio: ["medio"] }));
-    paso(K, 5, `${llamada}: ${der - izq + 1} elementos. medio = ${izq} + (${der} − ${izq}) / 2 = ${medio}. Partimos sin mirar los valores: v[${izq}..${medio}] y v[${medio + 1}..${der}].`);
+    paso(K, 5, tr(`${llamada}: ${der - izq + 1} elementos. medio = ${izq} + (${der} − ${izq}) / 2 = ${medio}. Partimos sin mirar los valores: v[${izq}..${medio}] y v[${medio + 1}..${der}].`,
+      `${llamada}: ${der - izq + 1} elements. mid = ${izq} + (${der} − ${izq}) / 2 = ${medio}. We split without looking at the values: v[${izq}..${medio}] and v[${medio + 1}..${der}].`));
     ver(s, base({ vars: { izq, der, medio }, mitades: [izq, medio, der] }));
-    paso(K, 6, `Primero ordenamos la mitad izquierda, v[${izq}..${medio}], con una llamada recursiva.`);
+    paso(K, 6, tr(`Primero ordenamos la mitad izquierda, v[${izq}..${medio}], con una llamada recursiva.`, `First we sort the left half, v[${izq}..${medio}], with a recursive call.`));
     animarMergeSort(s, paso, izq, medio, prof + 1, pila, detalle);
     ver(s, base({ vars: { izq, der, medio }, mitades: [izq, medio, der] }));
-    paso(K, 7, `De vuelta en ${llamada}: la izquierda ya está ordenada { ${lista(s, izq, medio)} }. Ahora la derecha, v[${medio + 1}..${der}].`);
+    paso(K, 7, tr(`De vuelta en ${llamada}: la izquierda ya está ordenada { ${lista(s, izq, medio)} }. Ahora la derecha, v[${medio + 1}..${der}].`,
+      `Back in ${llamada}: the left is already sorted { ${lista(s, izq, medio)} }. Now the right, v[${medio + 1}..${der}].`));
     animarMergeSort(s, paso, medio + 1, der, prof + 1, pila, detalle);
     ver(s, base({ vars: { izq, der, medio }, mitades: [izq, medio, der] }));
-    paso(K, 8, `Las dos mitades están ordenadas: { ${lista(s, izq, medio)} } y { ${lista(s, medio + 1, der)} }. mezclar las junta en O(n).`);
+    paso(K, 8, tr(`Las dos mitades están ordenadas: { ${lista(s, izq, medio)} } y { ${lista(s, medio + 1, der)} }. mezclar las junta en O(n).`,
+      `Both halves are sorted: { ${lista(s, izq, medio)} } and { ${lista(s, medio + 1, der)} }. merge joins them in O(n).`));
     animarMezclar(s, paso, izq, medio, der, detalle, {});
     s.aux = [];
     cerrarLlamada(s, pila);
@@ -301,7 +424,8 @@
     animarMergeSort(s, paso, 0, n - 1, 0, [], detalle);
     s.fijos = s.items.map((_, k) => k);
     ver(s, { vars: { n }, nivel: 1, llamada: `mergeSort(v, 0, ${n - 1})` });
-    paso("mergeSort", 8, `¡Ordenado! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones y ${s.cuenta["copias a aux"]} copias a aux (la memoria extra de merge sort).`, "exito");
+    paso("mergeSort", 8, tr(`¡Ordenado! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones y ${s.cuenta["copias a aux"]} copias a aux (la memoria extra de merge sort).`,
+      `Sorted! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparisons and ${s.cuenta["copias a aux"]} copies to aux (merge sort's extra memory).`), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -313,12 +437,13 @@
     const n = s.items.length;
     for (let k = 0; k < n; k++) s.arbol.push({ a: k, b: k, prof: 0, estado: "lista" });
     ver(s, { vars: { n } });
-    paso(K, 2, `n = ${n}. Arriba en el árbol, cada valor solo es un bloque de 1: ya está ordenado.`);
+    paso(K, 2, tr(`n = ${n}. Arriba en el árbol, cada valor solo es un bloque de 1: ya está ordenado.`, `n = ${n}. At the top of the tree, each value on its own is a block of 1: it's already sorted.`));
     let pasada = 0;
     for (let ancho = 1; ancho < n; ancho *= 2) {
       pasada++;
       ver(s, { vars: { n, ancho }, vueltas: { 3: pasada }, cambio: ["ancho"] });
-      paso(K, 3, `ancho = ${ancho}: mezclamos de a pares los bloques ordenados de ${ancho}, y quedan bloques de ${2 * ancho}.`);
+      paso(K, 3, tr(`ancho = ${ancho}: mezclamos de a pares los bloques ordenados de ${ancho}, y quedan bloques de ${2 * ancho}.`,
+        `width = ${ancho}: we merge the sorted blocks of ${ancho} in pairs, and blocks of ${2 * ancho} are left.`));
       let vuelta = 0;
       for (let izq = 0; izq < n - ancho; izq += 2 * ancho) {
         vuelta++;
@@ -327,7 +452,8 @@
         const nodo = s.arbol.length;
         s.arbol.push({ a: izq, b: der, prof: pasada, estado: "activa", medio });
         ver(s, { vars: { n, ancho, izq, medio, der }, rango: [izq, der], mitades: [izq, medio, der], vueltas: { 3: pasada, 4: vuelta }, cambio: ["izq", "medio", "der"] });
-        paso(K, 6, `izq = ${izq}, medio = ${medio}, der = min(${izq + 2 * ancho - 1}, ${n - 1}) = ${der}: los bloques v[${izq}..${medio}] y v[${medio + 1}..${der}].`);
+        paso(K, 6, tr(`izq = ${izq}, medio = ${medio}, der = min(${izq + 2 * ancho - 1}, ${n - 1}) = ${der}: los bloques v[${izq}..${medio}] y v[${medio + 1}..${der}].`,
+          `left = ${izq}, mid = ${medio}, right = min(${izq + 2 * ancho - 1}, ${n - 1}) = ${der}: the blocks v[${izq}..${medio}] and v[${medio + 1}..${der}].`));
         animarMezclar(s, paso, izq, medio, der, detalle, { vars: { izq, medio, der } });
         s.aux = [];
         s.arbol[nodo].estado = "lista";
@@ -341,7 +467,8 @@
     while (ancho < n) ancho *= 2;
     s.fijos = s.items.map((_, k) => k);
     ver(s, { vars: { n, ancho }, vueltas: { 3: pasada } });
-    paso(K, 3, `ancho = ${ancho} ya no cumple ancho < n: un solo bloque, ¡ordenado! Sin recursión, el mismo trabajo: ${s.cuenta.comparaciones} comparaciones.`, "exito");
+    paso(K, 3, tr(`ancho = ${ancho} ya no cumple ancho < n: un solo bloque, ¡ordenado! Sin recursión, el mismo trabajo: ${s.cuenta.comparaciones} comparaciones.`,
+      `width = ${ancho} no longer satisfies width < n: a single block, sorted! No recursion, the same work: ${s.cuenta.comparaciones} comparisons.`), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -352,7 +479,7 @@
     const K = "particionar";
     const pivote = s.items[alto].v;
     const nombre = val(s, alto);
-    const base = (o) => Object.assign({ rango: [bajo, alto], pivote: alto, llamada: `particionar(v, ${bajo}, ${alto})` }, extra, o);
+    const base = (o) => Object.assign({ rango: [bajo, alto], pivote: alto, llamada: `${nombreF("particionar")}(v, ${bajo}, ${alto})` }, extra, o);
     let i = bajo - 1;
     if (!detalle) {
       let comparaciones = 0;
@@ -368,28 +495,33 @@
       const p = i + 1;
       s.fijos.push(p);
       ver(s, base({ pivote: p, zonas: zonas(bajo, p - 1, p + 1, alto), vars: { pivote: nombre, p }, cambio: ["comparaciones"] }));
-      paso(K, 10, `Pivote ${nombre}: a su izquierda quedan los ≤ ${nombre}${p > bajo ? ` { ${lista(s, bajo, p - 1)} }` : " (ninguno)"} y a su derecha los mayores${p < alto ? ` { ${lista(s, p + 1, alto)} }` : " (ninguno)"}. ${nombre} ya está en su lugar definitivo: v[${p}].`);
+      const menores = p > bajo ? ` { ${lista(s, bajo, p - 1)} }` : tr(" (ninguno)", " (none)");
+      const mayores = p < alto ? ` { ${lista(s, p + 1, alto)} }` : tr(" (ninguno)", " (none)");
+      paso(K, 10, tr(`Pivote ${nombre}: a su izquierda quedan los ≤ ${nombre}${menores} y a su derecha los mayores${mayores}. ${nombre} ya está en su lugar definitivo: v[${p}].`,
+        `Pivot ${nombre}: the ones ≤ ${nombre} end up on its left${menores} and the larger ones on its right${mayores}. ${nombre} is already in its final place: v[${p}].`));
       return p;
     }
     ver(s, base({ vars: { pivote: nombre }, cambio: ["pivote"] }));
-    paso(K, 2, `pivote = v[${alto}] = ${nombre}: el último. Vamos a dejar a su izquierda los ≤ ${nombre}.`);
+    paso(K, 2, tr(`pivote = v[${alto}] = ${nombre}: el último. Vamos a dejar a su izquierda los ≤ ${nombre}.`, `pivot = v[${alto}] = ${nombre}: the last one. We'll leave the ones ≤ ${nombre} on its left.`));
     ver(s, base({ vars: { pivote: nombre, i }, punteros: { i }, cambio: ["i"] }));
-    paso(K, 3, `i = bajo − 1 = ${i}: i marca el final de la zona de los ≤ pivote, que empieza vacía.`);
+    paso(K, 3, tr(`i = bajo − 1 = ${i}: i marca el final de la zona de los ≤ pivote, que empieza vacía.`, `i = low − 1 = ${i}: i marks the end of the zone of the ones ≤ pivot, which starts empty.`));
     for (let j = bajo; j < alto; j++) {
       const menor = s.items[j].v <= pivote;
       s.cuenta.comparaciones++;
-      ver(s, base({ vars: { pivote: nombre, i, j }, punteros: { i, j }, zonas: zonas(bajo, i, i + 1, j - 1), comparar: [j], veredicto: { texto: `v[j] <= pivote: ${val(s, j)} <= ${nombre}`, si: menor }, cambio: ["comparaciones"], vueltas: { 4: j - bajo + 1 } }));
+      ver(s, base({ vars: { pivote: nombre, i, j }, punteros: { i, j }, zonas: zonas(bajo, i, i + 1, j - 1), comparar: [j], veredicto: { texto: `v[j] <= ${ident("pivote")}: ${val(s, j)} <= ${nombre}`, si: menor }, cambio: ["comparaciones"], vueltas: { 4: j - bajo + 1 } }));
       paso(K, 5, menor
-        ? `${val(s, j)} ≤ ${nombre}: pertenece a la zona de los menores.`
-        : `${val(s, j)} > ${nombre}: se queda donde está; la zona de los mayores crece.`);
+        ? tr(`${val(s, j)} ≤ ${nombre}: pertenece a la zona de los menores.`, `${val(s, j)} ≤ ${nombre}: it belongs in the zone of the smaller ones.`)
+        : tr(`${val(s, j)} > ${nombre}: se queda donde está; la zona de los mayores crece.`, `${val(s, j)} > ${nombre}: it stays where it is; the zone of the larger ones grows.`));
       if (menor) {
         i++;
         const mismo = i === j;
         if (!mismo) intercambiar(s, i, j);
         ver(s, base({ vars: { pivote: nombre, i, j }, punteros: { i, j }, zonas: zonas(bajo, i, i + 1, j), intercambio: mismo ? [] : [i, j], cambio: ["i"], vueltas: { 4: j - bajo + 1 } }));
         paso(K, 7, mismo
-          ? `i++ → ${i}, y swap(v[${i}], v[${j}]) es con sí mismo: no hay mayores en medio, nada se mueve.`
-          : `i++ → ${i}, y swap(v[${i}], v[${j}]): ${val(s, i)} entra a la zona de los menores y ${val(s, j)}, que era mayor, pasa al final de los mayores.`);
+          ? tr(`i++ → ${i}, y swap(v[${i}], v[${j}]) es con sí mismo: no hay mayores en medio, nada se mueve.`,
+            `i++ → ${i}, and swap(v[${i}], v[${j}]) is with itself: there are no larger ones in between, nothing moves.`)
+          : tr(`i++ → ${i}, y swap(v[${i}], v[${j}]): ${val(s, i)} entra a la zona de los menores y ${val(s, j)}, que era mayor, pasa al final de los mayores.`,
+            `i++ → ${i}, and swap(v[${i}], v[${j}]): ${val(s, i)} enters the zone of the smaller ones and ${val(s, j)}, which was larger, moves to the end of the larger ones.`));
       }
     }
     const p = i + 1;
@@ -397,10 +529,13 @@
     s.fijos.push(p);
     ver(s, base({ pivote: p, vars: { pivote: nombre, i }, punteros: { "i + 1": p }, zonas: zonas(bajo, p - 1, p + 1, alto), intercambio: p !== alto ? [p, alto] : [], vueltas: { 4: alto - bajo } }));
     paso(K, 10, p !== alto
-      ? `swap(v[${p}], v[${alto}]): el pivote ${nombre} va justo después de los menores. Ya está en su lugar definitivo.`
-      : `swap(v[${p}], v[${alto}]) es con sí mismo: ${nombre} era el mayor y ya estaba en su lugar.`);
+      ? tr(`swap(v[${p}], v[${alto}]): el pivote ${nombre} va justo después de los menores. Ya está en su lugar definitivo.`,
+        `swap(v[${p}], v[${alto}]): the pivot ${nombre} goes right after the smaller ones. It's already in its final place.`)
+      : tr(`swap(v[${p}], v[${alto}]) es con sí mismo: ${nombre} era el mayor y ya estaba en su lugar.`,
+        `swap(v[${p}], v[${alto}]) is with itself: ${nombre} was the largest and was already in its place.`));
     ver(s, base({ pivote: p, vars: { pivote: nombre }, salida: p, zonas: zonas(bajo, p - 1, p + 1, alto) }));
-    paso(K, 11, `return ${p}: la posición del pivote. A la izquierda todo es ≤ ${nombre}, a la derecha todo es mayor, pero cada lado sigue desordenado.`);
+    paso(K, 11, tr(`return ${p}: la posición del pivote. A la izquierda todo es ≤ ${nombre}, a la derecha todo es mayor, pero cada lado sigue desordenado.`,
+      `return ${p}: the pivot's position. On the left everything is ≤ ${nombre}, on the right everything is larger, but each side is still unsorted.`));
     return p;
   }
 
@@ -418,7 +553,7 @@
   function animarQuickSort(s, paso, bajo, alto, prof, pila, detalle, aleatorio) {
     const K = aleatorio ? "quickSortAleatorio" : "quickSort";
     const nivel = prof + 1;
-    const llamada = `${K}(v, ${bajo}, ${alto})`;
+    const llamada = `${nombreF(K)}(v, ${bajo}, ${alto})`;
     const base = (o) => Object.assign({ rango: [bajo, alto], llamada, nivel, vars: { bajo, alto } }, o);
     if (bajo >= alto) {
       if (bajo === alto) {
@@ -429,21 +564,23 @@
       }
       ver(s, base({}));
       paso(K, 3, bajo === alto
-        ? `${llamada}: un solo elemento (${val(s, bajo)}) ya está en su lugar. return.`
-        : `${llamada}: rango vacío (bajo > alto). return.`);
+        ? tr(`${llamada}: un solo elemento (${val(s, bajo)}) ya está en su lugar. return.`, `${llamada}: a single element (${val(s, bajo)}) is already in place. return.`)
+        : tr(`${llamada}: rango vacío (bajo > alto). return.`, `${llamada}: empty range (low > high). return.`));
       if (bajo === alto) cerrarLlamada(s, pila);
       return;
     }
     const nodo = abrirLlamada(s, pila, bajo, alto, prof);
     ver(s, base({}));
-    paso(K, 5, `${llamada}: ${alto - bajo + 1} elementos. Primero ${aleatorio ? "particionarAleatorio" : "particionar"}: todo el trabajo se hace al dividir.`);
+    const particion = nombreF(aleatorio ? "particionarAleatorio" : "particionar");
+    paso(K, 5, tr(`${llamada}: ${alto - bajo + 1} elementos. Primero ${particion}: todo el trabajo se hace al dividir.`,
+      `${llamada}: ${alto - bajo + 1} elements. First ${particion}: all the work is done when dividing.`));
     const p = aleatorio ? animarAleatorio(s, paso, bajo, alto, detalle) : animarParticion(s, paso, bajo, alto, detalle, {});
     s.arbol[nodo].p = p;
     ver(s, base({ vars: { bajo, alto, p }, pivote: p, zonas: zonas(bajo, p - 1, p + 1, alto), cambio: ["p"] }));
-    paso(K, 6, `p = ${p}. Ahora ordenamos los menores, v[${bajo}..${p - 1}]: el pivote ya no se mueve.`);
+    paso(K, 6, tr(`p = ${p}. Ahora ordenamos los menores, v[${bajo}..${p - 1}]: el pivote ya no se mueve.`, `p = ${p}. Now we sort the smaller ones, v[${bajo}..${p - 1}]: the pivot doesn't move anymore.`));
     animarQuickSort(s, paso, bajo, p - 1, prof + 1, pila, detalle, aleatorio);
     ver(s, base({ vars: { bajo, alto, p }, pivote: p, zonas: zonas(bajo, p - 1, p + 1, alto) }));
-    paso(K, 7, `De vuelta en ${llamada}: los menores ya están. Ahora los mayores, v[${p + 1}..${alto}].`);
+    paso(K, 7, tr(`De vuelta en ${llamada}: los menores ya están. Ahora los mayores, v[${p + 1}..${alto}].`, `Back in ${llamada}: the smaller ones are done. Now the larger ones, v[${p + 1}..${alto}].`));
     animarQuickSort(s, paso, p + 1, alto, prof + 1, pila, detalle, aleatorio);
     cerrarLlamada(s, pila);
   }
@@ -451,14 +588,14 @@
   function animarAleatorio(s, paso, bajo, alto, detalle) {
     const K = "particionarAleatorio";
     const k = bajo + Math.floor(Math.random() * (alto - bajo + 1));
-    const base = (o) => Object.assign({ rango: [bajo, alto], llamada: `particionarAleatorio(v, ${bajo}, ${alto})`, vars: { bajo, alto, k } }, o);
+    const base = (o) => Object.assign({ rango: [bajo, alto], llamada: `${nombreF(K)}(v, ${bajo}, ${alto})`, vars: { bajo, alto, k } }, o);
     ver(s, base({ punteros: { k }, comparar: [k], cambio: ["k"] }));
-    paso(K, 2, `k = ${k}, al azar entre ${bajo} y ${alto}: el pivote será ${val(s, k)}.`);
+    paso(K, 2, tr(`k = ${k}, al azar entre ${bajo} y ${alto}: el pivote será ${val(s, k)}.`, `k = ${k}, at random between ${bajo} and ${alto}: the pivot will be ${val(s, k)}.`));
     if (k !== alto) intercambiar(s, k, alto);
     ver(s, base({ punteros: { k }, intercambio: k !== alto ? [k, alto] : [], pivote: alto }));
     paso(K, 3, k !== alto
-      ? `swap(v[${k}], v[${alto}]): lo llevamos al final, donde particionar espera el pivote.`
-      : `k ya es alto: el pivote ya está al final.`);
+      ? tr(`swap(v[${k}], v[${alto}]): lo llevamos al final, donde particionar espera el pivote.`, `swap(v[${k}], v[${alto}]): we move it to the end, where partition expects the pivot.`)
+      : tr("k ya es alto: el pivote ya está al final.", "k is already high: the pivot is already at the end."));
     return animarParticion(s, paso, bajo, alto, detalle, {});
   }
 
@@ -467,10 +604,11 @@
     const n = s.items.length;
     animarQuickSort(s, paso, 0, n - 1, 0, [], detalle, aleatorio);
     s.fijos = s.items.map((_, k) => k);
-    ver(s, { vars: { n }, nivel: 1, llamada: `${K}(v, 0, ${n - 1})` });
+    ver(s, { vars: { n }, nivel: 1, llamada: `${nombreF(K)}(v, 0, ${n - 1})` });
     const prof = s.cuenta["profundidad máx."];
-    paso(K, 7, `¡Ordenado! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones, ${s.intercambios} intercambios y la recursión llegó a ${prof} llamadas de profundidad`
-      + (prof >= n ? " (tantas como elementos: el peor caso)." : "."), "exito");
+    paso(K, 7, tr(`¡Ordenado! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones, ${s.intercambios} intercambios y la recursión llegó a ${prof} llamadas de profundidad`,
+      `Sorted! { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparisons, ${s.intercambios} swaps, and the recursion reached a depth of ${prof} calls`)
+      + (prof >= n ? tr(" (tantas como elementos: el peor caso).", " (as many as elements: the worst case).") : "."), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -484,30 +622,35 @@
     const base = (o) => Object.assign({ rango: [bajo, alto], llamada, nivel, buscado: k, vars: { bajo, alto, k } }, o);
     if (k < bajo || k > alto) {
       ver(s, base({ error: true, rango: null }));
-      paso(K, 3, `k = ${k} no está entre ${bajo} y ${alto}: no existe el ${k}-ésimo menor de ${alto - bajo + 1} elemento(s). Se lanza std::out_of_range.`, "error");
+      paso(K, 3, tr(`k = ${k} no está entre ${bajo} y ${alto}: no existe el ${k}-ésimo menor de ${alto - bajo + 1} elemento(s). Se lanza std::out_of_range.`,
+        `k = ${k} isn't between ${bajo} and ${alto}: there's no smallest number ${k} among ${alto - bajo + 1} element(s). std::out_of_range is thrown.`), "error");
       return;
     }
     abrirLlamada(s, pila, bajo, alto, prof);
     if (bajo === alto) {
       if (!s.fijos.includes(bajo)) s.fijos.push(bajo);
       ver(s, base({ salida: val(s, bajo), encontrada: bajo }));
-      paso(K, 6, `bajo == alto: queda un solo candidato. return v[${bajo}] = ${val(s, bajo)}. Cada llamada de arriba devuelve este mismo valor.`, "exito");
+      paso(K, 6, tr(`bajo == alto: queda un solo candidato. return v[${bajo}] = ${val(s, bajo)}. Cada llamada de arriba devuelve este mismo valor.`,
+        `low == high: there's a single candidate left. return v[${bajo}] = ${val(s, bajo)}. Each call above returns this same value.`), "exito");
       return;
     }
     ver(s, base({}));
-    paso(K, 8, `${llamada}: particionamos v[${bajo}..${alto}].`);
+    paso(K, 8, tr(`${llamada}: particionamos v[${bajo}..${alto}].`, `${llamada}: we partition v[${bajo}..${alto}].`));
     const p = animarParticion(s, paso, bajo, alto, false, {});
     if (k === p) {
       ver(s, base({ vars: { bajo, alto, k, p }, pivote: p, salida: val(s, p), encontrada: p }));
-      paso(K, 10, `k == p: el pivote cayó justo en la posición ${k}. return ${val(s, p)}. No hizo falta ordenar nada más.`, "exito");
+      paso(K, 10, tr(`k == p: el pivote cayó justo en la posición ${k}. return ${val(s, p)}. No hizo falta ordenar nada más.`,
+        `k == p: the pivot landed right at position ${k}. return ${val(s, p)}. Nothing else needed sorting.`), "exito");
       return;
     }
     const izquierda = k < p;
     const descartados = izquierda ? [p, alto] : [bajo, p];
     ver(s, base({ vars: { bajo, alto, k, p }, pivote: p, descartados, cambio: ["p"] }));
     paso(K, izquierda ? 12 : 14, izquierda
-      ? `k (${k}) < p (${p}): el que buscamos está entre los menores. Descartamos v[${p}..${alto}] sin mirarlos y seguimos solo por la izquierda.`
-      : `k (${k}) > p (${p}): el que buscamos está entre los mayores. Descartamos v[${bajo}..${p}] y seguimos solo por la derecha.`);
+      ? tr(`k (${k}) < p (${p}): el que buscamos está entre los menores. Descartamos v[${p}..${alto}] sin mirarlos y seguimos solo por la izquierda.`,
+        `k (${k}) < p (${p}): the one we're looking for is among the smaller ones. We discard v[${p}..${alto}] without looking at them and go on only to the left.`)
+      : tr(`k (${k}) > p (${p}): el que buscamos está entre los mayores. Descartamos v[${bajo}..${p}] y seguimos solo por la derecha.`,
+        `k (${k}) > p (${p}): the one we're looking for is among the larger ones. We discard v[${bajo}..${p}] and go on only to the right.`));
     animarQuickselect(s, paso, izquierda ? bajo : p + 1, izquierda ? p - 1 : alto, k, prof + 1, pila);
   }
 
@@ -585,15 +728,16 @@
     }
 
     // Llamada en curso, variables, contadores, comparación y valor devuelto.
-    const cuenta = DS.variables(s.cuenta, vis.cambio);
+    const cambio = (vis.cambio || []).map(ident);
+    const cuenta = DS.variables(traducirVars(s.cuenta), cambio);
     cuenta.classList.add("ord-cuenta");
     escenario.querySelector(".ord-info").replaceChildren(
       vis.llamada ? el("code", { class: "dyv-llamada", text: vis.llamada }) : "",
-      DS.variables(vis.vars || { n: s.items.length }, vis.cambio),
+      DS.variables(traducirVars(vis.vars || { n: s.items.length }), cambio),
       cuenta,
       vis.veredicto ? el("span", { class: `ord-veredicto ${vis.veredicto.si ? "si" : "no"}` },
-        el("code", { text: vis.veredicto.texto }), el("b", { text: vis.veredicto.si ? "→ sí" : "→ no" })) : "",
-      vis.salida != null ? el("div", { class: "salida-valor" }, "devuelve", el("div", { class: "celda encontrada", text: vis.salida })) : "");
+        el("code", { text: vis.veredicto.texto }), el("b", { text: vis.veredicto.si ? tr("→ sí", "→ yes") : "→ no" })) : "",
+      vis.salida != null ? el("div", { class: "salida-valor" }, tr("devuelve", "returns"), el("div", { class: "celda encontrada", text: vis.salida })) : "");
 
     // Capa fija: zonas, mitades, índices, caja de aux y árbol de llamadas.
     const n = s.items.length;
@@ -604,11 +748,11 @@
       piezas.push(el("div", { class: `ord-zona ${tipo}`, style: `left:${xDe(a) - 4}px;top:${CABEZA - 16}px;width:${ancho}px;height:${altoMax(s) + 20}px` },
         el("span", { class: "ord-zona-texto", text: ancho >= 90 ? largo : corto })));
     };
-    if (vis.zonas) for (const z of vis.zonas) banda(z.desde, z.hasta, z.tipo, z.tipo === "menores" ? "≤ pivote" : "> pivote", z.tipo === "menores" ? "≤" : ">");
+    if (vis.zonas) for (const z of vis.zonas) banda(z.desde, z.hasta, z.tipo, `${z.tipo === "menores" ? "≤" : ">"} ${ident("pivote")}`, z.tipo === "menores" ? "≤" : ">");
     else if (vis.mitades) {
       const [a, m, b] = vis.mitades;
-      banda(a, m, "izquierda", "izquierda", "izq.");
-      banda(m + 1, b, "derecha", "derecha", "der.");
+      banda(a, m, "izquierda", tr("izquierda", "left"), tr("izq.", "left"));
+      banda(m + 1, b, "derecha", tr("derecha", "right"), tr("der.", "right"));
     }
     for (let k = 0; k < n; k++) {
       piezas.push(el("span", { class: "indice ord-indice", style: `left:${xDe(k)}px;top:${g.yBaseV + 3}px;width:${ANCHO_BARRA}px`, text: k }));
@@ -618,9 +762,9 @@
     }
     if (s.conAux) {
       piezas.push(el("div", { class: "ord-carril", style: `left:${MARGEN - 10}px;top:${g.yAux}px;width:${g.ancho - 2 * MARGEN + 20}px;height:${g.yBaseAux - g.yAux + 6}px` },
-        el("span", { class: "ord-carril-nombre", text: "aux (vector temporal de mezclar)" })));
+        el("span", { class: "ord-carril-nombre", text: tr("aux (vector temporal de mezclar)", "aux (merge's temporary vector)") })));
     }
-    if (!s.sinArbol) piezas.push(el("span", { class: "dyv-arbol-titulo", style: `left:${MARGEN - 10}px;top:${g.yArbol}px`, text: s.tituloArbol || "llamadas (cada barra es el rango de una llamada)" }));
+    if (!s.sinArbol) piezas.push(el("span", { class: "dyv-arbol-titulo", style: `left:${MARGEN - 10}px;top:${g.yArbol}px`, text: s.tituloArbol || tr("llamadas (cada barra es el rango de una llamada)", "calls (each bar is one call's range)") }));
     lienzo.querySelector(".ord-capa").replaceChildren(...piezas);
 
     // Árbol de llamadas: cada nodo es un elemento propio (solo el nuevo aparece con animación).
@@ -705,7 +849,7 @@
         nodo = el("span", { class: "ord-puntero", "data-nombre": nombre, style: `left:${x}px;top:${y}px` });
         capa.append(nodo);
       }
-      nodo.textContent = fila === 1 ? `▲ ${nombre}` : nombre;
+      nodo.textContent = fila === 1 ? `▲ ${ident(nombre)}` : ident(nombre);
       nodo.style.left = `${x}px`;
       nodo.style.top = `${y}px`;
       nodo.className = `ord-puntero${k < 0 || k >= n ? " fuera" : ""}`;
@@ -729,17 +873,22 @@
     ordenado: () => [5, 12, 18, 26, 33, 41, 50, 58],
     reves: () => [58, 50, 41, 33, 26, 18, 12, 5],
   };
-  const BLOQUES = "bloques ordenados (una fila por cada ancho: 1, 2, 4, 8)";
-  const OPCIONES_ARREGLO = [["main", "El de main()"], ["azar", "Al azar"], ["ordenado", "Ya ordenado"], ["reves", "Al revés"]];
-  const OPCIONES_DETALLE = [["resumen", "Mezcla resumida"], ["detalle", "Mezcla paso a paso"]];
-  const OPCIONES_DETALLE_Q = [["resumen", "Partición resumida"], ["detalle", "Partición paso a paso"]];
+  const BLOQUES = tr("bloques ordenados (una fila por cada ancho: 1, 2, 4, 8)", "sorted blocks (one row per width: 1, 2, 4, 8)");
+  // Los nombres de cada tipo de arreglo en las listas.
+  const A = {
+    main: tr("El de main()", "The one from main()"), azar: tr("Al azar", "Random"),
+    ordenado: tr("Ya ordenado", "Already sorted"), reves: tr("Al revés", "Reversed"),
+  };
+  const opcionesArreglo = (...claves) => claves.map((c) => [c, A[c]]);
+  const OPCIONES_ARREGLO = opcionesArreglo("main", "azar", "ordenado", "reves");
+  const OPCIONES_DETALLE_Q = [["resumen", tr("Partición resumida", "Partition summarized")], ["detalle", tr("Partición paso a paso", "Partition step by step")]];
 
   function tema(contenedor, cfg) {
     DS.tema(Object.assign({
       contenedor,
       incremental: true,
       dibujar,
-      tituloCodigo: (clave) => `${clave}()`,
+      tituloCodigo: (clave) => `${nombreF(clave)}()`,
     }, cfg));
   }
 
@@ -751,16 +900,21 @@
   };
   tema("vis-mezclar", {
     codigo: fragmentos("mezclar"),
-    entradas: [{ id: "caso", etiqueta: "Mitades", opciones: [["main", "{27, 38, 43} y {3, 9, 10, 82}"], ["sobra", "Una mitad toda menor"], ["iguales", "Con un 5 en cada mitad"]] }],
+    entradas: [{
+      id: "caso",
+      etiqueta: tr("Mitades", "Halves"),
+      opciones: [["main", tr("{27, 38, 43} y {3, 9, 10, 82}", "{27, 38, 43} and {3, 9, 10, 82}")], ["sobra", tr("Una mitad toda menor", "One half all smaller")], ["iguales", tr("Con un 5 en cada mitad", "With a 5 in each half")]],
+    }],
     estadoInicial: (valores) => {
       const s = estadoDesde(MEZCLAS[valores.caso].valores, { conAux: true, sinArbol: true });
       s.vis = { mitades: [0, MEZCLAS[valores.caso].medio, s.items.length - 1] };
       return s;
     },
-    mensajeInicial: "Las dos mitades ya están ordenadas. Pulsa mezclar: en cada paso baja a aux el menor de los dos frentes.",
+    mensajeInicial: tr("Las dos mitades ya están ordenadas. Pulsa mezclar: en cada paso baja a aux el menor de los dos frentes.",
+      "Both halves are already sorted. Press merge: at each step the smaller of the two fronts goes down to aux."),
     operaciones: [{
       id: "mezclar",
-      etiqueta: (valores) => `mezclar(v, 0, ${MEZCLAS[valores.caso].medio}, ${MEZCLAS[valores.caso].valores.length - 1})`,
+      etiqueta: (valores) => `${nombreF("mezclar")}(v, 0, ${MEZCLAS[valores.caso].medio}, ${MEZCLAS[valores.caso].valores.length - 1})`,
       usa: ["caso"],
       ejecutar(s, { caso }, paso) {
         prepararCorrida(s);
@@ -770,8 +924,12 @@
         s.fijos = s.items.map((_, k) => k);
         ver(s, { vars: { izq: 0, medio: MEZCLAS[caso].medio, der: n - 1 } });
         const conLetras = s.items.filter((b) => b.e).map((b) => b.e).join("");
-        paso("mezclar", 13, `Listo: { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones para ${n} valores: nunca más de n − 1.`
-          + (conLetras ? (conLetras === "ab" ? " El 5ᵃ quedó antes que el 5ᵇ: con <= gana la izquierda, y por eso merge sort es estable." : "") : ""), "exito");
+        paso("mezclar", 13, tr(`Listo: { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparaciones para ${n} valores: nunca más de n − 1.`,
+          `Done: { ${lista(s, 0, n - 1)} }. ${s.cuenta.comparaciones} comparisons for ${n} values: never more than n − 1.`)
+          + (conLetras === "ab"
+            ? tr(" El 5ᵃ quedó antes que el 5ᵇ: con <= gana la izquierda, y por eso merge sort es estable.",
+              " 5ᵃ stayed before 5ᵇ: with <= the left one wins, and that's why merge sort is stable.")
+            : ""), "exito");
       },
     }],
   });
@@ -779,9 +937,10 @@
   // Paso 2: mergeSort recursivo.
   tema("vis-merge", {
     codigo: fragmentos("mergeSort", "mezclar"),
-    entradas: [{ id: "arreglo", etiqueta: "Arreglo", opciones: OPCIONES_ARREGLO }],
+    entradas: [{ id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: OPCIONES_ARREGLO }],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), { conAux: true, filasArbol: 4 }),
-    mensajeInicial: "El arreglo de main(). Abajo aparece cada llamada con su rango: se parte a la mitad hasta llegar a un elemento, y al volver se mezcla.",
+    mensajeInicial: tr("El arreglo de main(). Abajo aparece cada llamada con su rango: se parte a la mitad hasta llegar a un elemento, y al volver se mezcla.",
+      "The array from main(). Below, each call shows up with its range: it splits in half until it reaches one element, and merges on the way back."),
     operaciones: [{
       id: "mergeSort",
       etiqueta: () => "mergeSort(v, 0, n − 1)",
@@ -792,12 +951,13 @@
   // Paso 3: mergeSortIterativo.
   tema("vis-iterativo", {
     codigo: fragmentos("mergeSortIterativo", "mezclar"),
-    entradas: [{ id: "arreglo", etiqueta: "Arreglo", opciones: [["azar", "Al azar"], ["main", "El de main()"], ["reves", "Al revés"]] }],
+    entradas: [{ id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: opcionesArreglo("azar", "main", "reves") }],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), { conAux: true, filasArbol: 4, tituloArbol: BLOQUES }),
-    mensajeInicial: "Sin recursión: primero bloques de 1, después de 2, de 4 y de 8. El árbol se arma de arriba hacia abajo.",
+    mensajeInicial: tr("Sin recursión: primero bloques de 1, después de 2, de 4 y de 8. El árbol se arma de arriba hacia abajo.",
+      "No recursion: first blocks of 1, then of 2, of 4 and of 8. The tree is built from top to bottom."),
     operaciones: [{
       id: "mergeSortIterativo",
-      etiqueta: "mergeSortIterativo(v)",
+      etiqueta: `${nombreF("mergeSortIterativo")}(v)`,
       ejecutar(s, args, paso) { prepararCorrida(s); ordenarMergeIterativo(s, paso, false); },
     }],
   });
@@ -805,12 +965,13 @@
   // Paso 4: particionar paso a paso.
   tema("vis-particion", {
     codigo: fragmentos("particionar"),
-    entradas: [{ id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "El de main()"], ["azar", "Al azar"], ["ordenado", "Ya ordenado"]] }],
+    entradas: [{ id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: opcionesArreglo("main", "azar", "ordenado") }],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), { sinArbol: true, filasArbol: 0 }),
-    mensajeInicial: "El pivote es el último (morado). Mira cómo crecen la zona de los ≤ pivote (azul) y la de los mayores (amarilla).",
+    mensajeInicial: tr("El pivote es el último (morado). Mira cómo crecen la zona de los ≤ pivote (azul) y la de los mayores (amarilla).",
+      "The pivot is the last one (purple). Watch how the zone of the ones ≤ pivot (blue) and the zone of the larger ones (yellow) grow."),
     operaciones: [{
       id: "particionar",
-      etiqueta: () => "particionar(v, 0, n − 1)",
+      etiqueta: () => `${nombreF("particionar")}(v, 0, n − 1)`,
       ejecutar(s, args, paso) {
         prepararCorrida(s);
         animarParticion(s, paso, 0, s.items.length - 1, true, {});
@@ -822,11 +983,12 @@
   tema("vis-quick", {
     codigo: fragmentos("quickSort", "particionar"),
     entradas: [
-      { id: "arreglo", etiqueta: "Arreglo", opciones: OPCIONES_ARREGLO },
-      { id: "detalle", etiqueta: "Ver", opciones: OPCIONES_DETALLE_Q, reinicia: false },
+      { id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: OPCIONES_ARREGLO },
+      { id: "detalle", etiqueta: tr("Ver", "Show"), opciones: OPCIONES_DETALLE_Q, reinicia: false },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), { filasArbol: 4 }),
-    mensajeInicial: "Cada particionar deja un pivote en su lugar (verde). Después se ordena cada lado con una llamada recursiva.",
+    mensajeInicial: tr("Cada particionar deja un pivote en su lugar (verde). Después se ordena cada lado con una llamada recursiva.",
+      "Each partition leaves a pivot in its place (green). Then each side is sorted with a recursive call."),
     operaciones: [{
       id: "quickSort",
       etiqueta: () => "quickSort(v, 0, n − 1)",
@@ -841,22 +1003,25 @@
     codigoInicial: (valores) => valores.version,
     entradas: [
       {
-        id: "version", etiqueta: "", opciones: [["quickSort", "Pivote: el último"], ["quickSortAleatorio", "Pivote: al azar"]],
+        id: "version", etiqueta: "", opciones: [["quickSort", tr("Pivote: el último", "Pivot: the last one")], ["quickSortAleatorio", tr("Pivote: al azar", "Pivot: random")]],
         // Elegir el pivote muestra enseguida la versión que va a correr.
         alCambiar: (s, { version }) => ({
           codigo: version,
           mensaje: version === "quickSort"
-            ? "quickSort usa como pivote el último del rango: con el arreglo ya ordenado es el mayor, y cada partición deja todo de un lado."
-            : "quickSortAleatorio elige un pivote al azar y lo pone al final antes de particionar: así casi nunca cae en el peor caso.",
+            ? tr("quickSort usa como pivote el último del rango: con el arreglo ya ordenado es el mayor, y cada partición deja todo de un lado.",
+              "quickSort uses the last one in the range as the pivot: with the array already sorted it's the largest, and each partition leaves everything on one side.")
+            : tr("quickSortAleatorio elige un pivote al azar y lo pone al final antes de particionar: así casi nunca cae en el peor caso.",
+              "randomQuickSort picks a random pivot and puts it at the end before partitioning: that way it almost never hits the worst case."),
         }),
       },
-      { id: "arreglo", etiqueta: "", opciones: [["ordenado", "Ya ordenado"], ["reves", "Al revés"], ["azar", "Al azar"]] },
+      { id: "arreglo", etiqueta: "", opciones: opcionesArreglo("ordenado", "reves", "azar") },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo]().slice(0, 7), { filasArbol: 7 }),
-    mensajeInicial: "Con el arreglo ya ordenado, el último siempre es el mayor. Ordena con quickSort y mira la escalera de llamadas; después prueba quickSortAleatorio.",
+    mensajeInicial: tr("Con el arreglo ya ordenado, el último siempre es el mayor. Ordena con quickSort y mira la escalera de llamadas; después prueba quickSortAleatorio.",
+      "With the array already sorted, the last one is always the largest. Sort with quickSort and watch the staircase of calls; then try randomQuickSort."),
     operaciones: [{
       id: "ordenar",
-      etiqueta: (valores) => `${valores.version}(v, 0, n − 1)`,
+      etiqueta: (valores) => `${nombreF(valores.version)}(v, 0, n − 1)`,
       usa: ["version"],
       ejecutar(s, { version }, paso) { prepararCorrida(s); ordenarQuick(s, paso, false, version === "quickSortAleatorio"); },
     }],
@@ -867,10 +1032,11 @@
     codigo: fragmentos("quickselect", "particionar"),
     entradas: [
       { id: "k", etiqueta: "k", min: -3, max: 12, valor: 3 },
-      { id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "El de main()"], ["azar", "Al azar"]] },
+      { id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: opcionesArreglo("main", "azar") },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), { filasArbol: 3 }),
-    mensajeInicial: "k = 3 es la mediana de 7 valores: el que quedaría en v[3] si se ordenara. Prueba también k = 0, k = 6 y un k inválido.",
+    mensajeInicial: tr("k = 3 es la mediana de 7 valores: el que quedaría en v[3] si se ordenara. Prueba también k = 0, k = 6 y un k inválido.",
+      "k = 3 is the median of 7 values: the one that would end up in v[3] if it were sorted. Also try k = 0, k = 6 and an invalid k."),
     operaciones: [{
       id: "quickselect",
       etiqueta: () => "quickselect(v, 0, n − 1, k)",
@@ -888,19 +1054,20 @@
     codigo: fragmentos(...ALGORITMOS, "mezclar", "particionarAleatorio", "particionar"),
     codigoInicial: (valores) => valores.algoritmo,
     entradas: [
-      { id: "algoritmo", etiqueta: "Algoritmo", opciones: ALGORITMOS.map((a) => [a, a]), valor: "quickSort" },
-      { id: "arreglo", etiqueta: "Arreglo", opciones: [["azar", "Al azar"], ["ordenado", "Ya ordenado"], ["reves", "Al revés"], ["main", "El de main()"]] },
-      { id: "detalle", etiqueta: "", opciones: [["resumen", "Resumido"], ["detalle", "Paso a paso"]], reinicia: false },
+      { id: "algoritmo", etiqueta: tr("Algoritmo", "Algorithm"), opciones: ALGORITMOS.map((a) => [a, nombreF(a)]), valor: "quickSort" },
+      { id: "arreglo", etiqueta: tr("Arreglo", "Array"), opciones: opcionesArreglo("azar", "ordenado", "reves", "main") },
+      { id: "detalle", etiqueta: "", opciones: [["resumen", tr("Resumido", "Summarized")], ["detalle", tr("Paso a paso", "Step by step")]], reinicia: false },
     ],
     estadoInicial: (valores) => estadoDesde(ARREGLOS[valores.arreglo](), {
       conAux: valores.algoritmo.startsWith("merge"),
       filasArbol: valores.algoritmo.startsWith("merge") ? 4 : 8,
       tituloArbol: valores.algoritmo === "mergeSortIterativo" ? BLOQUES : null,
     }),
-    mensajeInicial: "Elige algoritmo y arreglo. \"Paso a paso\" muestra cada comparación de mezclar o de particionar; Reiniciar trae otro arreglo al azar.",
+    mensajeInicial: tr("Elige algoritmo y arreglo. \"Paso a paso\" muestra cada comparación de mezclar o de particionar; Reiniciar trae otro arreglo al azar.",
+      "Pick an algorithm and an array. \"Step by step\" shows each comparison of merge or partition; Reset brings another random array."),
     operaciones: [{
       id: "ordenar",
-      etiqueta: (valores) => valores.algoritmo.endsWith("Iterativo") ? `${valores.algoritmo}(v)` : `${valores.algoritmo}(v, 0, n − 1)`,
+      etiqueta: (valores) => (valores.algoritmo.endsWith("Iterativo") ? `${nombreF(valores.algoritmo)}(v)` : `${nombreF(valores.algoritmo)}(v, 0, n − 1)`),
       usa: ["algoritmo", "detalle"],
       ejecutar(s, { algoritmo, detalle }, paso) {
         prepararCorrida(s);
@@ -945,7 +1112,7 @@
       for (let i = Math.floor(n / 2) - 1; i >= 0; i--) hundir(n, i);
       for (let i = n - 1; i > 0; i--) { [v[0], v[i]] = [v[i], v[0]]; hundir(i, 0); }
     } else if (algoritmo === "mergeSort") {
-      memoria = `${n.toLocaleString("es")} (aux)`;
+      memoria = `${n.toLocaleString(tr("es", "en"))} (aux)`;
       const aux = new Array(n);
       const ordenar = (a, b, d) => {
         profundidad = Math.max(profundidad, d);
@@ -983,7 +1150,7 @@
         [v[i + 1], v[alto]] = [v[alto], v[i + 1]];
         pila.push([i + 2, alto, d + 1], [bajo, i, d + 1]);
       }
-      memoria = `${profundidad.toLocaleString("es")} marcos`;
+      memoria = `${profundidad.toLocaleString(tr("es", "en"))} ${tr("marcos", "frames")}`;
     }
     return { comparaciones, profundidad, memoria };
   }
@@ -1004,17 +1171,17 @@
     const caja = document.getElementById("vis-carrera");
     if (!caja) return;
     const CORREDORES = ["insertionSort", "heapSort", "mergeSort", "quickSort", "quickSortAleatorio"];
-    const formato = (x) => x.toLocaleString("es");
+    const formato = (x) => x.toLocaleString(tr("es", "en"));
     const selN = el("select", { id: "dyv-carrera-n" }, [100, 1000, 10000].map((n) => el("option", { value: n, text: formato(n) })));
     selN.value = "1000";
     const selTipo = el("select", { id: "dyv-carrera-tipo" },
-      [["azar", "Al azar"], ["ordenado", "Ya ordenado"], ["reves", "Al revés"], ["iguales", "Solo 1, 2 y 3"]].map(([v, t]) => el("option", { value: v, text: t })));
+      [...opcionesArreglo("azar", "ordenado", "reves"), ["iguales", tr("Solo 1, 2 y 3", "Only 1, 2 and 3")]].map(([v, t]) => el("option", { value: v, text: t })));
     const filas = CORREDORES.map((a) => {
       const barra = el("span", { class: "ord-carrera-barra comparaciones" });
       const num = el("span", { class: "ord-carrera-num" });
       const memoria = el("span", { class: "dyv-carrera-dato" });
       const fila = el("div", { class: "ord-carrera-fila dyv-carrera-fila" },
-        el("code", { class: "ord-carrera-nombre", text: a }),
+        el("code", { class: "ord-carrera-nombre", text: nombreF(a) }),
         el("div", { class: "ord-carrera-pista" }, el("span", { class: "ord-carrera-carril" }, barra), num),
         memoria);
       return { a, fila, barra, num, memoria };
@@ -1035,7 +1202,7 @@
         f.fila.classList.add("nueva");
       });
       const nlogn = Math.round(n * Math.log2(n));
-      referencia.textContent = `Para comparar: n log₂ n ≈ ${formato(nlogn)} y n²/2 = ${formato(n * n / 2)}.`;
+      referencia.textContent = tr(`Para comparar: n log₂ n ≈ ${formato(nlogn)} y n²/2 = ${formato(n * n / 2)}.`, `For comparison: n log₂ n ≈ ${formato(nlogn)} and n²/2 = ${formato(n * n / 2)}.`);
     }
 
     selN.addEventListener("change", correr);
@@ -1044,10 +1211,10 @@
     caja.append(
       el("div", { class: "controles" },
         el("label", { class: "campo", for: "dyv-carrera-n" }, "n", selN),
-        el("label", { class: "campo", for: "dyv-carrera-tipo" }, "Arreglo", selTipo),
-        el("button", { class: "boton principal", type: "button", text: "Otro arreglo", onclick: correr })),
+        el("label", { class: "campo", for: "dyv-carrera-tipo" }, tr("Arreglo", "Array"), selTipo),
+        el("button", { class: "boton principal", type: "button", text: tr("Otro arreglo", "Another array"), onclick: correr })),
       el("div", { class: "ord-carrera-cuerpo" },
-        el("div", { class: "ord-carrera-fila dyv-carrera-fila ord-carrera-titulos" }, el("span"), el("span", { text: "comparaciones" }), el("span", { text: "memoria extra" })),
+        el("div", { class: "ord-carrera-fila dyv-carrera-fila ord-carrera-titulos" }, el("span"), el("span", { text: tr("comparaciones", "comparisons") }), el("span", { text: tr("memoria extra", "extra memory") })),
         filas.map((f) => f.fila),
         referencia));
     correr();

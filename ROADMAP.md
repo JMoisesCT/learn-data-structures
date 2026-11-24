@@ -45,7 +45,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Lista circular | Hecho: lección, animaciones y `ejemplos/cpp/en/circular_list.cpp` (`CircularList` con `last`, `insertAtFront`, `insertAtBack`, `rotate`, `removeFirst`, `find`, `first` y el turno de round-robin `takeTurn`) |
 | Cola | Hecho: lección, problema de Josefo, animaciones y `ejemplos/cpp/en/queue.cpp` (`std::queue` con `useQueue` y `josephus`, y `LinkedQueue` con `head`, `tail`, `enqueue`, `dequeue` y `front`) |
 | Ordenamientos elementales | Hecho: lección, carrera con arreglos grandes, animaciones y `ejemplos/cpp/en/elementary_sorting.cpp` (`isSorted`, `exchangeSort`, `bubbleSort` con `swapped`, `selectionSort` con `minIndex`, `insertionSort` y `shellSort` con `key` y `gap`) |
-| Merge sort y quicksort | Pendiente |
+| Merge sort y quicksort | Hecho: lección, árbol de llamadas, carrera hasta n = 10 000, animaciones y `ejemplos/cpp/en/merge_sort_quicksort.cpp` (`merge`, `mergeSort`, `iterativeMergeSort`, `partition`, `quickSort`, `randomPartition`, `randomQuickSort` y `quickselect`, con `left`/`mid`/`right` y `low`/`high`) |
 | Ordenamientos sin comparaciones | Pendiente |
 | Montículo (min-heap / max-heap) y heapsort | Pendiente |
 | Tabla hash | Pendiente |
