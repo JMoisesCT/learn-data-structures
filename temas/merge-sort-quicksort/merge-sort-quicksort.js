@@ -623,7 +623,7 @@
     if (k < bajo || k > alto) {
       ver(s, base({ error: true, rango: null }));
       paso(K, 3, tr(`k = ${k} no está entre ${bajo} y ${alto}: no existe el ${k}-ésimo menor de ${alto - bajo + 1} elemento(s). Se lanza std::out_of_range.`,
-        `k = ${k} isn't between ${bajo} and ${alto}: there's no smallest number ${k} among ${alto - bajo + 1} element(s). std::out_of_range is thrown.`), "error");
+        `k = ${k} isn't between ${bajo} and ${alto}: there's no k-th smallest with k = ${k} among ${alto - bajo + 1} element(s). std::out_of_range is thrown.`), "error");
       return;
     }
     abrirLlamada(s, pila, bajo, alto, prof);
