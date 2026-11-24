@@ -84,15 +84,14 @@
 
       <section class="paso-leccion" id="quick" data-titulo="quickSort">
         <h2><code>quickSort</code>: partition and sort each side</h2>
-        <p>After <code>partition</code>, the pivot doesn't move anymore: what's left is to sort the smaller ones and the larger ones with two recursive calls, and on the way back there's nothing to combine. Each pivot turns green, and it's marked in purple under its call.</p>
+        <p>After <code>partition</code>, the pivot stays put: two recursive calls sort each side, and there's nothing to combine on the way back.</p>
         <div id="vis-quick"></div>
 
         <div class="pregunta">
           <p class="pregunta-enunciado">Where does each one do its work?</p>
           <div class="opciones">
-            <button type="button" class="opcion" data-correcta data-explicacion="Merge sort divides in O(1) (it only computes mid) and merges in O(n). Quicksort partitions in O(n) and has nothing to combine.">Merge sort when combining; quicksort when dividing</button>
-            <button type="button" class="opcion" data-explicacion="It's the other way around: merge sort splits without looking at the values.">Merge sort when dividing; quicksort when combining</button>
-            <button type="button" class="opcion" data-explicacion="Quicksort has no combining step: after the two recursive calls, the range is already sorted.">Both when combining</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Merge sort divides in O(1) (it only computes mid) and merges in O(n). Quicksort partitions in O(n) and has nothing to combine.">Merge when combining, quick when dividing</button>
+            <button type="button" class="opcion" data-explicacion="It's the other way around: merge sort splits without looking at the values.">Merge when dividing, quick when combining</button>
           </div>
         </div>
       </section>

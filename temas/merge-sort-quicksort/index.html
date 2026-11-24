@@ -84,15 +84,14 @@
 
       <section class="paso-leccion" id="quick" data-titulo="quickSort">
         <h2><code>quickSort</code>: particionar y ordenar cada lado</h2>
-        <p>Tras <code>particionar</code>, el pivote ya no se mueve: falta ordenar los menores y los mayores con dos llamadas recursivas, y al volver no hay nada que combinar. Cada pivote queda verde, y marcado en morado bajo su llamada.</p>
+        <p>Tras <code>particionar</code>, el pivote no se mueve más: dos llamadas ordenan cada lado y al volver no hay nada que combinar.</p>
         <div id="vis-quick"></div>
 
         <div class="pregunta">
           <p class="pregunta-enunciado">¿Dónde hace el trabajo cada uno?</p>
           <div class="opciones">
-            <button type="button" class="opcion" data-correcta data-explicacion="Merge sort divide en O(1) (solo calcula medio) y mezcla en O(n). Quicksort particiona en O(n) y no tiene nada que combinar.">Merge sort al combinar; quicksort al dividir</button>
-            <button type="button" class="opcion" data-explicacion="Es al revés: merge sort parte sin mirar los valores.">Merge sort al dividir; quicksort al combinar</button>
-            <button type="button" class="opcion" data-explicacion="Quicksort no tiene paso de combinar: después de las dos llamadas recursivas, el rango ya está ordenado.">Los dos al combinar</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Merge sort divide en O(1) (solo calcula medio) y mezcla en O(n). Quicksort particiona en O(n) y no tiene nada que combinar.">Merge al combinar, quick al dividir</button>
+            <button type="button" class="opcion" data-explicacion="Es al revés: merge sort parte sin mirar los valores.">Merge al dividir, quick al combinar</button>
           </div>
         </div>
       </section>
