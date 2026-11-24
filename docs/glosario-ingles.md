@@ -76,3 +76,8 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Ordenamientos elementales | `estaOrdenado` / `huboIntercambio` / `minimo` (índice) | `isSorted` / `swapped` / `minIndex` |
 | Ordenamientos elementales | `clave` / `salto` (shell sort) | `key` / `gap` |
 | Ordenamientos elementales | comparaciones / intercambios / desplazamientos / escrituras (contadores) | comparisons / swaps / shifts / writes |
+| Merge sort y quicksort | `mezclar` / `mergeSortIterativo` / `ancho` | `merge` / `iterativeMergeSort` / `width` |
+| Merge sort y quicksort | `particionar` / `particionarAleatorio` / `quickSortAleatorio` / `pivote` | `partition` / `randomPartition` / `randomQuickSort` / `pivot` |
+| Merge sort y quicksort | `izq` / `medio` / `der` (rango de mergeSort) | `left` / `mid` / `right` |
+| Merge sort y quicksort | `bajo` / `alto` (rango de quickSort) | `low` / `high` |
+| Merge sort y quicksort | `aux` (vector temporal de `mezclar`) | `aux` (se entiende en inglés: *auxiliary*) |

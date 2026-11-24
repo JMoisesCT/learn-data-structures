@@ -173,6 +173,7 @@
         titulo: "Merge sort and quicksort",
         resumen: "Divide and conquer: merge sorted halves or partition around a pivot. O(n log n), quicksort's worst case, the random pivot and quickselect.",
         etiquetas: ["O(n log n)", "recursion"],
+        archivo: "merge_sort_quicksort.cpp",
       },
     },
     {
