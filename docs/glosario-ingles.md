@@ -73,3 +73,6 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Cola | `primero` / `ultimo` (punteros de `ColaEnlazada`) | `head` / `tail` (no `front`, que es el método) |
 | Cola | `usarQueue` / `josefo` / `ronda` / `cola` (variable) | `useQueue` / `josephus` / `circle` / `queue` |
 | Cola | `fondo()` (ejercicio) / `inicio` / `fin` (arreglo circular) | `back()` / `start` / `end` |
+| Ordenamientos elementales | `estaOrdenado` / `huboIntercambio` / `minimo` (índice) | `isSorted` / `swapped` / `minIndex` |
+| Ordenamientos elementales | `clave` / `salto` (shell sort) | `key` / `gap` |
+| Ordenamientos elementales | comparaciones / intercambios / desplazamientos / escrituras (contadores) | comparisons / swaps / shifts / writes |

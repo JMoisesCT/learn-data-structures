@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elementary sorting · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: exchange sort, bubble sort, selection sort, insertion sort and shell sort with animations of bars that are compared, swapped and shifted; stability, a race with large arrays and the complexity of each one. C++ examples.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="ordenamiento-elemental">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Elementary sorting</div>
+      <h1>Elementary sorting</h1>
+      <p class="resumen">Five ways to <strong>sort an array in place</strong>, without another array: by comparing pairs of values and moving them. They're short and easy to write; you'll see how much work each one does and when it's worth using.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="What is sorting?">
+        <h2>Sorted = every neighbor in order</h2>
+        <div class="dos-columnas">
+          <p>Each bar is a value of <code>v</code>: its height is the number. An array is <strong>sorted</strong> if every pair of neighbors is in order (<code>v[i − 1] ≤ v[i]</code>); <code>isSorted</code> checks it with <code>n − 1</code> comparisons.</p>
+          <p>All the algorithms in this lesson do only two things: <strong>compare</strong> two values and <strong>move</strong> them (with <code>swap</code> or by shifting them). Counting comparisons and moves is how we'll measure how much they work.</p>
+        </div>
+        <div id="vis-idea"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What's the minimum number of <code>swap</code>s you need to sort <code>{ 4, 7, 1, 9, 5 }</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="One swap isn't enough: you have to put the 1 at the start and also fix the 4, the 7 and the 5.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="No value is in place and each swap puts one where it belongs (the last one, two): swap(v[0], v[2]) → { 1, 7, 4, 9, 5 }, swap(v[1], v[2]) → { 1, 4, 7, 9, 5 }, swap(v[2], v[4]) → { 1, 4, 5, 9, 7 } and swap(v[3], v[4]) → { 1, 4, 5, 7, 9 }.">4</button>
+            <button type="button" class="opcion" data-explicacion="Too many: with n elements you never need more than n − 1 = 4 swaps (selection sort guarantees it).">10</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="exchange" data-titulo="Exchange sort">
+        <h2><code>exchangeSort</code>: compare with everything after it</h2>
+        <p>The most direct one: for each position <code>i</code>, it compares <code>v[i]</code> with <strong>every</strong> <code>v[j]</code> after it and, if <code>v[j]</code> is smaller, swaps them. When the round ends, <code>v[i]</code> holds the smallest of what was left and stays <strong>in place</strong> (green).</p>
+        <div id="vis-exchange"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With <code>n = 6</code>, how many comparisons does <code>exchangeSort</code> make if the array is <strong>already sorted</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It doesn't notice it's already sorted: both for loops run all the way anyway.">5</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="5 + 4 + 3 + 2 + 1 = 15 = n(n − 1)/2. It always compares every pair: it's O(n²) in the best, average and worst case.">15</button>
+            <button type="button" class="opcion" data-explicacion="That would be comparing each pair twice (n · n). Each pair i &lt; j is compared only once.">36</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="bubble" data-titulo="Bubble sort">
+        <h2><code>bubbleSort</code>: neighbors out of order swap</h2>
+        <p>It only compares <strong>neighbors</strong> (<code>v[j]</code> and <code>v[j + 1]</code>). In each pass the largest one moves forward like a bubble up to the end, where it stays fixed. If a whole pass swaps nothing, <code>swapped</code> stays <code>false</code> and the <code>break</code> ends it early.</p>
+        <div id="vis-bubble"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If the array is already sorted, how much work does <code>bubbleSort</code> do?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="A single pass of n − 1 comparisons, with no swaps, and the break ends it. Its best case is O(n), thanks to swapped.">One pass: O(n)</button>
+            <button type="button" class="opcion" data-explicacion="That would happen without swapped: it would do every pass even if nothing moved.">Every pass: O(n²)</button>
+            <button type="button" class="opcion" data-explicacion="It needs at least one pass to check that every neighbor is in order.">Nothing: O(1)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="selection" data-titulo="Selection sort">
+        <h2><code>selectionSort</code>: find the minimum and put it at the start</h2>
+        <p>In each round, the <code>minIndex</code> pointer walks what's left to sort and <strong>just notes</strong> where the smallest is. Only at the end of the round does it make <strong>a single</strong> <code>swap</code> to bring it to <code>v[i]</code>. It compares as much as exchange sort, but it moves far less.</p>
+        <div id="vis-selection"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">At most, how many swaps does it make with <code>n</code> elements?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Those are its comparisons. There's at most one swap per round.">n(n − 1)/2</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="One per round of the outer for, and there are n − 1 rounds. That's why it's worth using when writing is expensive (for example, in flash memory).">n − 1</button>
+            <button type="button" class="opcion" data-explicacion="If the smallest is already in v[i] there's no swap, but in general there are swaps: up to one per round.">None</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="insertion" data-titulo="Insertion sort">
+        <h2><code>insertionSort</code>: slip each card into its place</h2>
+        <p>Like sorting cards in your hand. The left part (<code>v[0..i − 1]</code>) is already sorted relative to each other; <code>v[i]</code> goes up as the <code>key</code>, the ones larger than it <strong>shift to the right</strong> (one write each, not a <code>swap</code>) and the key drops into the gap.</p>
+        <div id="vis-insertion"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why is it so fast with an <strong>almost sorted</strong> array?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Each key is compared with its neighbor, sees it's already fine and the while ends right away. With few values out of place it's almost O(n).">Because almost no key has to shift others</button>
+            <button type="button" class="opcion" data-explicacion="The outer for does walk the whole array; what gets shorter is the inner while.">Because it skips half the array</button>
+            <button type="button" class="opcion" data-explicacion="Insertion sort has no break like bubble sort: the while just hardly loops.">Because it stops when it detects it's sorted</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="estabilidad" data-titulo="Stability">
+        <h2>Stability: do equal values keep their order?</h2>
+        <div class="dos-columnas">
+          <p>A sort is <strong>stable</strong> if two equal values end up in the same order they were in. With plain numbers you can't tell, but you can when sorting <strong>records</strong>: if you sort students by grade, the ones that tie stay, for example, in alphabetical order.</p>
+          <p>The two 4s are marked <span class="ord-letra a">a</span> and <span class="ord-letra b">b</span>. The ones that swap <strong>distant</strong> values can move one past the other; the ones that only move <strong>neighbors</strong> never cross two equal values.</p>
+        </div>
+        <div id="vis-estable"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Which algorithms in this lesson are stable?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="They only move a value past its neighbor when it's strictly greater (v[j] > v[j + 1], v[j] > key): two equal values never cross.">Bubble and insertion</button>
+            <button type="button" class="opcion" data-explicacion="Selection sort isn't stable: its swap carries v[i] far away and can jump past an equal value. Try it with this step's array.">Bubble, insertion and selection</button>
+            <button type="button" class="opcion" data-explicacion="Exchange sort and shell sort swap or move distant values and can flip two equal ones.">All of them</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="shell" data-titulo="Shell sort">
+        <h2><code>shellSort</code>: insertion sort with gaps</h2>
+        <p>In insertion sort, a small value at the end travels <strong>one slot</strong> at a time. Shell sort first sorts the values that are <code>gap</code> apart (each color is a group), which travel far in a single step, and it ends with <code>gap = 1</code> on an almost sorted array.</p>
+        <div id="vis-shell"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With <code>n = 8</code>, which gaps does this <code>shellSort</code> use?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It starts at n / 2, not at n: with gap 8 there would be no pair to compare.">8, 4, 2, 1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="gap = n / 2 = 4 and then gap /= 2 gives 2 and 1. With gap 0 the for ends. Other sequences (1, 4, 13, 40… or Ciura's) are faster.">4, 2, 1</button>
+            <button type="button" class="opcion" data-explicacion="It always ends with gap = 1: that's what guarantees the result is sorted.">4, 2</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="carrera" data-titulo="Race">
+        <h2>Race: how much does each one work with large arrays?</h2>
+        <p>The same five functions, counting their comparisons and writes to <code>v</code>. Change <code>n</code> and the kind of array: look at the best case (already sorted) and at how the work grows when you multiply <code>n</code> by 10.</p>
+        <div class="dos-columnas ord-carrera-columnas">
+          <div id="vis-carrera"></div>
+
+          <div class="pregunta">
+            <p class="pregunta-enunciado">Going from <code>n = 100</code> to <code>n = 1000</code> at random, how much do insertion sort's comparisons grow?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-explicacion="That would be O(n). Insertion sort is O(n²) on average: each key is compared with half of the earlier ones.">About 10 times</button>
+              <button type="button" class="opcion" data-correcta data-explicacion="n is multiplied by 10 and n² by 100: from about 2,500 to about 250,000. Shell sort grows much more slowly.">About 100 times</button>
+              <button type="button" class="opcion" data-explicacion="1000 times would be O(n³). No algorithm in this lesson is that slow.">About 1000 times</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try them all</h2>
+        <p>Pick an algorithm and an array. Sort twice in a row: the second time the array is already sorted, and that's where you see who notices (bubble and insertion) and who works just the same.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use each one</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Algorithm</th><th>Best case</th><th>Average</th><th>Worst case</th><th>Extra memory</th><th>Stable</th></tr></thead>
+            <tbody>
+              <tr><td><code>exchangeSort</code></td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+              <tr><td><code>bubbleSort</code></td><td class="o-grande bueno">O(n)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>Yes</td></tr>
+              <tr><td><code>selectionSort</code></td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+              <tr><td><code>insertionSort</code></td><td class="o-grande bueno">O(n)</td><td class="o-grande malo">O(n²)</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>Yes</td></tr>
+              <tr><td><code>shellSort</code> (gaps n/2, n/4…)</td><td class="o-grande bueno">O(n log n)</td><td>depends on the gaps</td><td class="o-grande malo">O(n²)</td><td class="o-grande bueno">O(1)</td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Insertion sort</strong> is the best of the quadratic ones: very fast with small or almost sorted arrays. That's why <code>std::sort</code> uses it for the small pieces.</li>
+          <li><strong>Selection sort</strong> makes at most <code>n − 1</code> swaps: useful if writing is much more expensive than comparing.</li>
+          <li><strong>Bubble</strong> and <strong>exchange</strong> sort are mostly for teaching: they're almost never the best option.</li>
+          <li><strong>Shell sort</strong> uses no extra memory and is easy to write; with good gaps (Ciura's 1, 4, 10, 23, 57…) it competes with the fast ones on medium-sized arrays.</li>
+          <li>In C++ use <code>std::sort</code> (fast, not stable) or <code>std::stable_sort</code> (stable), from <code>&lt;algorithm&gt;</code>.</li>
+          <li>For large arrays you need to go down from O(n²) to O(n log n): <strong>heapsort</strong> (in Heap), and <strong>merge sort</strong> and <strong>quicksort</strong>.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra elementary_sorting.cpp -o elementary_sorting &amp;&amp; ./elementary_sorting</span></pre>
+        <div data-codigo-completo="en/elementary_sorting.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Add comparison and swap counters to each function and compare the numbers with the ones from the race.</li>
+          <li>Make <code>bubbleSort</code> remember the position of the <strong>last</strong> swap of each pass: from there on it's already sorted, so the next pass can end earlier.</li>
+          <li>Write <code>cocktailSort</code>: a bubble sort that goes forward (carries the largest to the end) and back (carries the smallest to the start).</li>
+          <li>Change <code>shellSort</code>'s gaps to the sequence 1, 4, 13, 40… (<code>gap = 3 · gap + 1</code>) and compare the comparisons with <code>n = 1000</code>.</li>
+          <li>What happens if in <code>insertionSort</code> you change <code>v[j] &gt; key</code> to <code>v[j] &gt;= key</code>? It still sorts, but is it still stable?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/ordenamiento-elemental/ordenamiento-elemental.js"></script>
+</body>
+</html>

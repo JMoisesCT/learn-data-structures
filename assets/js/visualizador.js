@@ -160,6 +160,7 @@
         titulo: "Elementary sorting",
         resumen: "Exchange, bubble, selection, insertion and shell sort: compare pairs and move them. How much work each one does, which ones are stable and when to use them.",
         etiquetas: ["O(n²)", "stability"],
+        archivo: "elementary_sorting.cpp",
       },
     },
     {
