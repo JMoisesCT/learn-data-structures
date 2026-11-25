@@ -29,6 +29,11 @@ Orden sugerido de los temas. Cada fila debería ser **un pull request** con el t
 
 No hay temas nuevos pendientes: lo siguiente es traducir los temas al inglés (tabla de abajo). Algunas ideas, todavía sin decidir: árbol rojo-negro, trie, caminos con pesos (Dijkstra, con un montículo) y orden topológico.
 
+Detalles encontrados al traducir, para arreglar en su propio PR:
+
+- **Barra de reproducción con 100 pasos o más (motor):** con un total de tres cifras ("Paso 10 de 114"), la barra de `visualizador.js` (botones, "Automático / Paso a paso" y la velocidad) pasa a ocupar dos filas en español y el paso se puede pasar de la pantalla. Pasa en Merge sort y quicksort, paso "quickSort" con "Ya ordenado" y "Partición paso a paso" (16 px a 1280 × 800); con 97 pasos cabe. Puede pasar en cualquier tema con operaciones largas.
+- **Dibujo que se achica mientras el mensaje crece:** en Pila, paso "idea", al ejecutar `pop()` el mensaje pasa de dos a tres líneas de golpe mientras el dibujo se achica con la transición de `.marco-pila` (0,45 s): durante unos 50 ms el paso se pasa de 3 a 12 px. En reposo cabe. Otros temas usan la misma transición (`.marco-*`).
+
 ## Traducción al inglés
 
 Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`), en este orden. Cómo se hace: CONTRIBUTING.md, "Versión en inglés". Las tareas de cada tema (archivo en inglés, nombres propuestos y lo que hay que revisar) están en [docs/traduccion-ingles.md](docs/traduccion-ingles.md).
