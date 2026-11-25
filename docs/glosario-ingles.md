@@ -81,3 +81,8 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Merge sort y quicksort | `izq` / `medio` / `der` (rango de mergeSort) | `left` / `mid` / `right` |
 | Merge sort y quicksort | `bajo` / `alto` (rango de quickSort) | `low` / `high` |
 | Merge sort y quicksort | `aux` (vector temporal de `mezclar`) | `aux` (se entiende en inglés: *auxiliary*) |
+| Ordenamientos sin comparaciones | `contarYReescribir` / `ordenarPorDigito` | `countAndRewrite` / `sortByDigit` |
+| Ordenamientos sin comparaciones | `conteo` / `salida` / `valor` | `count` / `output` / `value` |
+| Ordenamientos sin comparaciones | `maximo` (valor más grande permitido) | `maxValue` (no `max`, que choca con `std::max`) |
+| Ordenamientos sin comparaciones | `cubeta` (vector de cubetas) / `cubetas` (cantidad) | `buckets` / `numBuckets` |
+| Ordenamientos sin comparaciones | `quickSortAleatorio` (en la carrera) | `randomQuickSort` |

@@ -3,7 +3,7 @@
 // con ejemplos/cpp/ordenamiento_sin_comparaciones.cpp
 // (scripts/verificar-fragmentos.mjs lo revisa).
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const PASO = 50; // de una columna a la siguiente
   const ANCHO = 40; // ancho de una barra o de una casilla
   const MARGEN = 30;
@@ -15,10 +15,11 @@
   const SEP_FICHA = 25;
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/ordenamiento_sin_comparaciones.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/ordenamiento_sin_comparaciones.cpp
+  // y de ejemplos/cpp/en/non_comparison_sorting.cpp)
   // ------------------------------------------------------------------
 
-  const CODIGO = {
+  const CODIGO = tr({
     contarYReescribir: `
       void contarYReescribir(vector<int>& v, int maximo) {
           vector<int> conteo(maximo + 1, 0);
@@ -92,9 +93,95 @@
               }
           }
       }`,
-  };
+  }, {
+    contarYReescribir: `
+      void countAndRewrite(vector<int>& v, int maxValue) {
+          vector<int> count(maxValue + 1, 0);
+          for (int x : v) {
+              count[x]++;
+          }
+          int k = 0;
+          for (int value = 0; value <= maxValue; value++) {
+              for (int c = 0; c < count[value]; c++) {
+                  v[k++] = value;
+              }
+          }
+      }`,
+    countingSort: `
+      vector<int> countingSort(const vector<int>& v, int maxValue) {
+          vector<int> count(maxValue + 1, 0);
+          for (int x : v) {
+              if (x < 0 || x > maxValue) {
+                  throw out_of_range("value outside 0..maxValue");
+              }
+              count[x]++;
+          }
+          for (int i = 1; i <= maxValue; i++) {
+              count[i] += count[i - 1];
+          }
+          vector<int> output(v.size());
+          for (int i = (int)v.size() - 1; i >= 0; i--) {
+              count[v[i]]--;
+              output[count[v[i]]] = v[i];
+          }
+          return output;
+      }`,
+    ordenarPorDigito: `
+      void sortByDigit(vector<int>& v, int exp) {
+          vector<int> count(10, 0);
+          for (int x : v) {
+              count[(x / exp) % 10]++;
+          }
+          for (int d = 1; d < 10; d++) {
+              count[d] += count[d - 1];
+          }
+          vector<int> output(v.size());
+          for (int i = (int)v.size() - 1; i >= 0; i--) {
+              int d = (v[i] / exp) % 10;
+              count[d]--;
+              output[count[d]] = v[i];
+          }
+          v = output;
+      }`,
+    radixSort: `
+      void radixSort(vector<int>& v) {
+          if (v.empty()) {
+              return;
+          }
+          int maxValue = *max_element(v.begin(), v.end());
+          for (int exp = 1; maxValue / exp > 0; exp *= 10) {
+              sortByDigit(v, exp);
+          }
+      }`,
+    bucketSort: `
+      void bucketSort(vector<int>& v, int maxValue, int numBuckets) {
+          vector<vector<int>> buckets(numBuckets);
+          for (int x : v) {
+              buckets[(long long)x * numBuckets / (maxValue + 1)].push_back(x);
+          }
+          int k = 0;
+          for (auto& b : buckets) {
+              sort(b.begin(), b.end());
+              for (int x : b) {
+                  v[k++] = x;
+              }
+          }
+      }`,
+  });
 
   const fragmentos = (...claves) => Object.fromEntries(claves.map((c) => [c, CODIGO[c]]));
+
+  // Nombre de cada función en el idioma de la página (las claves quedan en español).
+  const F = tr({}, { contarYReescribir: "countAndRewrite", ordenarPorDigito: "sortByDigit" });
+  const nombreF = (clave) => F[clave] || clave;
+
+  // Nombres del C++ que se dibujan (variables, contador y punteros). Los
+  // estados usan los de español y se traducen al pintar, así son iguales en
+  // los dos idiomas.
+  const NOMBRES = { maximo: "maxValue", valor: "value", cubetas: "numBuckets", pasos: "steps" };
+  const ident = (k) => tr(k, NOMBRES[k] || k.replace(/^conteo\[/, "count["));
+  const traducirVars = (vars) => Object.fromEntries(Object.entries(vars).map(([k, v]) => [ident(k), v]));
+  const variables = (vars, cambio) => DS.variables(traducirVars(vars), (cambio || []).map(ident));
 
   // ------------------------------------------------------------------
   // Estado. v y salida son barras con id; conteo son números; cubetas,
@@ -158,36 +245,41 @@
     const maximo = s.maximo;
     s.conteo = Array(maximo + 1).fill(0);
     ver(s, { vars: { maximo }, conteoNuevo: true });
-    paso(K, 2, `conteo tiene maximo + 1 = ${maximo + 1} casillas, una por cada valor posible (0 a ${maximo}), todas en 0.`);
+    paso(K, 2, tr(`conteo tiene maximo + 1 = ${maximo + 1} casillas, una por cada valor posible (0 a ${maximo}), todas en 0.`,
+      `count has maxValue + 1 = ${maximo + 1} slots, one for each possible value (0 to ${maximo}), all at 0.`));
     for (let i = 0; i < n; i++) {
       const x = s.v[i].v;
       s.conteo[x]++;
       trabajo(s);
       s.vuelos = [{ id: `f${s.sig++}`, texto: "+1", de: ["v", i], a: ["conteo", x] }];
       ver(s, { vars: { maximo, x }, leidas: [i], conteoEscrito: [x], cambio: ["pasos"], vueltas: { 3: i + 1 } });
-      paso(K, 4, `x = ${x}: no se compara con nadie, solo se usa como índice. conteo[${x}]++ → ${s.conteo[x]}.`);
+      paso(K, 4, tr(`x = ${x}: no se compara con nadie, solo se usa como índice. conteo[${x}]++ → ${s.conteo[x]}.`,
+        `x = ${x}: it isn't compared with anything, it's only used as an index. count[${x}]++ → ${s.conteo[x]}.`));
     }
     s.vuelos = [];
     let k = 0;
     ver(s, { vars: { maximo, k }, cambio: ["k"] });
-    paso(K, 6, `Ya sabemos cuántos hay de cada valor: { ${s.conteo.join(", ")} }. Ahora reescribimos v desde k = 0, recorriendo los valores en orden.`);
+    paso(K, 6, tr(`Ya sabemos cuántos hay de cada valor: { ${s.conteo.join(", ")} }. Ahora reescribimos v desde k = 0, recorriendo los valores en orden.`,
+      `We now know how many there are of each value: { ${s.conteo.join(", ")} }. Now we rewrite v from k = 0, going through the values in order.`));
     for (let valor = 0; valor <= maximo; valor++) {
       if (!s.conteo[valor]) {
         ver(s, { vars: { maximo, k, valor }, conteoLeido: [valor], vueltas: { 7: valor + 1, 8: 0 } });
-        paso(K, 8, `conteo[${valor}] = 0: no hay ningún ${valor}. Nada que escribir.`);
+        paso(K, 8, tr(`conteo[${valor}] = 0: no hay ningún ${valor}. Nada que escribir.`, `count[${valor}] = 0: there's no ${valor}. Nothing to write.`));
         continue;
       }
       for (let c = 0; c < s.conteo[valor]; c++) {
         s.v[k] = nuevaBarra(s, valor, null, { de: ["conteo", valor] });
         trabajo(s);
         ver(s, { vars: { maximo, k: k + 1, valor, c }, conteoLeido: [valor], escritas: [k], punteros: { k }, cambio: ["pasos"], vueltas: { 7: valor + 1, 8: c + 1 } });
-        paso(K, 9, `v[${k}] = ${valor}${s.conteo[valor] > 1 ? ` (${c + 1} de ${s.conteo[valor]})` : ""}. k avanza a ${k + 1}.`);
+        const deCuantos = s.conteo[valor] > 1 ? tr(` (${c + 1} de ${s.conteo[valor]})`, ` (${c + 1} of ${s.conteo[valor]})`) : "";
+        paso(K, 9, tr(`v[${k}] = ${valor}${deCuantos}. k avanza a ${k + 1}.`, `v[${k}] = ${valor}${deCuantos}. k moves on to ${k + 1}.`));
         k++;
       }
     }
     s.listos = true;
     ver(s, { vars: { maximo, k } });
-    paso(K, 7, `¡Ordenado sin una sola comparación! ${s.cuenta.pasos} pasos: n = ${n} para contar y n para reescribir, más recorrer los ${maximo + 1} valores posibles. O(n + k).`, "exito");
+    paso(K, 7, tr(`¡Ordenado sin una sola comparación! ${s.cuenta.pasos} pasos: n = ${n} para contar y n para reescribir, más recorrer los ${maximo + 1} valores posibles. O(n + k).`,
+      `Sorted without a single comparison! ${s.cuenta.pasos} steps: n = ${n} to count and n to rewrite, plus going through the ${maximo + 1} possible values. O(n + k).`), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -211,7 +303,8 @@
         const x = s.v[i].v;
         if (cfg.valida && !cfg.valida(x)) {
           ver(s, { vars: Object.assign({ x }, base), malas: [i], error: true, exp: s.exp, vueltas: { [L.contar]: i + 1 } });
-          paso(K, 5, `x = ${x} no está entre 0 y maximo = ${s.maximo}: conteo[${x}] estaría fuera del vector. Se lanza std::out_of_range.`, "error");
+          paso(K, 5, tr(`x = ${x} no está entre 0 y maximo = ${s.maximo}: conteo[${x}] estaría fuera del vector. Se lanza std::out_of_range.`,
+            `x = ${x} isn't between 0 and maxValue = ${s.maximo}: count[${x}] would be outside the vector. std::out_of_range is thrown.`), "error");
           return false;
         }
         const c = clave(x);
@@ -219,13 +312,14 @@
         trabajo(s);
         s.vuelos = [{ id: `f${s.sig++}`, texto: "+1", de: ["v", i], a: ["conteo", c] }];
         ver(s, { vars: Object.assign({ x }, base), leidas: [i], conteoEscrito: [c], exp: s.exp, cambio: ["pasos"], vueltas: { [L.contar]: i + 1 } });
-        paso(K, L.contarLinea, `${nombreClave(x)} conteo[${c}]++ → ${s.conteo[c]}.`);
+        paso(K, L.contarLinea, `${nombreClave(x)} ${tr("conteo", "count")}[${c}]++ → ${s.conteo[c]}.`);
       }
     } else {
       const malo = cfg.valida ? s.v.findIndex((b) => !cfg.valida(b.v)) : -1;
       if (malo >= 0) {
         ver(s, { vars: Object.assign({ x: s.v[malo].v }, base), malas: [malo], error: true, exp: s.exp });
-        paso(K, 5, `x = ${s.v[malo].v} no está entre 0 y maximo = ${s.maximo}: se lanza std::out_of_range.`, "error");
+        paso(K, 5, tr(`x = ${s.v[malo].v} no está entre 0 y maximo = ${s.maximo}: se lanza std::out_of_range.`,
+          `x = ${s.v[malo].v} isn't between 0 and maxValue = ${s.maximo}: std::out_of_range is thrown.`), "error");
         return false;
       }
       s.vuelos = s.v.map((b, i) => {
@@ -234,7 +328,7 @@
       });
       trabajo(s, n);
       ver(s, { vars: Object.assign({}, base), conteoEscrito: s.conteo.map((_, k) => k), exp: s.exp, cambio: ["pasos"], vueltas: { [L.contar]: n } });
-      paso(K, L.contarLinea, `Contamos ${cfg.queSeCuenta}: conteo = { ${s.conteo.join(", ")} }.`);
+      paso(K, L.contarLinea, tr(`Contamos ${cfg.queSeCuenta}: conteo = { ${s.conteo.join(", ")} }.`, `We count ${cfg.queSeCuenta}: count = { ${s.conteo.join(", ")} }.`));
     }
     s.vuelos = [];
 
@@ -246,20 +340,23 @@
         trabajo(s);
         s.vuelos = [{ id: `f${s.sig++}`, texto: `+${s.conteo[c - 1]}`, de: ["conteo", c - 1], a: ["conteo", c] }];
         ver(s, { vars: Object.assign({ [L.indice]: c }, base), conteoEscrito: [c], conteoLeido: [c - 1], exp: s.exp, cambio: ["pasos"], vueltas: { [L.sumar]: c } });
-        paso(K, L.sumar + 1, `conteo[${c}] += conteo[${c - 1}]: ${antes} + ${s.conteo[c - 1]} = ${s.conteo[c]}. Hay ${s.conteo[c]} valor(es) con clave ≤ ${c}: el último ${c} irá en la posición ${s.conteo[c] - 1}.`);
+        paso(K, L.sumar + 1, tr(`conteo[${c}] += conteo[${c - 1}]: ${antes} + ${s.conteo[c - 1]} = ${s.conteo[c]}. Hay ${s.conteo[c]} valor(es) con clave ≤ ${c}: el último ${c} irá en la posición ${s.conteo[c] - 1}.`,
+          `count[${c}] += count[${c - 1}]: ${antes} + ${s.conteo[c - 1]} = ${s.conteo[c]}. There are ${s.conteo[c]} value(s) with key ≤ ${c}: the last ${c} will go in position ${s.conteo[c] - 1}.`));
       }
     } else {
       for (let c = 1; c < columnas; c++) s.conteo[c] += s.conteo[c - 1];
       trabajo(s, columnas - 1);
       ver(s, { vars: Object.assign({}, base), conteoEscrito: s.conteo.map((_, k) => k).slice(1), exp: s.exp, cambio: ["pasos"], vueltas: { [L.sumar]: columnas - 1 } });
-      paso(K, L.sumar + 1, `Sumas acumuladas: conteo = { ${s.conteo.join(", ")} }. Ahora conteo[c] es cuántos tienen clave ≤ c: dónde termina cada clave en la salida.`);
+      paso(K, L.sumar + 1, tr(`Sumas acumuladas: conteo = { ${s.conteo.join(", ")} }. Ahora conteo[c] es cuántos tienen clave ≤ c: dónde termina cada clave en la salida.`,
+        `Running sums: count = { ${s.conteo.join(", ")} }. Now count[c] is how many have a key ≤ c: where each key ends in the output.`));
     }
     s.vuelos = [];
 
     // 3. Colocar, de derecha a izquierda.
     s.salida = Array(n).fill(null);
     ver(s, { vars: Object.assign({}, base), exp: s.exp });
-    paso(K, L.salida, `salida tiene ${n} casillas. Recorremos v de derecha a izquierda: así, entre dos con la misma clave, el de más a la derecha ocupa la última posición libre de su clave.`);
+    paso(K, L.salida, tr(`salida tiene ${n} casillas. Recorremos v de derecha a izquierda: así, entre dos con la misma clave, el de más a la derecha ocupa la última posición libre de su clave.`,
+      `output has ${n} slots. We walk v from right to left: that way, between two with the same key, the rightmost one takes the last free position of its key.`));
     if (detalle) {
       for (let i = n - 1; i >= 0; i--) {
         const x = s.v[i].v;
@@ -267,11 +364,12 @@
         s.conteo[c]--;
         const pos = s.conteo[c];
         ver(s, { vars: Object.assign({ i, [cfg.nombreC]: c }, base), leidas: [i], conteoEscrito: [c], punteros: { i }, exp: s.exp, vueltas: { [L.colocar]: n - i } });
-        paso(K, L.decrementar, `${cfg.textoClave(x, i)} conteo[${c}]-- → ${pos}: esa es su posición en la salida.`);
+        paso(K, L.decrementar, tr(`${cfg.textoClave(x, i)} conteo[${c}]-- → ${pos}: esa es su posición en la salida.`,
+          `${cfg.textoClave(x, i)} count[${c}]-- → ${pos}: that's its position in the output.`));
         s.salida[pos] = nuevaBarra(s, x, s.v[i].e, { de: ["v", i] });
         trabajo(s, 2);
         ver(s, { vars: Object.assign({ i, [cfg.nombreC]: c }, base), leidas: [i], escritasSalida: [pos], punteros: { i }, punterosSalida: { [`conteo[${c}]`]: pos }, exp: s.exp, cambio: ["pasos"], vueltas: { [L.colocar]: n - i } });
-        paso(K, L.decrementar + 1, `salida[${pos}] = ${texto(s.v[i])}.`);
+        paso(K, L.decrementar + 1, `${tr("salida", "output")}[${pos}] = ${texto(s.v[i])}.`);
       }
     } else {
       for (let i = n - 1; i >= 0; i--) {
@@ -281,7 +379,8 @@
       }
       trabajo(s, 2 * n);
       ver(s, { vars: Object.assign({}, base), escritasSalida: s.salida.map((_, k) => k), exp: s.exp, cambio: ["pasos"], vueltas: { [L.colocar]: n } });
-      paso(K, L.decrementar + 1, `Colocamos cada valor en salida[--conteo[clave]], de derecha a izquierda: salida = { ${lista(s.salida)} }.`);
+      paso(K, L.decrementar + 1, tr(`Colocamos cada valor en salida[--conteo[clave]], de derecha a izquierda: salida = { ${lista(s.salida)} }.`,
+        `We place each value at output[--count[key]], from right to left: output = { ${lista(s.salida)} }.`));
     }
     return true;
   }
@@ -294,8 +393,9 @@
       valida: (x) => x >= 0 && x <= maximo,
       nombreClave: (x) => `x = ${x}:`,
       textoClave: (x, i) => `i = ${i}, v[i] = ${x}:`,
-      queSeCuenta: "cuántas veces aparece cada valor",
-      textoInicio: `conteo tiene maximo + 1 = ${maximo + 1} casillas, una por valor posible, todas en 0.`,
+      queSeCuenta: tr("cuántas veces aparece cada valor", "how many times each value appears"),
+      textoInicio: tr(`conteo tiene maximo + 1 = ${maximo + 1} casillas, una por valor posible, todas en 0.`,
+        `count has maxValue + 1 = ${maximo + 1} slots, one per possible value, all at 0.`),
       vars: { maximo },
       lineas: { contar: 3, contarLinea: 7, sumar: 9, indice: "i", salida: 12, colocar: 13, decrementar: 14 },
     });
@@ -304,8 +404,12 @@
     s.salidaLista = true;
     ver(s, { vars: { maximo } });
     const letras = s.salida.filter((b) => b.e).map((b) => b.e).join("");
-    paso(K, 17, `return salida: { ${lista(s.salida)} }. ${s.cuenta.pasos} pasos y ninguna comparación: O(n + k).`
-      + (letras.length > 1 ? (letras === "ab" ? " Los iguales siguen en su orden (ᵃ antes que ᵇ): es estable." : " Los iguales se invirtieron.") : ""), "exito");
+    const estable = letras.length > 1
+      ? (letras === "ab" ? tr(" Los iguales siguen en su orden (ᵃ antes que ᵇ): es estable.", " Equal values keep their order (ᵃ before ᵇ): it's stable.")
+        : tr(" Los iguales se invirtieron.", " Equal values got reversed."))
+      : "";
+    paso(K, 17, tr(`return salida: { ${lista(s.salida)} }. ${s.cuenta.pasos} pasos y ninguna comparación: O(n + k).`,
+      `return output: { ${lista(s.salida)} }. ${s.cuenta.pasos} steps and no comparisons: O(n + k).`) + estable, "exito");
   }
 
   function animarRadix(s, paso, detalle) {
@@ -313,13 +417,15 @@
     const n = s.v.length;
     if (!n) {
       ver(s, {});
-      paso(K, 3, "El vector está vacío: no hay nada que ordenar. return.");
+      paso(K, 3, tr("El vector está vacío: no hay nada que ordenar. return.", "The vector is empty: there's nothing to sort. return."));
       return;
     }
     const maximo = s.maxV;
     ver(s, { vars: { maximo }, cambio: ["maximo"] });
-    paso(K, 5, `maximo = ${maximo}: tiene ${String(maximo).length} dígito(s), así que habrá ${String(maximo).length} pasadas.`);
-    const NOMBRES = { 1: "unidades", 10: "decenas", 100: "centenas", 1000: "miles" };
+    const d = String(maximo).length;
+    paso(K, 5, tr(`maximo = ${maximo}: tiene ${d} dígito(s), así que habrá ${d} pasada(s).`, `maxValue = ${maximo}: it has ${d} digit(s), so there will be ${d} pass(es).`));
+    const POSICIONES = tr({ 1: "unidades", 10: "decenas", 100: "centenas", 1000: "miles" }, { 1: "ones", 10: "tens", 100: "hundreds", 1000: "thousands" });
+    const posicionDe = (exp) => POSICIONES[exp] || tr(`posiciones de ${exp}`, `${exp}s`);
     let pasada = 0;
     for (let exp = 1; Math.floor(maximo / exp) > 0; exp *= 10) {
       pasada++;
@@ -327,13 +433,14 @@
       s.conteo = null;
       s.salida = null;
       ver(s, { vars: { maximo, exp }, exp, cambio: ["exp"], vueltas: { 6: pasada } });
-      paso(K, 7, `exp = ${exp}: ordenamos solo por las ${NOMBRES[exp] || `posiciones de ${exp}`} (el dígito resaltado), con un counting sort estable.`);
+      paso(K, 7, tr(`exp = ${exp}: ordenamos solo por las ${posicionDe(exp)} (el dígito resaltado), con un counting sort estable.`,
+        `exp = ${exp}: we sort only by the ${posicionDe(exp)} digit (the highlighted one), with a stable counting sort.`));
       animarConteoEstable(s, paso, {
         K: "ordenarPorDigito", detalle, columnas: 10, clave: (x) => digito(x, exp), nombreC: "d",
-        nombreClave: (x) => `${x}: su dígito es ${digito(x, exp)}.`,
+        nombreClave: (x) => tr(`${x}: su dígito es ${digito(x, exp)}.`, `${x}: its digit is ${digito(x, exp)}.`),
         textoClave: (x, i) => `i = ${i}: d = (${x} / ${exp}) % 10 = ${digito(x, exp)}.`,
-        queSeCuenta: `cuántos tienen cada dígito en las ${NOMBRES[exp] || "posiciones de " + exp}`,
-        textoInicio: `conteo tiene 10 casillas, una por dígito (0 a 9).`,
+        queSeCuenta: tr(`cuántos tienen cada dígito en las ${posicionDe(exp)}`, `how many have each ${posicionDe(exp)} digit`),
+        textoInicio: tr("conteo tiene 10 casillas, una por dígito (0 a 9).", "count has 10 slots, one per digit (0 to 9)."),
         vars: { exp },
         lineas: { contar: 3, contarLinea: 4, sumar: 6, indice: "d", salida: 9, colocar: 10, decrementar: 12 },
       });
@@ -342,13 +449,15 @@
       s.salida = null;
       trabajo(s, n);
       ver(s, { vars: { exp }, exp, cambio: ["pasos"] });
-      paso("ordenarPorDigito", 15, `v = salida: { ${lista(s.v)} }. Ordenado por ${NOMBRES[exp] || "ese dígito"}; los empates conservan el orden de la pasada anterior.`);
+      paso("ordenarPorDigito", 15, tr(`v = salida: { ${lista(s.v)} }. Ordenado por ${posicionDe(exp)}; los empates conservan el orden de la pasada anterior.`,
+        `v = output: { ${lista(s.v)} }. Sorted by the ${posicionDe(exp)} digit; ties keep the order of the previous pass.`));
     }
     s.exp = null;
     s.conteo = null;
     s.listos = true;
     ver(s, { vars: { maximo } });
-    paso(K, 6, `maximo / exp = 0: no quedan dígitos. ¡Ordenado! { ${lista(s.v)} }. ${s.cuenta.pasos} pasos en ${pasada} pasada(s): O(d · (n + 10)).`, "exito");
+    paso(K, 6, tr(`maximo / exp = 0: no quedan dígitos. ¡Ordenado! { ${lista(s.v)} }. ${s.cuenta.pasos} pasos en ${pasada} pasada(s): O(d · (n + 10)).`,
+      `maxValue / exp = 0: no digits left. Sorted! { ${lista(s.v)} }. ${s.cuenta.pasos} steps in ${pasada} pass(es): O(d · (n + 10)).`), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -362,7 +471,8 @@
     const anchoCubeta = Math.ceil((maximo + 1) / numCubetas);
     s.cubetas = Array.from({ length: numCubetas }, () => []);
     ver(s, { vars: { maximo, cubetas: numCubetas } });
-    paso(K, 2, `${numCubetas} cubetas vacías; cada una recibe un tramo de ${anchoCubeta} valores (0..${anchoCubeta - 1}, ${anchoCubeta}..${2 * anchoCubeta - 1}, …).`);
+    paso(K, 2, tr(`${numCubetas} cubetas vacías; cada una recibe un tramo de ${anchoCubeta} valores (0..${anchoCubeta - 1}, ${anchoCubeta}..${2 * anchoCubeta - 1}, …).`,
+      `${numCubetas} empty buckets; each one gets a range of ${anchoCubeta} values (0..${anchoCubeta - 1}, ${anchoCubeta}..${2 * anchoCubeta - 1}, …).`));
     const cubetaDe = (x) => Math.floor((x * numCubetas) / (maximo + 1));
     if (detalle) {
       for (let i = 0; i < n; i++) {
@@ -371,17 +481,18 @@
         s.cubetas[c].push(nuevaBarra(s, x, null, { de: ["v", i] }));
         trabajo(s);
         ver(s, { vars: { maximo, cubetas: numCubetas, x }, leidas: [i], cubetaActiva: c, cambio: ["pasos"], vueltas: { 3: i + 1 } });
-        paso(K, 4, `x = ${x}: ${x} · ${numCubetas} / ${maximo + 1} = ${c}. Va al final de la cubeta ${c}.`);
+        paso(K, 4, tr(`x = ${x}: ${x} · ${numCubetas} / ${maximo + 1} = ${c}. Va al final de la cubeta ${c}.`, `x = ${x}: ${x} · ${numCubetas} / ${maximo + 1} = ${c}. It goes to the end of bucket ${c}.`));
       }
     } else {
       s.v.forEach((b, i) => s.cubetas[cubetaDe(b.v)].push(nuevaBarra(s, b.v, null, { de: ["v", i], retraso: i })));
       trabajo(s, n);
       ver(s, { vars: { maximo, cubetas: numCubetas }, cambio: ["pasos"], vueltas: { 3: n } });
-      paso(K, 4, `Repartimos: cada x va a la cubeta x · ${numCubetas} / ${maximo + 1}. Sin comparar entre ellos.`);
+      paso(K, 4, tr(`Repartimos: cada x va a la cubeta x · ${numCubetas} / ${maximo + 1}. Sin comparar entre ellos.`,
+        `We distribute: each x goes to bucket x · ${numCubetas} / ${maximo + 1}. Without comparing them with each other.`));
     }
     let k = 0;
     ver(s, { vars: { maximo, cubetas: numCubetas, k } });
-    paso(K, 6, "k = 0: ahora vaciamos las cubetas en orden, de la 0 a la última.");
+    paso(K, 6, tr("k = 0: ahora vaciamos las cubetas en orden, de la 0 a la última.", "k = 0: now we empty the buckets in order, from 0 to the last one."));
     for (let c = 0; c < numCubetas; c++) {
       const cubeta = s.cubetas[c];
       const m = cubeta.length;
@@ -389,8 +500,9 @@
       trabajo(s, m > 1 ? Math.ceil(m * Math.log2(m)) : m);
       ver(s, { vars: { maximo, cubetas: numCubetas, k }, cubetaActiva: c, cubetaOrdenada: c, cambio: ["pasos"], vueltas: { 7: c + 1 } });
       paso(K, 8, m > 1
-        ? `sort de la cubeta ${c}: solo ${m} valores, así que ordenarla es barato → { ${lista(cubeta)} }.`
-        : m ? `La cubeta ${c} tiene un solo valor: ya está ordenada.` : `La cubeta ${c} está vacía.`);
+        ? tr(`sort de la cubeta ${c}: solo ${m} valores, así que ordenarla es barato → { ${lista(cubeta)} }.`, `sort of bucket ${c}: only ${m} values, so sorting it is cheap → { ${lista(cubeta)} }.`)
+        : m ? tr(`La cubeta ${c} tiene un solo valor: ya está ordenada.`, `Bucket ${c} has a single value: it's already sorted.`)
+          : tr(`La cubeta ${c} está vacía.`, `Bucket ${c} is empty.`));
       if (!m) continue;
       if (detalle) {
         cubeta.forEach((b, j) => {
@@ -405,14 +517,17 @@
         cubeta.forEach((b, j) => { s.v[k++] = nuevaBarra(s, b.v, null, { de: ["cubeta", c, j], retraso: j }); });
         trabajo(s, m);
         ver(s, { vars: { maximo, cubetas: numCubetas, k }, cubetaActiva: c, escritas: [desde, k - 1], punteros: { k: Math.min(k, n - 1) }, cambio: ["pasos"], vueltas: { 7: c + 1, 9: m } });
-        paso(K, 10, `Los ${m} valores de la cubeta ${c} vuelven a v[${desde}..${k - 1}].`);
+        paso(K, 10, tr(`Los ${m} valores de la cubeta ${c} vuelven a v[${desde}..${k - 1}].`, `The ${m} values of bucket ${c} go back to v[${desde}..${k - 1}].`));
       }
     }
     s.listos = true;
     ver(s, { vars: { maximo, cubetas: numCubetas } });
     const mayor = Math.max(...s.cubetas.map((c) => c.length));
-    paso(K, 7, `¡Ordenado! { ${lista(s.v)} }. ${s.cuenta.pasos} pasos.`
-      + (mayor > n / 2 ? ` Pero una cubeta recibió ${mayor} de ${n}: casi todo el trabajo fue su sort. Con valores amontonados, bucket sort no ayuda.` : " Con valores repartidos parejo, cada cubeta tiene pocos: O(n) en promedio."), "exito");
+    paso(K, 7, tr(`¡Ordenado! { ${lista(s.v)} }. ${s.cuenta.pasos} pasos.`, `Sorted! { ${lista(s.v)} }. ${s.cuenta.pasos} steps.`)
+      + (mayor > n / 2
+        ? tr(` Pero una cubeta recibió ${mayor} de ${n}: casi todo el trabajo fue su sort. Con valores amontonados, bucket sort no ayuda.`,
+          ` But one bucket got ${mayor} of ${n}: almost all the work was its sort. With clustered values, bucket sort doesn't help.`)
+        : tr(" Con valores repartidos parejo, cada cubeta tiene pocos: O(n) en promedio.", " With evenly spread values, each bucket has few: O(n) on average.")), "exito");
   }
 
   // ------------------------------------------------------------------
@@ -527,20 +642,21 @@
       lienzo.classList.add("sacudir");
     }
 
-    const cuenta = DS.variables(s.cuenta, vis.cambio);
+    const cuenta = variables(s.cuenta, vis.cambio);
     cuenta.classList.add("ord-cuenta");
     escenario.querySelector(".ord-info").replaceChildren(
-      DS.variables(vis.vars || { n: s.v.length }, vis.cambio),
+      variables(vis.vars || { n: s.v.length }, vis.cambio),
       cuenta,
-      el("span", { class: "snc-sin-comparar", text: "comparaciones = 0" }));
+      el("span", { class: "snc-sin-comparar", text: tr("comparaciones = 0", "comparisons = 0") }));
 
     // Capa fija: títulos, índices, casillas de conteo y cajas de las cubetas.
     const piezas = [];
     const titulo = (y, txt) => piezas.push(el("span", { class: "fila-titulo snc-titulo", style: `left:${MARGEN - 6}px;top:${y}px`, text: txt }));
-    titulo(0, s.modo === "contar" ? "v (se reescribe al final)" : "v");
+    titulo(0, s.modo === "contar" ? tr("v (se reescribe al final)", "v (rewritten at the end)") : "v");
     s.v.forEach((_, k) => piezas.push(el("span", { class: "indice ord-indice", style: `left:${xDe(k)}px;top:${g.yBaseV + 3}px;width:${ANCHO}px`, text: k })));
     if (s.modo === "bucket") {
-      titulo(g.yCubetas, `cubetas (cada una, un tramo de ${Math.ceil((s.maximo + 1) / s.numCubetas)} valores)`);
+      titulo(g.yCubetas, tr(`cubetas (cada una, un tramo de ${Math.ceil((s.maximo + 1) / s.numCubetas)} valores)`,
+        `buckets (each one, a range of ${Math.ceil((s.maximo + 1) / s.numCubetas)} values)`));
       const ancho = Math.ceil((s.maximo + 1) / s.numCubetas);
       for (let c = 0; c < s.numCubetas; c++) {
         const col = cubetaX(s, g, c);
@@ -549,12 +665,12 @@
         piezas.push(el("span", { class: "indice snc-tramo", style: `left:${col.x}px;top:${g.yCubetas + TITULO + g.altoCubeta + 2}px;width:${col.ancho}px`, text: `${c}: ${c * ancho}..${Math.min(s.maximo, (c + 1) * ancho - 1)}` }));
       }
     } else {
-      titulo(g.yConteo, s.modo === "radix" ? "conteo[d] (d = dígito)" : "conteo[valor]");
+      titulo(g.yConteo, s.modo === "radix" ? tr("conteo[d] (d = dígito)", "count[d] (d = digit)") : tr("conteo[valor]", "count[value]"));
       for (let k = 0; k < s.columnasConteo; k++) {
         piezas.push(el("span", { class: "indice ord-indice", style: `left:${xDe(k)}px;top:${g.yConteo + TITULO + CASILLA + 1}px;width:${ANCHO}px`, text: k }));
       }
       if (s.ySalida !== null && g.ySalida != null) {
-        titulo(g.ySalida, "salida");
+        titulo(g.ySalida, tr("salida", "output"));
         for (let k = 0; k < s.v.length; k++) {
           piezas.push(el("div", { class: `snc-hueco${s.salida ? "" : " sin-reservar"}`, style: `left:${xDe(k)}px;top:${g.yBaseS - 10}px;width:${ANCHO}px` }));
           piezas.push(el("span", { class: "indice ord-indice", style: `left:${xDe(k)}px;top:${g.yBaseS + 3}px;width:${ANCHO}px`, text: k }));
@@ -655,7 +771,7 @@
         nodo = el("span", { class: "ord-puntero", "data-nombre": nombre, style: `left:${xDe(k) + ANCHO / 2}px;top:${yBase + 17}px` });
         capa.append(nodo);
       }
-      nodo.textContent = `▲ ${nombre}`;
+      nodo.textContent = `▲ ${ident(nombre)}`;
       nodo.style.left = `${xDe(k) + ANCHO / 2}px`;
       nodo.style.top = `${yBase + 17}px`;
     };
@@ -673,25 +789,29 @@
   }
 
   function tema(contenedor, cfg) {
-    DS.tema(Object.assign({ contenedor, incremental: true, dibujar, tituloCodigo: (clave) => `${clave}()` }, cfg));
+    DS.tema(Object.assign({ contenedor, incremental: true, dibujar, tituloCodigo: (clave) => `${nombreF(clave)}()` }, cfg));
   }
 
-  const OPCIONES_DETALLE = [["detalle", "Paso a paso"], ["resumen", "Resumido"]];
+  const ARREGLO = tr("Arreglo", "Array");
+  const DE_MAIN = tr("El de main()", "The one from main()");
+  const RESUMIDO = ["resumen", tr("Resumido", "Summarized")];
+  const PASO_A_PASO = ["detalle", tr("Paso a paso", "Step by step")];
 
   // Paso 1: contar y reescribir.
   const CONTAR = { main: [4, 1, 3, 4, 0, 2, 1], azar: () => alAzar(8, 5), iguales: [2, 2, 2, 0, 2, 2] };
   tema("vis-contar", {
     codigo: fragmentos("contarYReescribir"),
-    entradas: [{ id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "El de main()"], ["azar", "Al azar (0 a 5)"], ["iguales", "Casi todos iguales"]] }],
+    entradas: [{ id: "arreglo", etiqueta: ARREGLO, opciones: [["main", DE_MAIN], ["azar", tr("Al azar (0 a 5)", "Random (0 to 5)")], ["iguales", tr("Casi todos iguales", "Almost all equal")]] }],
     estadoInicial: (valores) => {
       const datos = typeof CONTAR[valores.arreglo] === "function" ? CONTAR[valores.arreglo]() : CONTAR[valores.arreglo];
       return estadoDesde(datos, "contar", { maximo: Math.max(4, ...datos) });
     },
-    mensajeInicial: "Valores entre 0 y maximo. Pulsa contarYReescribir: cada valor manda un +1 a su casilla de conteo.",
+    mensajeInicial: tr("Valores entre 0 y maximo. Pulsa Ejecutar: cada valor manda un +1 a su casilla de conteo.",
+      "Values between 0 and maxValue. Press Run: each value sends a +1 to its slot in count."),
     operaciones: [{
       id: "contar",
       codigo: "contarYReescribir",
-      etiqueta: (valores) => `contarYReescribir(v, ${valores.arreglo === "azar" ? 5 : 4})`,
+      etiqueta: (valores) => `${nombreF("contarYReescribir")}(v, ${valores.arreglo === "azar" ? 5 : 4})`,
       ejecutar(s, args, paso) { prepararCorrida(s); animarContar(s, paso); },
     }],
   });
@@ -704,11 +824,12 @@
   tema("vis-counting", {
     codigo: fragmentos("countingSort"),
     entradas: [
-      { id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "El de main(), con 4ᵃ y 4ᵇ"], ["fuera", "{ 3, 7, 1 } con maximo = 4"]] },
-      { id: "detalle", etiqueta: "", opciones: OPCIONES_DETALLE, reinicia: false },
+      { id: "arreglo", etiqueta: ARREGLO, opciones: [["main", tr("El de main(), con 4ᵃ y 4ᵇ", "The one from main(), with 4ᵃ and 4ᵇ")], ["fuera", tr("{ 3, 7, 1 } con maximo = 4", "{ 3, 7, 1 } with maxValue = 4")]] },
+      { id: "detalle", etiqueta: "", opciones: [PASO_A_PASO, RESUMIDO], reinicia: false },
     ],
     estadoInicial: (valores) => estadoDesde(COUNTING[valores.arreglo], "counting", { maximo: 4 }),
-    mensajeInicial: "Los dos 4 están marcados ᵃ y ᵇ. Fíjate en las sumas acumuladas: dicen dónde termina cada valor en la salida.",
+    mensajeInicial: tr("Los dos 4 están marcados ᵃ y ᵇ. Fíjate en las sumas acumuladas: dicen dónde termina cada valor en la salida.",
+      "The two 4s are marked ᵃ and ᵇ. Watch the running sums: they say where each value ends in the output."),
     operaciones: [{
       id: "counting",
       codigo: "countingSort",
@@ -723,11 +844,12 @@
   tema("vis-radix", {
     codigo: fragmentos("radixSort", "ordenarPorDigito"),
     entradas: [
-      { id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "El de main()"], ["azar", "Al azar (0 a 999)"]] },
-      { id: "detalle", etiqueta: "", opciones: [["resumen", "Resumido"], ["detalle", "Paso a paso"]], reinicia: false },
+      { id: "arreglo", etiqueta: ARREGLO, opciones: [["main", DE_MAIN], ["azar", tr("Al azar (0 a 999)", "Random (0 to 999)")]] },
+      { id: "detalle", etiqueta: "", opciones: [RESUMIDO, PASO_A_PASO], reinicia: false },
     ],
     estadoInicial: (valores) => estadoDesde(typeof RADIX[valores.arreglo] === "function" ? RADIX[valores.arreglo]() : RADIX[valores.arreglo], "radix"),
-    mensajeInicial: "Una pasada por dígito, de las unidades a las centenas. El dígito que manda en cada pasada se resalta.",
+    mensajeInicial: tr("Una pasada por dígito, de las unidades a las centenas. El dígito que manda en cada pasada se resalta.",
+      "One pass per digit, from the ones to the hundreds. The digit that decides each pass is highlighted."),
     operaciones: [{
       id: "radix",
       codigo: "radixSort",
@@ -742,11 +864,12 @@
   tema("vis-bucket", {
     codigo: fragmentos("bucketSort"),
     entradas: [
-      { id: "arreglo", etiqueta: "Arreglo", opciones: [["main", "Parejos"], ["amontonado", "Amontonados"], ["azar", "Al azar"]] },
-      { id: "detalle", etiqueta: "", opciones: [["resumen", "Resumido"], ["detalle", "Paso a paso"]], reinicia: false },
+      { id: "arreglo", etiqueta: ARREGLO, opciones: [["main", tr("Parejos", "Evenly spread")], ["amontonado", tr("Amontonados", "Clustered")], ["azar", tr("Al azar", "Random")]] },
+      { id: "detalle", etiqueta: "", opciones: [RESUMIDO, PASO_A_PASO], reinicia: false },
     ],
     estadoInicial: (valores) => estadoDesde(typeof BUCKET[valores.arreglo] === "function" ? BUCKET[valores.arreglo]() : BUCKET[valores.arreglo], "bucket", { maximo: 99, numCubetas: 5, filasCubeta: valores.arreglo === "amontonado" ? 9 : 4 }),
-    mensajeInicial: "Valores de 0 a 99 en 5 cubetas de 20. Prueba también \"Amontonados\": todos caen en la misma cubeta.",
+    mensajeInicial: tr("Valores de 0 a 99 en 5 cubetas de 20. Prueba también \"Amontonados\": todos caen en la misma cubeta.",
+      "Values from 0 to 99 in 5 buckets of 20. Also try \"Clustered\": they all land in the same bucket."),
     operaciones: [{
       id: "bucket",
       codigo: "bucketSort",
@@ -758,7 +881,7 @@
 
   // Paso 6: todo junto.
   const ALGORITMOS = {
-    contarYReescribir: { modo: "contar", datos: () => alAzar(8, 9), opciones: { maximo: 9 }, animar: (s, paso) => animarContar(s, paso), etiqueta: "contarYReescribir(v, 9)" },
+    contarYReescribir: { modo: "contar", datos: () => alAzar(8, 9), opciones: { maximo: 9 }, animar: (s, paso) => animarContar(s, paso), etiqueta: `${nombreF("contarYReescribir")}(v, 9)` },
     countingSort: { modo: "counting", datos: () => alAzar(8, 9), opciones: { maximo: 9 }, animar: animarCounting, etiqueta: "countingSort(v, 9)" },
     radixSort: { modo: "radix", datos: () => alAzar(8, 999), opciones: {}, animar: animarRadix, etiqueta: "radixSort(v)" },
     bucketSort: { modo: "bucket", datos: () => alAzar(10, 99), opciones: { maximo: 99, numCubetas: 5, filasCubeta: 5 }, animar: animarBucket, etiqueta: "bucketSort(v, 99, 5)" },
@@ -767,14 +890,14 @@
     codigo: fragmentos("contarYReescribir", "countingSort", "radixSort", "ordenarPorDigito", "bucketSort"),
     codigoInicial: (valores) => valores.algoritmo,
     entradas: [
-      { id: "algoritmo", etiqueta: "Algoritmo", opciones: Object.keys(ALGORITMOS).map((a) => [a, a]), valor: "countingSort" },
-      { id: "detalle", etiqueta: "", opciones: [["resumen", "Resumido"], ["detalle", "Paso a paso"]], reinicia: false },
+      { id: "algoritmo", etiqueta: tr("Algoritmo", "Algorithm"), opciones: Object.keys(ALGORITMOS).map((a) => [a, nombreF(a)]), valor: "countingSort" },
+      { id: "detalle", etiqueta: "", opciones: [RESUMIDO, PASO_A_PASO], reinicia: false },
     ],
     estadoInicial: (valores) => {
       const a = ALGORITMOS[valores.algoritmo];
       return estadoDesde(a.datos(), a.modo, Object.assign({}, a.opciones));
     },
-    mensajeInicial: "Elige un algoritmo y ordena. Reiniciar trae otro arreglo al azar.",
+    mensajeInicial: tr("Elige un algoritmo y ordena. Reiniciar trae otro arreglo al azar.", "Choose an algorithm and sort. Reset brings another random array."),
     operaciones: [{
       id: "ordenar",
       etiqueta: (valores) => ALGORITMOS[valores.algoritmo].etiqueta,
@@ -834,15 +957,15 @@
     const caja = document.getElementById("vis-carrera");
     if (!caja) return;
     const CORREDORES = ["countingSort", "radixSort", "bucketSort", "quickSortAleatorio"];
-    const formato = (x) => x.toLocaleString("es");
+    const formato = (x) => x.toLocaleString(DS.idioma);
     const selN = el("select", { id: "snc-carrera-n" }, [1000, 100000].map((n) => el("option", { value: n, text: formato(n) })));
-    const selK = el("select", { id: "snc-carrera-k" }, [99, 9999, 9999999].map((k) => el("option", { value: k, text: `0 a ${formato(k)}` })));
+    const selK = el("select", { id: "snc-carrera-k" }, [99, 9999, 9999999].map((k) => el("option", { value: k, text: tr(`0 a ${formato(k)}`, `0 to ${formato(k)}`) })));
     const filas = CORREDORES.map((a) => {
       const barra = el("span", { class: "ord-carrera-barra comparaciones" });
       const num = el("span", { class: "ord-carrera-num" });
       const memoria = el("span", { class: "dyv-carrera-dato" });
       const fila = el("div", { class: "ord-carrera-fila dyv-carrera-fila" },
-        el("code", { class: "ord-carrera-nombre", text: a }),
+        el("code", { class: "ord-carrera-nombre", text: tr(a, a === "quickSortAleatorio" ? "randomQuickSort" : a) }),
         el("div", { class: "ord-carrera-pista" }, el("span", { class: "ord-carrera-carril" }, barra), num),
         memoria);
       return { a, fila, barra, num, memoria };
@@ -864,7 +987,10 @@
         f.fila.classList.add("nueva");
       });
       const mejor = filas[r.findIndex((x) => x.trabajo === Math.min(...r.map((y) => y.trabajo)))].a;
-      referencia.textContent = `n = ${formato(n)}, k = ${formato(k + 1)} valores posibles. Menos trabajo: ${mejor}. Para comparar: n log₂ n ≈ ${formato(Math.round(n * Math.log2(n)))}.`;
+      const nombreMejor = tr(mejor, mejor === "quickSortAleatorio" ? "randomQuickSort" : mejor);
+      const nLogN = formato(Math.round(n * Math.log2(n)));
+      referencia.textContent = tr(`n = ${formato(n)}, k = ${formato(k + 1)} valores posibles. Menos trabajo: ${nombreMejor}. Para comparar: n log₂ n ≈ ${nLogN}.`,
+        `n = ${formato(n)}, k = ${formato(k + 1)} possible values. Least work: ${nombreMejor}. For comparison: n log₂ n ≈ ${nLogN}.`);
     }
 
     selN.addEventListener("change", correr);
@@ -873,10 +999,10 @@
     caja.append(
       el("div", { class: "controles" },
         el("label", { class: "campo", for: "snc-carrera-n" }, "n", selN),
-        el("label", { class: "campo", for: "snc-carrera-k" }, "Valores", selK),
-        el("button", { class: "boton principal", type: "button", text: "Otro arreglo", onclick: correr })),
+        el("label", { class: "campo", for: "snc-carrera-k" }, tr("Valores", "Values"), selK),
+        el("button", { class: "boton principal", type: "button", text: tr("Otro arreglo", "Another array"), onclick: correr })),
       el("div", { class: "ord-carrera-cuerpo" },
-        el("div", { class: "ord-carrera-fila dyv-carrera-fila ord-carrera-titulos" }, el("span"), el("span", { text: "pasos de trabajo" }), el("span", { text: "memoria extra" })),
+        el("div", { class: "ord-carrera-fila dyv-carrera-fila ord-carrera-titulos" }, el("span"), el("span", { text: tr("pasos de trabajo", "work steps") }), el("span", { text: tr("memoria extra", "extra memory") })),
         filas.map((f) => f.fila),
         referencia));
     correr();
