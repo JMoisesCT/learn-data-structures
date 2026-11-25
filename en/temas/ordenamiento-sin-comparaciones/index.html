@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Non-comparison sorting · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: counting sort (count and rewrite, and the stable version with running sums), radix sort digit by digit and bucket sort, with animations where the values fly to their slot. When they beat O(n log n) and when they don't. C++ examples.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="ordenamiento-sin-comparaciones">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Non-comparison sorting</div>
+      <h1>Non-comparison sorting</h1>
+      <p class="resumen">Sorting by comparing pairs never goes below <strong>O(n log n)</strong>. These algorithms <strong>don't compare</strong>: they use the value itself as the index of an array or of a bucket. With small keys they reach <strong>O(n)</strong>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Count instead of compare">
+        <h2>Count instead of compare</h2>
+        <div class="dos-columnas">
+          <p>If the values are integers between <code>0</code> and <code>maxValue</code>, there's no need to compare them: each value <code>x</code> adds 1 to <code>count[x]</code>, using the value as an <strong>index</strong>.</p>
+          <p>Then <code>v</code> is rewritten going through the values in order: as many 0s as <code>count[0]</code> says, as many 1s as <code>count[1]</code> says… Total: <strong>O(n + k)</strong>, with <code>k = maxValue + 1</code>.</p>
+        </div>
+        <div id="vis-contar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What's the problem with <code>countAndRewrite</code> if each value is a student's grade and we want to sort <strong>students</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="It only keeps how many there are of each grade and writes the numbers back: the names are lost. To sort records you need the version in the next step.">It rewrites numbers: it loses whose grade each one was</button>
+            <button type="button" class="opcion" data-explicacion="It works with duplicates: count[x] can be greater than 1.">It doesn't work with repeated grades</button>
+            <button type="button" class="opcion" data-explicacion="Quite the opposite: with grades from 0 to 20, k = 21 is small and the algorithm is very fast.">It's slow with grades from 0 to 20</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="counting" data-titulo="Stable countingSort">
+        <h2><code>countingSort</code>: running sums and stability</h2>
+        <p>After counting, the <strong>running sums</strong> turn <code>count[x]</code> into "how many values are ≤ x": where the last x <strong>ends</strong> in the output. Walking <code>v</code> from right to left, each value (with its whole record) goes to <code>output[--count[x]]</code>: equal values keep their order.</p>
+        <div id="vis-counting"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does the last <code>for</code> walk <code>v</code> from right to left?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It does the same n iterations in either direction.">Because it's faster</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="count[x] points to the end of the range of the x's. The last x in v must take the last position of the range: that way 4ᵃ ends up before 4ᵇ. From left to right they would be reversed.">So that it's stable</button>
+            <button type="button" class="opcion" data-explicacion="It would still sort the numbers, but equal values would end up reversed: it would stop being stable.">Otherwise it would be sorted wrong</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="radix" data-titulo="radixSort">
+        <h2><code>radixSort</code>: one counting sort per digit</h2>
+        <p>With large numbers (up to 802), <code>count</code> would need 803 slots. Radix sort uses only <strong>10</strong>: it sorts by the ones, then by the tens, then by the hundreds. Each pass is stable, so it doesn't undo what the earlier ones sorted.</p>
+        <div id="vis-radix"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does it start with the <strong>ones</strong> and not with the hundreds?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="The last pass (hundreds) has the final say; on a tie in the hundreds, the order left by the tens pass decides, and so on. That's why each pass has to be stable.">Because the last pass decides and the earlier ones break the ties</button>
+            <button type="button" class="opcion" data-explicacion="The number of passes is the same; what changes is whether the result ends up correctly sorted.">Because that way it makes fewer passes</button>
+            <button type="button" class="opcion" data-explicacion="You can start with the hundreds (MSD), but then each group has to be sorted separately, as in a recursion. LSD is simpler.">It doesn't matter</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="bucket" data-titulo="bucketSort">
+        <h2><code>bucketSort</code>: distributing into buckets</h2>
+        <p>Each value goes to the bucket of its range (0 to 19, 20 to 39…) without being compared with anything. Then each bucket, which has few values, is sorted, and they are emptied in order. If the values are <strong>spread evenly</strong>, it's O(n) on average; if they <strong>cluster</strong>, all the work falls on one bucket.</p>
+        <div id="vis-bucket"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">If the 10 values land in the same bucket, how much does bucket sort cost?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Distributing is still O(n), but then a bucket with all the values has to be sorted.">O(n), as always</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The same as the sort inside with the n values: O(n log n) with std::sort, or O(n²) if each bucket is sorted with insertion sort.">Whatever it costs to sort that bucket with all of them</button>
+            <button type="button" class="opcion" data-explicacion="It doesn't fail: the result is correctly sorted. It just loses its advantage.">It doesn't work</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="carrera" data-titulo="Race">
+        <h2>Race: when is it worth not comparing?</h2>
+        <p>Work steps and extra memory depending on <code>n</code> and the range of the values, against <code>randomQuickSort</code>. Look at counting sort with values from 0 to 9,999,999: <code>k</code> rules.</p>
+        <div class="dos-columnas ord-carrera-columnas">
+          <div id="vis-carrera"></div>
+
+          <div class="pregunta">
+            <p class="pregunta-enunciado">With <code>n = 1,000</code> and values from 0 to 9,999,999, why does <code>countingSort</code> lose?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-correcta data-explicacion="It needs 10 million count slots and has to go through all of them for the running sums, even though there are only 1,000 values. O(n + k) is bad when k is much larger than n.">Because k is huge compared to n</button>
+              <button type="button" class="opcion" data-explicacion="Counting sort never compares; its cost is in the size of count.">Because it makes many comparisons</button>
+              <button type="button" class="opcion" data-explicacion="It works with any integer in 0..maxValue; the problem is how much memory and time such a large maxValue costs.">Because it doesn't work with large numbers</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try them all</h2>
+        <p>Choose an algorithm and sort; Reset brings another random array. Watch the counter: there's never a comparison between two values.</p>
+        <div id="vis-todo"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use each one</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Algorithm</th><th>Time</th><th>Extra memory</th><th>Stable</th><th>Good for</th></tr></thead>
+            <tbody>
+              <tr><td><code>countAndRewrite</code></td><td class="o-grande bueno">O(n + k)</td><td>O(k)</td><td>—</td><td>Bare integers in a small range</td></tr>
+              <tr><td><code>countingSort</code></td><td class="o-grande bueno">O(n + k)</td><td>O(n + k)</td><td>Yes</td><td>Records with a small integer key (grades, ages, days)</td></tr>
+              <tr><td><code>radixSort</code> (LSD)</td><td class="o-grande bueno">O(d · (n + b))</td><td>O(n + b)</td><td>Yes</td><td>Large integers, strings of equal length (b = 10 digits, or 256 per byte)</td></tr>
+              <tr><td><code>bucketSort</code></td><td><span class="o-grande bueno">O(n)</span> average, <span class="o-grande malo">O(n²)</span> worst</td><td>O(n + buckets)</td><td>If the sort inside is</td><td>Values spread evenly over an interval</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li>They beat O(n log n) because they <strong>don't compare</strong>: the n log n limit only holds for the ones that decide by comparing pairs.</li>
+          <li>The price is <strong>memory</strong> (count, output, buckets) and that the keys have to work as an index.</li>
+          <li>With <code>k</code> much larger than <code>n</code>, counting sort is worse than <code>std::sort</code>: radix sort splits the key into digits to avoid it.</li>
+          <li>Radix sort by bytes (base 256) is used to sort millions of integers or IP addresses; databases and GPUs use it a lot.</li>
+          <li>Stable counting sort is the building block of radix sort, and the way to sort records by a small key while keeping their previous order.</li>
+          <li>The STL has no counting or radix sort: they're written by hand when <code>std::sort</code> isn't enough.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra non_comparison_sorting.cpp -o non_comparison_sorting &amp;&amp; ./non_comparison_sorting</span></pre>
+        <div data-codigo-completo="en/non_comparison_sorting.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Make <code>countingSort</code> accept negatives: find the minimum and use <code>count[x - minValue]</code>.</li>
+          <li>Write a <code>countingSort</code> that sorts <code>struct Student { string name; int grade; }</code> by grade and check that it's stable.</li>
+          <li>Change the base of <code>radixSort</code> from 10 to 256 (using <code>(x &gt;&gt; (8 * pass)) &amp; 255</code>). How many passes are needed for a 32-bit <code>int</code>?</li>
+          <li>Try <code>bucketSort</code> with <code>numBuckets = n</code> and random values: how many values does each bucket have, on average?</li>
+          <li>What happens if you walk <code>countingSort</code>'s last <code>for</code> from left to right? It sorts, but what happens to 4ᵃ and 4ᵇ?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/ordenamiento-sin-comparaciones/ordenamiento-sin-comparaciones.js"></script>
+</body>
+</html>
