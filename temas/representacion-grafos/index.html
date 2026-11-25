@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Representación de grafos · Aprende Estructuras de Datos</title>
+  <meta name="description" content="Lección por pasos: cómo se guarda un grafo en memoria con una matriz de adyacencia y con una lista de adyacencia, las mismas operaciones en las dos (agregar, eliminar, ¿hay arista?, vecinos), grafos dirigidos y cuánta memoria ocupa cada una. Animaciones y ejemplo en C++.">
+  <link rel="stylesheet" href="../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../" data-tema="representacion-grafos">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Inicio</a> / Representación de grafos</div>
+      <h1>Representación de grafos</h1>
+      <p class="resumen">Antes de recorrer un grafo hay que guardarlo. Hay dos maneras clásicas: una <strong>matriz de adyacencia</strong> (una tabla con un casillero por cada par de vértices) y una <strong>lista de adyacencia</strong> (los vecinos de cada vértice).</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Dos formas de guardarlo">
+        <h2>Un grafo, dos formas de guardarlo</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Un grafo son <strong>vértices</strong> (numerados 0, 1, 2…) y <strong>aristas</strong> que unen pares de vértices. El dibujo es para nosotros: el programa necesita guardar <strong>quién está unido con quién</strong>.</p>
+          </div>
+          <div>
+            <p>La <strong>matriz</strong> anota un 1 en la fila <code>u</code>, columna <code>v</code> si hay arista, y un 0 si no. La <strong>lista</strong> guarda, para cada vértice, solo sus vecinos. <strong>Pruébalo:</strong> toca un vértice o una casilla.</p>
+          </div>
+        </div>
+        <div id="explorador"></div>
+      </section>
+
+      <section class="paso-leccion" id="matriz" data-titulo="Matriz de adyacencia">
+        <h2>Matriz de adyacencia: una casilla por par</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Es un <code>vector&lt;vector&lt;int&gt;&gt;</code> de V × V. Preguntar si hay arista es leer <strong>una casilla</strong>: O(1). Agregar o quitar, escribir una o dos.</p>
+          </div>
+          <div>
+            <p>Lo caro son los <strong>vecinos</strong>: no hay una lista de ellos, así que hay que mirar la fila entera, ceros incluidos: O(V), aunque el vértice tenga un solo vecino.</p>
+          </div>
+        </div>
+        <div id="vis-matriz"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Sin dirección, ¿por qué la matriz es simétrica respecto de la diagonal?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="La arista u–v se anota en matriz[u][v] y también en matriz[v][u]: cada 1 tiene su espejo del otro lado de la diagonal.">Porque cada arista se anota en las dos casillas</button>
+            <button type="button" class="opcion" data-explicacion="El orden de los vértices no importa: con cualquier numeración, cada arista ocupa dos casillas espejadas.">Porque los vértices están numerados en orden</button>
+            <button type="button" class="opcion" data-explicacion="La diagonal (matriz[u][u]) serían los lazos, y este grafo no los acepta: siempre está en 0.">Porque la diagonal tiene unos</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="lista" data-titulo="Lista de adyacencia">
+        <h2>Lista de adyacencia: solo los vecinos</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Es un <code>vector&lt;vector&lt;int&gt;&gt;</code> con V listas, y cada lista tiene solo los vecinos de su vértice: sin ceros. Los <strong>vecinos</strong> ya están a mano.</p>
+          </div>
+          <div>
+            <p>A cambio, preguntar si hay arista es <strong>buscar</strong> en la lista con <code>std::find</code>: O(grado). Por eso <code>agregarArista</code> es el mismo en las dos clases, pero aquí cuesta más.</p>
+          </div>
+        </div>
+        <div id="vis-lista"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">El vértice 2 tiene 3 vecinos. ¿Cuántas comparaciones hace <code>hayArista(2, 3)</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Eso cuesta en la matriz, que lee directo la casilla. La lista no sabe dónde está el 3 sin buscarlo.">1</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="El 3 no está, así que std::find compara con los 3 vecinos antes de llegar a end(): O(grado).">3</button>
+            <button type="button" class="opcion" data-explicacion="Eso cuesta vecinos(2) en la matriz, que mira toda la fila. La lista solo guarda los 3 vecinos.">6</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="eliminar" data-titulo="Eliminar una arista">
+        <h2>Eliminar una arista: apagar o buscar y correr</h2>
+        <p>En la matriz, borrar es poner dos casillas en 0: O(1). En la lista hay que <strong>encontrar</strong> el número en cada una de las dos listas y borrarlo con <code>erase</code>, que corre a los de atrás para no dejar huecos: O(grado). Cambia de representación para comparar.</p>
+        <div id="vis-eliminar"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Después de borrar aristas, ¿qué representación ocupa menos memoria?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="La matriz sigue teniendo V × V casillas: solo cambian unos por ceros.">La matriz</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada arista borrada saca dos números de las listas; la matriz ocupa lo mismo con o sin aristas.">La lista</button>
+            <button type="button" class="opcion" data-explicacion="La matriz no se achica nunca: ocupa V² desde el principio.">Las dos se achican igual</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="memoria" data-titulo="Cuánta memoria">
+        <h2>¿Cuánta memoria? Denso contra disperso</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>La matriz ocupa <strong>V²</strong> casillas siempre; la lista, <strong>V + 2E</strong>. Un grafo <strong>denso</strong> (casi todos unidos con todos) llena la matriz; uno <strong>disperso</strong> (pocos vecinos cada uno) la deja casi toda en 0.</p>
+            <p>Mueve los deslizadores: con la densidad baja, la matriz es casi todo ceros. La mayoría de los grafos reales (calles, amistades, enlaces) son dispersos.</p>
+            <div class="pregunta">
+              <p class="pregunta-enunciado">Una red social tiene mil millones de personas con unos 300 amigos cada una. ¿Cómo la guardas?</p>
+              <div class="opciones">
+                <button type="button" class="opcion" data-explicacion="Serían 10¹⁸ casillas, casi todas en 0: ninguna computadora tiene esa memoria.">Con una matriz</button>
+                <button type="button" class="opcion" data-correcta data-explicacion="Unos 3 × 10¹¹ números en total (2 por amistad): mucho, pero repartible entre servidores. La matriz sería millones de veces más grande.">Con listas de adyacencia</button>
+              </div>
+            </div>
+          </div>
+          <div id="experimento-memoria"></div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="dirigido" data-titulo="Grafos dirigidos">
+        <h2>Grafos dirigidos: la matriz deja de ser simétrica</h2>
+        <p>Si las aristas tienen dirección (seguir a alguien, un enlace web, una calle de un solo sentido), cada <strong>arco</strong> u → v se anota <strong>una sola vez</strong>: en <code>matriz[u][v]</code> o en la lista de <code>u</code>. En el código es el mismo <code>agregarArista</code>, con <code>dirigido</code> en <code>true</code>.</p>
+        <div id="vis-dirigido"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">¿Cómo sabes qué vértices apuntan al 1 (los arcos que <strong>entran</strong>)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="La fila 1 son los arcos que salen del 1, no los que entran.">Mirando la fila 1 de la matriz</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Cada 1 de la columna 1 es un arco que llega al 1: O(V). En la lista habría que revisar todas las listas: O(V + E).">Mirando la columna 1 de la matriz</button>
+            <button type="button" class="opcion" data-explicacion="La lista del 1 tiene solo los arcos que salen de él; los que entran están en las listas de los demás.">Mirando la lista del 1</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="Todo junto">
+        <h2>Todo junto: el mismo grafo de las dos maneras</h2>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complejidad y cuándo usar cada una">
+        <h2>Complejidad y cuándo usar cada una</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operación</th><th>Matriz de adyacencia</th><th>Lista de adyacencia</th><th>Por qué</th></tr></thead>
+            <tbody>
+              <tr><td>Memoria</td><td class="o-grande malo">O(V²)</td><td class="o-grande bueno">O(V + E)</td><td>La matriz guarda un casillero por cada par, haya arista o no.</td></tr>
+              <tr><td><code>hayArista(u, v)</code></td><td class="o-grande bueno">O(1)</td><td class="o-grande">O(grado(u))</td><td>La matriz se lee directo; la lista hay que recorrerla.</td></tr>
+              <tr><td><code>agregarArista</code>, <code>eliminarArista</code></td><td class="o-grande bueno">O(1)</td><td class="o-grande">O(grado)</td><td>Las dos preguntan antes <code>hayArista</code>; la lista además busca para borrar.</td></tr>
+              <tr><td><code>vecinos(u)</code></td><td class="o-grande malo">O(V)</td><td class="o-grande bueno">O(grado(u))</td><td>La matriz revisa la fila entera, ceros incluidos.</td></tr>
+              <tr><td>Recorrer todo el grafo (BFS, DFS)</td><td class="o-grande malo">O(V²)</td><td class="o-grande bueno">O(V + E)</td><td>Cada recorrido pide los vecinos de cada vértice una vez.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">La <strong>lista</strong> es la opción por defecto: casi todos los grafos reales son dispersos y los algoritmos más usados (BFS, DFS, Dijkstra) piden vecinos. La <strong>matriz</strong> conviene con grafos chicos o densos, o cuando la pregunta más frecuente es «¿están unidos u y v?».</div>
+        <ul class="lista-columnas">
+          <li>Con pesos (kilómetros, costos), la matriz guarda el peso en lugar del 1, y la lista guarda pares <code>{vecino, peso}</code>.</li>
+          <li><code>vector&lt;vector&lt;bool&gt;&gt;</code> o <code>std::bitset</code> achican la matriz a un bit por casilla, pero sigue siendo O(V²).</li>
+          <li>Si las aristas se borran mucho, la lista puede usar <code>std::set&lt;int&gt;</code> o <code>std::unordered_set</code>: buscar y borrar en O(log grado) u O(1).</li>
+          <li>En el tema siguiente, <a href="../grafos/">Grafos</a>, la lista de adyacencia se recorre con BFS y DFS.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Código completo y práctica">
+        <h2>Código completo en C++</h2>
+        <p>Compílalo y ejecútalo con:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra representacion_grafos.cpp -o representacion_grafos &amp;&amp; ./representacion_grafos</span></pre>
+        <div data-codigo-completo="representacion_grafos.cpp"></div>
+
+        <h2>Para practicar</h2>
+        <ol>
+          <li>Escribe <code>int grado(int u) const</code> en las dos clases. ¿Cuál es O(1)?</li>
+          <li>Escribe <code>GrafoLista aLista(const GrafoMatriz&amp; m)</code>, que convierta una matriz en listas. ¿Cuánto tarda?</li>
+          <li>En un grafo dirigido, escribe <code>entrantes(v)</code> en las dos clases: los vértices con un arco hacia <code>v</code>.</li>
+          <li>Cambia <code>GrafoMatriz</code> para guardar pesos: <code>agregarArista(u, v, peso)</code>, con 0 como «sin arista».</li>
+          <li>Cambia la lista por <code>std::vector&lt;std::set&lt;int&gt;&gt;</code> y compara el costo de <code>hayArista</code> con un vértice de 10 000 vecinos.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Proyecto abierto en <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. ¿Encontraste un error? Abre un issue.</span>
+      <span class="pie-autor">Hecho por <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../assets/js/visualizador.js"></script>
+  <script src="representacion-grafos.js"></script>
+</body>
+</html>

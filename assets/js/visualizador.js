@@ -251,6 +251,18 @@
       },
     },
     {
+      slug: "representacion-grafos",
+      titulo: "Representación de grafos",
+      resumen: "Cómo se guarda un grafo: matriz de adyacencia (¿hay arista? en O(1), pero V² casillas) y lista de adyacencia (solo los vecinos, O(V + E)). Las mismas operaciones en las dos, y grafos dirigidos.",
+      etiquetas: ["matriz y lista", "V² contra V + E"],
+      archivo: "representacion_grafos.cpp",
+      en: {
+        titulo: "Graph representation",
+        resumen: "How a graph is stored: adjacency matrix (is there an edge? in O(1), but V² cells) and adjacency list (only the neighbors, O(V + E)). The same operations on both, and directed graphs.",
+        etiquetas: ["matrix and list", "V² vs V + E"],
+      },
+    },
+    {
       slug: "grafos",
       titulo: "Grafos",
       resumen: "Vértices y aristas guardados en una lista de adyacencia. Recorrer por capas con BFS y una cola, al fondo con DFS y una pila o con recursión, distancias y componentes conexas.",
