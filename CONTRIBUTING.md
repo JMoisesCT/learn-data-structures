@@ -133,6 +133,8 @@ El sitio en español está en la raíz y el sitio en inglés bajo `en/`, con las
 
 `verificar-fragmentos.mjs` revisa la página en inglés igual que la de español (con `DS.idioma = "en"`) y además que cada fragmento tenga **las mismas líneas** en los dos idiomas, porque los mensajes de la animación usan los mismos números de línea. `compilar-ejemplos.sh` compila también `ejemplos/cpp/en/`.
 
+Para la prueba en el navegador, `node scripts/revisar-traduccion.mjs <slug>` (con el sitio servido en el puerto 8000 y Playwright instalado) compara la estructura de las dos páginas (pasos, visualizadores, preguntas y respuesta correcta), ejecuta paso a paso cada operación con cada opción de cada lista en los dos idiomas, a 1280 y 390 px y en modo oscuro, y avisa de textos en español en la página en inglés, scroll horizontal, pasos que no caben a 1280 × 800, errores de consola y operaciones con distinta cantidad de pasos entre idiomas. Las palabras en español que busca salen de los identificadores del `.cpp` en español que no están en el de inglés; se agregan otras con `--palabras "a|b"`. No revisa las operaciones secundarias (como `swap`) ni los paneles propios de un tema (como las carreras): esos se prueban aparte.
+
 ## Formato de un tema
 
 Así quiere el dueño del repositorio **todos** los temas. Los ejemplos de referencia son `temas/vector-dinamico/` y `temas/monticulo/`.

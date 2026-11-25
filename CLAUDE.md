@@ -58,6 +58,8 @@ python3 -m http.server 8000   # desde la raíz del repositorio
 
 Prueba en un navegador (Playwright está disponible) todas las operaciones del tema (en los dos idiomas si tiene versión en inglés), incluidos los casos de error, y cada opción de cada lista y cada número que cambie el dibujo (que se refleje al instante), a 1280 px y 390 px de ancho y en modo oscuro. Revisa que no haya errores en la consola ni scroll horizontal, y que cada paso quepa sin scroll a 1280 × 800 (mide `document.scrollingElement.scrollHeight - innerHeight` en cada paso, también después de ejecutar cada operación). Las capturas de prueba van en `capturas/` (ignorada por git) o en el scratchpad, nunca en el commit.
 
+Para un tema traducido, `node scripts/revisar-traduccion.mjs <slug>` hace casi toda esta revisión en los dos idiomas (ver CONTRIBUTING.md, "Versión en inglés"); con temas largos tarda varios minutos, así que conviene correrlo en segundo plano. Las operaciones secundarias y los paneles propios del tema (carreras, comparadores) se prueban aparte.
+
 Consejos para las pruebas con Playwright (aprendidos al traducir):
 
 - **El paso visible** de la lección es `.paso-leccion:not([hidden])` (no hay clase `.activo`); para ir a un paso, `location.hash = "<id>"`. Un selector que no encuentra nada hace que una revisión "pase" sin mirar: comprueba que encuentre algo.
