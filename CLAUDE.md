@@ -24,8 +24,9 @@ publicado en GitHub Pages (https://jmoisesct.github.io/learn-data-structures/).
   - **listas doblemente enlazadas y circulares**, como temas propios **después de Lista enlazada y antes de Pila** en `DS.TEMAS`;
   - **ordenamientos** en tres temas, como bloque **antes de Montículo** en `DS.TEMAS`: elementales (exchange, bubble, selection, insertion y shell sort; hecho en `temas/ordenamiento-elemental/`), **merge sort y quicksort juntos** en un tema (hecho en `temas/merge-sort-quicksort/`), y ordenamientos sin comparaciones (counting, radix y bucket sort; hecho en `temas/ordenamiento-sin-comparaciones/`);
   - **recursión**, **antes de Lambdas** en `DS.TEMAS`, con varios ejemplos que sacan dígitos, cambio de base y otros interesantes (sin Hanói) (hecho en `temas/recursion/`);
-  - **árbol AVL** (balanceo con rotaciones), **después de Árbol binario de búsqueda y antes de Grafos** en `DS.TEMAS` (hecho en `temas/arbol-avl/`);
-  - **grafos** (lista de adyacencia, BFS y DFS), **después de Árbol AVL** en `DS.TEMAS` (hecho en `temas/grafos/`).
+  - **árbol AVL** (balanceo con rotaciones), **después de Árbol binario de búsqueda y antes de Representación de grafos** en `DS.TEMAS` (hecho en `temas/arbol-avl/`);
+  - **representación de grafos** (matriz y lista de adyacencia), como tema propio **antes de Grafos** en `DS.TEMAS`, para conocer cómo se guarda un grafo antes de recorrerlo (hecho en `temas/representacion-grafos/`);
+  - **grafos** (lista de adyacencia, BFS y DFS), **después de Representación de grafos** en `DS.TEMAS` (hecho en `temas/grafos/`).
 - **Sitio en español y en inglés**: la versión en inglés vive bajo `en/` (portada `en/index.html`, temas en `en/temas/<slug>/`) con su código C++ en inglés en `ejemplos/cpp/en/`. El selector **EN / ES** va en el encabezado, junto al botón de claro/oscuro, y lleva a la misma página y al mismo paso en el otro idioma. Si el navegador está en otro idioma, se sugiere el cambio una vez por visita (no se redirige solo); quien eligió un idioma va directo a esa versión. Los temas se traducen **uno por PR**, en el orden de la tabla "Traducción al inglés" de ROADMAP.md; las tareas de cada tema están en `docs/traduccion-ingles.md`. Detalles en CONTRIBUTING.md ("Versión en inglés").
 - Los avances se anotan en ROADMAP.md: los temas hechos en "Hechos" y las mejoras del sitio en "Mejoras hechas".
 

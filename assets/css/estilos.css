@@ -2580,6 +2580,108 @@ pre.codigo.vuelve-llamada > .linea { animation: volver-llamada 0.35s ease both; 
   .lienzo-grafo svg path.traza, .gvertice.isla, .gvertice.marcado, .gficha.aparece, .gcelda.cambia .gcelda-valor { animation: none; }
 }
 
+/* Representación de grafos: el grafo, la matriz de adyacencia (casillas que
+   se encienden y se apagan, con la fila y la columna que se leen) y la lista
+   de adyacencia; experimento de memoria con la matriz y las listas en chico */
+
+.lienzo-rep svg g { transition: opacity 0.35s ease; }
+.lienzo-rep svg g.saliendo { opacity: 0; }
+.lienzo-rep svg .punta { fill: var(--texto-suave); stroke: none; stroke-dasharray: none; animation: aparece-suave 0.5s ease both; transition: fill 0.25s ease; }
+.lienzo-rep svg g.media path { opacity: 0.45; stroke-dasharray: 0.04 0.03; animation: none; }
+.lienzo-rep svg g.mirando path { stroke: var(--activo); stroke-width: 5; }
+.lienzo-rep svg g.mirando .punta { fill: var(--activo); stroke: none; }
+.lienzo-rep svg g.tenue { opacity: 0.25; }
+.lienzo-rep svg path.fantasma { stroke: var(--peligro); stroke-width: 3; stroke-dasharray: 5 6; opacity: 0.8; animation: aparece-suave 0.3s ease; }
+.lienzo-rep .gvertice { cursor: default; }
+.explorable .gvertice, .explorable .rcasilla, .explorable .gficha, .explorable .gady-indice, .explorable .rcabecera { cursor: pointer; }
+.lienzo-rep .gtitulo.saliendo, .lienzo-rep .gady-indice.saliendo { opacity: 0; transition: opacity 0.3s ease; }
+.lienzo-rep .gtitulo.oculto { visibility: hidden; }
+.lienzo-rep .gficha.hallada { border-color: var(--exito); background: var(--exito-suave); box-shadow: 0 0 0 3px var(--exito-suave); transform: translateY(-2px); }
+.lienzo-rep .gficha.ady.mala { box-shadow: 0 0 0 3px var(--peligro-suave); }
+
+.rcabecera {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 18px;
+  border-radius: 5px;
+  font-family: var(--fuente-codigo);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  transition: background-color 0.25s ease, color 0.25s ease, opacity 0.3s ease;
+}
+.rcabecera.fil { width: 18px; height: 26px; }
+.rcabecera.activa { background: var(--activo-suave); color: var(--texto); }
+.rcabecera.saliendo { opacity: 0; }
+.rcabecera.fuera, .gady-indice.fuera { border: 2px dashed var(--peligro); background: var(--peligro-suave); color: var(--peligro); animation: pop 0.35s ease; }
+.gady-indice.fuera::after { content: none; }
+.rfin { position: absolute; display: grid; place-items: center; width: 24px; height: 24px; border: 2px dashed var(--peligro); border-radius: 6px; font-family: var(--fuente-codigo); font-size: 0.6rem; font-weight: 700; color: var(--peligro); animation: pop 0.35s ease; transition: opacity 0.3s ease; }
+.rfin.saliendo { opacity: 0; }
+
+.rcasilla {
+  position: absolute;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  font-family: var(--fuente-codigo);
+  transition: opacity 0.3s ease;
+}
+.rcasilla-valor {
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--borde);
+  border-radius: 5px;
+  background: var(--superficie);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.25s ease, transform 0.25s ease, opacity 0.3s ease;
+}
+.rcasilla.diagonal .rcasilla-valor { background: repeating-linear-gradient(135deg, var(--superficie-2) 0 3px, var(--superficie) 3px 6px); }
+.rcasilla.uno .rcasilla-valor { border-color: var(--acento); background: var(--acento-suave); color: var(--texto); }
+.rcasilla.en-fila .rcasilla-valor, .rcasilla.en-columna .rcasilla-valor { box-shadow: inset 0 0 0 30px color-mix(in srgb, var(--activo) 14%, transparent); }
+.rcasilla.vista .rcasilla-valor { opacity: 0.55; }
+.rcasilla.leyendo .rcasilla-valor { border-color: var(--activo); box-shadow: 0 0 0 3px var(--activo); transform: scale(1.12); opacity: 1; }
+.rcasilla.hallada .rcasilla-valor { border-color: var(--exito); background: var(--exito-suave); box-shadow: 0 0 0 3px var(--exito); transform: scale(1.12); opacity: 1; }
+.rcasilla.mala .rcasilla-valor { border-color: var(--peligro); background: var(--peligro-suave); box-shadow: 0 0 0 3px var(--peligro); }
+.rcasilla.espejo .rcasilla-valor { outline: 2px dashed var(--activo); outline-offset: 2px; }
+.rcasilla.enciende .rcasilla-valor { animation: pop 0.4s ease; }
+.rcasilla.apaga .rcasilla-valor { animation: latido 0.5s ease; }
+.rcasilla.saliendo { opacity: 0; }
+
+/* Experimento de memoria */
+.rmem { display: grid; gap: 0.6rem; padding: 0.8rem 1rem; }
+.rmem-controles { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.rmem-campo { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--texto-suave); }
+.rmem-campo input { width: 8.5rem; }
+.rmem-valor { min-width: 2.6rem; font-family: var(--fuente-codigo); font-weight: 700; color: var(--texto); }
+.rmem-dibujos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.rmem-lado { min-width: 0; container-type: inline-size; }
+.rmem-cuenta { margin: 0 0 0.4rem; font-size: 0.82rem; }
+/* Cada casilla de la matriz y cada renglón de la lista miden lo mismo: se leen a la par. */
+.rmem-matriz, .rmem-listas { --celda: min(17px, calc((100cqw - 1.6rem - var(--n) * 1px) / var(--n))); }
+.rmem-matriz { display: grid; grid-template-columns: repeat(var(--n), var(--celda)); grid-auto-rows: var(--celda); gap: 1px; }
+.rmem-c { border-radius: 2px; background: var(--superficie-2); outline: 1px solid var(--borde); outline-offset: -1px; transition: background-color 0.3s ease; }
+.rmem-c.uno { background: var(--acento); outline-color: var(--acento); }
+.rmem-c.nueva { animation: pop 0.3s ease; }
+.rmem-listas { display: grid; gap: 1px; }
+.rmem-renglon { display: flex; align-items: center; gap: 2px; height: var(--celda); overflow: hidden; }
+.rmem-indice { flex: 0 0 1.6rem; font-family: var(--fuente-codigo); font-size: 0.6rem; color: var(--texto-suave); }
+.rmem-f { flex: 0 0 auto; width: calc(var(--celda) - 3px); height: calc(var(--celda) - 3px); border-radius: 2px; background: var(--acento); animation: pop 0.3s ease; }
+.rmem-escala { margin: 0; padding-top: 0.5rem; border-top: 1px solid var(--borde); font-size: 0.85rem; }
+.rmem-malo { color: var(--peligro); }
+.rmem-bueno { color: var(--exito); }
+@media (max-width: 600px) {
+  .rmem-dibujos { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rcasilla-valor, .rcabecera, .lienzo-rep svg g { transition: none; }
+  .rcasilla.enciende .rcasilla-valor, .rcasilla.apaga .rcasilla-valor, .lienzo-rep svg .punta, .rmem-c.nueva, .rmem-f { animation: none; }
+}
+
 /* Lista doblemente enlazada: nodos [anterior | valor | siguiente]; las flechas
    hacia adelante van arriba y las de vuelta, abajo */
 

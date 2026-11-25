@@ -43,6 +43,7 @@ Las ideas sirven para cualquier lenguaje; por ahora los ejemplos están en C++.
 | **Árboles y grafos** | | |
 | [Árbol binario de búsqueda](https://jmoisesct.github.io/learn-data-structures/temas/arbol-binario-busqueda/) | Buscar, insertar, recorridos y eliminar en sus tres casos | [`.cpp`](ejemplos/cpp/arbol_binario_busqueda.cpp) |
 | [Árbol AVL](https://jmoisesct.github.io/learn-data-structures/temas/arbol-avl/) | Factor de balance, rotaciones simples y dobles | [`.cpp`](ejemplos/cpp/arbol_avl.cpp) |
+| [Representación de grafos](https://jmoisesct.github.io/learn-data-structures/temas/representacion-grafos/) | Matriz y lista de adyacencia: las mismas operaciones, dirigidos y memoria | [`.cpp`](ejemplos/cpp/representacion_grafos.cpp) |
 | [Grafos](https://jmoisesct.github.io/learn-data-structures/temas/grafos/) | Lista de adyacencia, BFS, DFS y componentes conexas | [`.cpp`](ejemplos/cpp/grafos.cpp) |
 
 Los próximos temas están en [ROADMAP.md](ROADMAP.md).
