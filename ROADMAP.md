@@ -52,7 +52,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Ordenamientos elementales | Hecho: lección, carrera con arreglos grandes, animaciones y `ejemplos/cpp/en/elementary_sorting.cpp` (`isSorted`, `exchangeSort`, `bubbleSort` con `swapped`, `selectionSort` con `minIndex`, `insertionSort` y `shellSort` con `key` y `gap`) |
 | Merge sort y quicksort | Hecho: lección, árbol de llamadas, carrera hasta n = 10 000, animaciones y `ejemplos/cpp/en/merge_sort_quicksort.cpp` (`merge`, `mergeSort`, `iterativeMergeSort`, `partition`, `quickSort`, `randomPartition`, `randomQuickSort` y `quickselect`, con `left`/`mid`/`right` y `low`/`high`) |
 | Ordenamientos sin comparaciones | Hecho: lección, carrera contra quicksort, animaciones y `ejemplos/cpp/en/non_comparison_sorting.cpp` (`countAndRewrite`, `countingSort`, `sortByDigit`, `radixSort` y `bucketSort`, con `count`, `output`, `maxValue` y `buckets`/`numBuckets`) |
-| Montículo (min-heap / max-heap) y heapsort | Pendiente |
+| Montículo (min-heap / max-heap) y heapsort | Hecho: lección, explorador de índices, animaciones y `ejemplos/cpp/en/heap.cpp` (`maxHeapify`/`minHeapify` con `largest`/`smallest` y `left`/`right`, `buildMaxHeap`, `buildMinHeap`, `insertMax`, `insertMin`, `maximum`, `minimum`, `extractMax`/`extractMin` con `root` y `heapSort`) |
 | Tabla hash | Pendiente |
 | Búsqueda binaria | Pendiente |
 | Árbol binario de búsqueda | Pendiente |
