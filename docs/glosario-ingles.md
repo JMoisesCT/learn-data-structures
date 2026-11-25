@@ -86,3 +86,6 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Ordenamientos sin comparaciones | `maximo` (valor más grande permitido) | `maxValue` (no `max`, que choca con `std::max`) |
 | Ordenamientos sin comparaciones | `cubeta` (vector de cubetas) / `cubetas` (cantidad) | `buckets` / `numBuckets` |
 | Ordenamientos sin comparaciones | `quickSortAleatorio` (en la carrera) | `randomQuickSort` |
+| Montículo | `mayor` / `menor` (hijo elegido en heapify) | `largest` / `smallest` |
+| Montículo | `padre` / `raiz` (valor que devuelve extract) | `parent` / `root` |
+| Montículo | `maxHeapify`, `buildMaxHeap`, `insertMax`, `extractMax`, `maximum`… | iguales (ya estaban en inglés) |

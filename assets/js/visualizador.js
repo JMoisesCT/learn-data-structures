@@ -199,6 +199,7 @@
         titulo: "Heap",
         resumen: "Min-heap and max-heap: a tree stored in an array with the minimum (or the maximum) always at the root. Includes heapsort.",
         etiquetas: ["O(log n) insert", "O(n log n) heapsort"],
+        archivo: "heap.cpp",
       },
     },
     {

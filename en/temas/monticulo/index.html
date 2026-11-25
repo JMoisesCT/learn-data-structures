@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heap and heapsort · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: how a max-heap and a min-heap are built with heapify, how elements are inserted and extracted, and how heapsort sorts with a max-heap. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="monticulo">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Heap</div>
+      <h1>Heap and heapsort</h1>
+      <p class="resumen">A <strong>binary tree stored in an array</strong> with the largest (<strong>max-heap</strong>) or the smallest (<strong>min-heap</strong>) always at the root. Includes <strong>heapsort</strong>.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="arreglo" data-titulo="A tree inside an array">
+        <h2>A tree inside an array</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>A heap is a <strong>complete</strong> binary tree: every level is full except, maybe, the last one, which fills from left to right. Thanks to that it needs no pointers: it's stored level by level in a <code>vector</code>, and the positions of the parent and the children come out of a formula.</p>
+            <pre class="codigo"><span class="linea"><span class="tk-tipo">int</span> parent = (i - <span class="tk-numero">1</span>) / <span class="tk-numero">2</span>;</span><span class="linea"><span class="tk-tipo">int</span> left   = <span class="tk-numero">2</span> * i + <span class="tk-numero">1</span>;</span><span class="linea"><span class="tk-tipo">int</span> right  = <span class="tk-numero">2</span> * i + <span class="tk-numero">2</span>;</span></pre>
+            <p><strong>Try it:</strong> tap any node (or cell) and see where its parent and its children are. This is the array <code>{ 3, 10, 1, 8, 6, 4 }</code> from <code>main()</code>.</p>
+          </div>
+          <div id="explorador"></div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="regla" data-titulo="The heap rule">
+        <h2>The heap rule</h2>
+        <p>Besides the shape, there's an <strong>order</strong> rule between each parent and its children:</p>
+        <ul>
+          <li><strong>Max-heap:</strong> each parent is <code>≥</code> its children, so the <strong>maximum</strong> ends up in <code>v[0]</code>.</li>
+          <li><strong>Min-heap:</strong> each parent is <code>≤</code> its children, so the <strong>minimum</strong> ends up in <code>v[0]</code>.</li>
+        </ul>
+        <p>There's no order at all between siblings. Think of a hospital emergency room: it doesn't matter who arrived first, but who is the most serious, and that has to be known instantly.</p>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Which of these arrays is a max-heap? (Draw the tree with the formulas from the previous step.)</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="v[0] = 3 has v[1] = 10 as a child, which is larger. It's the array from main() before sorting it."><code>{ 3, 10, 1, 8, 6, 4 }</code></button>
+            <button type="button" class="opcion" data-correcta data-explicacion="10 ≥ 8 and 4; 8 ≥ 3 and 6; 4 ≥ 1. Every parent beats its children."><code>{ 10, 8, 4, 3, 6, 1 }</code></button>
+            <button type="button" class="opcion" data-explicacion="The root is fine, but v[1] = 4 has v[3] = 6 as a child, which is larger."><code>{ 10, 4, 8, 6, 3, 1 }</code></button>
+          </div>
+        </div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In a min-heap, where can the largest value be?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The root holds the smallest of all.">At the root</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Each parent is smaller than its children, so the largest can't have children: it's a leaf. But it can be any of them.">In some leaf</button>
+            <button type="button" class="opcion" data-explicacion="Not necessarily: it can be any leaf, not just the last one.">Always at the end of the array</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="heapify" data-titulo="maxHeapify: sinking a node">
+        <h2><code>maxHeapify</code>: sinking a node</h2>
+        <p>The key piece. If <code>i</code>'s subtrees are already max-heaps but <code>v[i]</code> is too small, <code>maxHeapify</code> swaps it with its <strong>largest</strong> child and calls itself one level down (above the drawing you'll see the <strong>calls in progress</strong>). It goes down at most the height of the tree: <strong>O(log&nbsp;n)</strong>.</p>
+        <div id="vis-heapify"></div>
+      </section>
+
+      <section class="paso-leccion" id="construir-max" data-titulo="Building a max-heap">
+        <h2>Building a max-heap: <code>buildMaxHeap</code></h2>
+        <p><code>maxHeapify</code> is called on each node that has children, <strong>from the bottom up</strong>: from <code>n / 2 - 1</code> to the root. That way, when a node's turn comes, its subtrees are already fixed.</p>
+        <div id="vis-build-max"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why does the <code>for</code> start at <code>n / 2 - 1</code> and not at <code>n - 1</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="The nodes from n / 2 to n - 1 have no children. A leaf on its own already follows the rule, so there's nothing to sink.">Because from there on they're leaves</button>
+            <button type="button" class="opcion" data-explicacion="The result is exactly the same; it only avoids calls that would do nothing.">To go faster, even though it might go wrong</button>
+            <button type="button" class="opcion" data-explicacion="It's the other way around: the root is processed last, when its subtrees are already heaps.">To process the root first</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="construir-min" data-titulo="Building a min-heap">
+        <h2>Building a min-heap: <code>buildMinHeap</code></h2>
+        <p><strong>The same algorithm</strong> with the comparison reversed: <code>minHeapify</code> brings up the <strong>smallest</strong>. With the same array, compare the result with the max-heap from the previous step, <code>{ 10, 8, 4, 3, 6, 1 }</code>.</p>
+        <div id="vis-build-min"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">What changes between <code>maxHeapify</code> and <code>minHeapify</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="It compares with < instead of > (and the variable is called smallest). Everything else is identical.">Only the comparison: <code>&lt;</code> instead of <code>&gt;</code></button>
+            <button type="button" class="opcion" data-explicacion="Both go down from i toward the leaves.">minHeapify goes up instead of down</button>
+            <button type="button" class="opcion" data-explicacion="The formulas for left and right are the same: the tree has the same shape.">They use other formulas for the children</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="operaciones" data-titulo="Insert and extract">
+        <h2>Using it: insert, peek and extract</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>A heap is a <strong>priority queue</strong> (the <strong>type</strong> picks max or min). <strong>insert</strong> adds a leaf that <strong>rises</strong>; <strong>extract</strong> takes out the root and <strong>sinks</strong> the last leaf: O(log&nbsp;n).</p>
+          </div>
+          <div>
+            <p><code>maximum</code> / <code>minimum</code> only read <code>v[0]</code>: O(1). With an empty heap they return <code>INT_MIN</code> / <code>INT_MAX</code>, just like extract.</p>
+          </div>
+        </div>
+        <div id="vis-operaciones" class="controles-compactos"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">You insert a value and the heap ends up with 15 elements (4 levels). How many swaps does <code>insertMax</code> make at most?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It only rises along its path to the root, it doesn't go through the whole array.">15</button>
+            <button type="button" class="opcion" data-explicacion="That would be the number of nodes with children, but the value only rises along one path.">7</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="It rises at most one level per swap: from the leaf (level 3) to the root (level 0). That's why it's O(log&nbsp;n).">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="heapsort" data-titulo="Heapsort">
+        <h2>Heapsort: sorting with a max-heap</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Taking out the root of a max-heap over and over gives the values from largest to smallest. <code>heapSort</code> does it <strong>in the same array</strong>.</p>
+          </div>
+          <div>
+            <p><strong>Phase 1:</strong> <code>buildMaxHeap(v)</code>. <strong>Phase 2:</strong> the root goes to the end of the heap, where it stays fixed (green), and <code>maxHeapify</code> repairs.</p>
+          </div>
+        </div>
+        <div id="vis-heapsort"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why is a <strong>max</strong>-heap used to sort from <strong>smallest to largest</strong>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="Each round takes out the largest that's left and leaves it right after the heap, which keeps shrinking. The end of the array fills from right to left.">Because the largest comes out first and goes to the end</button>
+            <button type="button" class="opcion" data-explicacion="With a min-heap in the same array, the smallest would end up at the end: it would come out from largest to smallest.">Using a min-heap would be the same</button>
+            <button type="button" class="opcion" data-explicacion="A max-heap isn't sorted: it only guarantees the largest is at the root.">Because a max-heap is already sorted</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and where it's used</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Function</th><th>Time</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td><code>maximum</code> / <code>minimum</code></td><td class="o-grande bueno">O(1)</td><td>It's always in <code>v[0]</code>.</td></tr>
+              <tr><td><code>maxHeapify</code> / <code>minHeapify</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>It goes down at most the height of the tree, which is log₂ n.</td></tr>
+              <tr><td><code>insertMax</code> / <code>insertMin</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>It rises at most the height of the tree.</td></tr>
+              <tr><td><code>extractMax</code> / <code>extractMin</code></td><td class="o-grande bueno">O(log&nbsp;n)</td><td>One call to heapify from the root.</td></tr>
+              <tr><td><code>buildMaxHeap</code> / <code>buildMinHeap</code></td><td class="o-grande bueno">O(n)</td><td>Most nodes are near the bottom and barely move.</td></tr>
+              <tr><td>Searching for any value</td><td class="o-grande malo">O(n)</td><td>There's no order between siblings or between branches.</td></tr>
+              <tr><td><code>heapSort</code></td><td class="o-grande bueno">O(n&nbsp;log&nbsp;n)</td><td>n extractions of O(log&nbsp;n). O(1) extra memory. It isn't stable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="nota">A heap <strong>isn't sorted</strong>: it only guarantees that the root is the maximum (or the minimum). That's exactly what makes it fast.</div>
+        <ul>
+          <li><strong>Priority queues:</strong> task schedulers, events in a simulation, emergency rooms.</li>
+          <li><strong>Graphs:</strong> Dijkstra (shortest paths) and Prim (minimum spanning tree) use a min-heap.</li>
+          <li><strong>The k largest or smallest</strong> of a lot of data without sorting it all, and the <strong>running median</strong> with two heaps.</li>
+        </ul>
+        <p>In real C++: <code>std::priority_queue&lt;int&gt;</code> is a max-heap; for a min-heap, <code>std::priority_queue&lt;int, std::vector&lt;int&gt;, std::greater&lt;int&gt;&gt;</code>. There are also <code>std::make_heap</code>, <code>std::push_heap</code>, <code>std::pop_heap</code> and <code>std::sort_heap</code> in <code>&lt;algorithm&gt;</code>.</p>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra heap.cpp -o heap &amp;&amp; ./heap</span></pre>
+        <div data-codigo-completo="en/heap.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>bool isMaxHeap(const vector&lt;int&gt;&amp; v)</code> that checks whether an array follows the max-heap rule.</li>
+          <li>Rewrite <code>maxHeapify</code> with a <code>while</code> instead of recursion.</li>
+          <li>Change <code>heapSort</code> so it sorts from largest to smallest using <code>buildMinHeap</code> and <code>minHeapify</code>.</li>
+          <li>Use a min-heap of size <code>k</code> to find the <code>k</code> largest numbers of an array in O(n&nbsp;log&nbsp;k), and compare it with <code>std::priority_queue</code>.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/monticulo/monticulo.js"></script>
+</body>
+</html>
