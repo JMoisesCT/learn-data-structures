@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Binary search · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: binary search in a sorted array. Iterative and recursive versions with the call stack, what happens if it isn't sorted, the mid that overflows, lower_bound, upper_bound, counting duplicates and searching over the answer. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="busqueda-binaria">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Binary search</div>
+      <h1>Binary search</h1>
+      <p class="resumen">If the data is <strong>sorted</strong>, looking at the middle one is enough to discard <strong>half</strong> at once. With a million elements, 20 iterations are enough. You'll see the iterative and the recursive version, their traps, <code>lower_bound</code> and <code>upper_bound</code>, and how to search for an answer even when there's no array.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="Splitting in half">
+        <h2>Guess by splitting in half</h2>
+        <div class="dos-columnas">
+          <p>There are 16 cards <strong>sorted</strong> from smallest to largest, face down, and you have to find a number. Each card you turn over tells you whether the number is to its left or to its right: <strong>all the ones on the other side are out</strong>, without looking at them.</p>
+          <p>Play once your own way and then let the middle strategy play. Always picking the one in the center <strong>splits the candidates in half</strong>: 16 → 8 → 4 → 2 → 1.</p>
+        </div>
+        <div id="juego"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With the middle strategy, how many cards do you have to turn over, at most, if there were 1024?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="That's looking one by one, in the worst case. Splitting in half, each card discards hundreds.">1024</button>
+            <button type="button" class="opcion" data-explicacion="512 would be splitting in half only once and then looking one by one. Splitting again, and again, is much faster.">512</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="1024 → 512 → … → 2 → 1 is 10 halvings, plus the card that's left: 11. It's ⌊log₂ n⌋ + 1. Twice the cards, just one more turn.">11</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="iterativa" data-titulo="binarySearch">
+        <h2><code>binarySearch</code>: a box that shrinks</h2>
+        <p>The candidates are between <code>left</code> and <code>right</code>. On each iteration <code>v[mid]</code> is checked: if it's the target, done; if it's smaller, the target can only be to the right (<code>left = mid + 1</code>); if it's larger, to the left (<code>right = mid - 1</code>). If <code>left</code> passes <code>right</code>, it isn't there: <strong>O(log n)</strong>.</p>
+        <div id="vis-iterativa"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why is the condition <code>left &lt;= right</code> and not <code>left &lt; right</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="The number of iterations barely changes; the problem is something else: with &lt; a candidate would be skipped.">To do one less iteration</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="When left == right exactly one candidate is left and it still has to be checked. With &lt;, searching for 63 when only position 12 is left would return -1.">If they're equal, one candidate is left to check</button>
+            <button type="button" class="opcion" data-explicacion="It does matter: try searching for 3 or 88 and look at the last iteration, when left and right meet.">It doesn't matter</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="recursiva" data-titulo="Recursive version">
+        <h2>The same idea, recursive</h2>
+        <p>Instead of moving <code>left</code> and <code>right</code>, the function <strong>calls itself</strong> with the half that's left. There are two base cases: nobody is left (<code>left &gt; right</code>) or the middle one is the target. Each call waits on the stack for the one below to return the result, and returns it as is.</p>
+        <div id="vis-recursiva"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With n = 1,000,000, how much extra memory does each version use?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Neither copies the array: both receive it by reference (const std::vector&lt;int&gt;&amp;).">Both O(n): they copy the array</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="The iterative one only has left, right and mid. The recursive one stacks up to ~20 frames (log₂ of a million), each with its own left and right.">Iterative O(1), recursive O(log n)</button>
+            <button type="button" class="opcion" data-explicacion="The stack grows one call per half, not one per element: with a million it's about 20.">Recursive O(n): one call per element</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="desordenado" data-titulo="Without order it doesn't work">
+        <h2>And if the array isn't sorted?</h2>
+        <p>Discarding a half <strong>without looking at it</strong> is only valid because the order guarantees the target isn't there. Without order, binary search doesn't fail with an error: <strong>it answers wrong</strong>, and returns -1 even if the value is there. You have to sort first (O(n log n)) or search one by one (O(n)).</p>
+        <div id="vis-desordenado"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">You have an unsorted array and you're going to search for <strong>a single</strong> value. What's best?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Sorting costs O(n log n), more than looking at the n one by one. It's worth it if you're going to search many times.">Sort and then binary search</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="For a single search, O(n) beats O(n log n) + O(log n). If there were k searches, sorting once and doing k binary searches is cheaper when k is large.">Search one by one, O(n)</button>
+            <button type="button" class="opcion" data-explicacion="You already saw it: it discards halves that did have the value and answers -1.">Binary search directly</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="medio" data-titulo="The mid that overflows">
+        <h2>The mid that overflows</h2>
+        <div class="dos-columnas">
+          <p>Why <code>left + (right - left) / 2</code> and not <code>(left + right) / 2</code>? They're equal in math, but an <code>int</code> only goes up to 2,147,483,647. With a huge array, <code>left + right</code> <strong>goes past it</strong> and wraps around to the negatives. This bug sat for years in the binary search of Java's library.</p>
+          <div class="pregunta">
+            <p class="pregunta-enunciado">Why does <code>left + (right - left) / 2</code> never overflow?</p>
+            <div class="opciones">
+              <button type="button" class="opcion" data-correcta data-explicacion="right − left fits because both are between 0 and right; half of that added to left stays between left and right, which also fit.">No step goes above <code>right</code></button>
+              <button type="button" class="opcion" data-explicacion="Integer division doesn't prevent the overflow: in (left + right) / 2 the sum overflows before dividing.">Because it divides before adding everything</button>
+              <button type="button" class="opcion" data-explicacion="No: it uses the same ints. The difference is the order of the operations.">Because it uses <code>long long</code></button>
+            </div>
+          </div>
+        </div>
+        <div id="desborde"></div>
+      </section>
+
+      <section class="paso-leccion" id="limites" data-titulo="lowerBound and upperBound">
+        <h2><code>lowerBound</code> and <code>upperBound</code>: with duplicates</h2>
+        <div class="dos-columnas">
+          <p><code>lowerBound(v, x)</code> looks for the <strong>first position with v[i] ≥ x</strong>: the first copy of <code>x</code>, or where it would go. <code>upperBound</code> looks for the first with v[i] <strong>&gt;</strong> x. They don't stop when they see <code>x</code>: the answer is between <code>left</code> and <code>right</code> (including the end, <code>v.size()</code>) and they keep going until one is left.</p>
+          <p>Together they enclose all the copies of <code>x</code>: <code>countOccurrences</code> counts them with a subtraction, without walking through them. In the STL they're <code>std::lower_bound</code>, <code>std::upper_bound</code> and <code>std::equal_range</code>.</p>
+        </div>
+        <div id="vis-limites"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In <code>{2, 4, 4, 4, 7}</code>, what does <code>lowerBound(v, 5)</code> return?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="-1 is what binarySearch returns if it doesn't find it. lowerBound always returns a position, between 0 and v.size().">-1, because it isn't there</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="v[4] = 7 is the first one ≥ 5: that's where 5 would go to keep v sorted. upperBound(v, 5) also gives 4, so countOccurrences gives 0.">4</button>
+            <button type="button" class="opcion" data-explicacion="v[3] = 4 is the last one smaller than 5. lowerBound gives the first one that isn't smaller.">3</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="respuesta" data-titulo="Searching for the answer">
+        <h2>Search for the answer, not an element</h2>
+        <p>Binary search works with any question that answers <strong>yes, yes, …, yes, no, …, no</strong>. For the integer square root of <code>n</code>, the candidates are 0, 1, …, n and the question is "r · r ≤ n?". Each "yes" moves <code>left</code> and each "no" moves <code>right</code>: the last yes is the answer.</p>
+        <div id="vis-raiz"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Why is <code>mid</code> a <code>long long</code> if <code>n</code> is an <code>int</code>?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="mid never goes past n, so it fits in an int. What doesn't fit is another calculation.">Because mid can be larger than n</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="With n = 2,147,483,647, the first mid is ~1,073,741,823 and its square is ~10¹⁸: it doesn't fit in an int, it does in a long long. The same problem as the previous step.">Because <code>mid * mid</code> doesn't fit in an <code>int</code></button>
+            <button type="button" class="opcion" data-explicacion="The search is just as fast with int; the long long prevents an overflow.">To make it faster</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="todo" data-titulo="All together">
+        <h2>Try it all together</h2>
+        <p>All the functions on the same array. With duplicates, compare <code>binarySearch</code> (returns <strong>some</strong> copy) with <code>lowerBound</code> (the <strong>first</strong>). With the unsorted array, see which one gets it wrong.</p>
+        <div id="vis-todo" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and when to use it</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Function</th><th>In the STL (<code>&lt;algorithm&gt;</code>)</th><th>Time</th><th>Extra memory</th></tr></thead>
+            <tbody>
+              <tr><td><code>binarySearch</code></td><td><code>std::binary_search</code> (only says whether it's there)</td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>recursiveSearch</code></td><td>—</td><td class="o-grande bueno">O(log n)</td><td>O(log n): the stack</td></tr>
+              <tr><td><code>lowerBound</code> / <code>upperBound</code></td><td><code>std::lower_bound</code> / <code>std::upper_bound</code></td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>countOccurrences</code></td><td><code>std::equal_range</code></td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td><code>integerSqrt</code></td><td><code>std::partition_point</code> (over a range)</td><td class="o-grande bueno">O(log n)</td><td>O(1)</td></tr>
+              <tr><td>Linear search</td><td><code>std::find</code> (doesn't need order)</td><td class="o-grande malo">O(n)</td><td>O(1)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="lista-columnas">
+          <li><strong>Use it</strong> when the data is already sorted and is queried much more than it changes: a sorted <code>std::vector</code> is compact and very fast to go through.</li>
+          <li>It needs <strong>O(1) access by index</strong>: it works on an array or vector, not on a <a href="../lista-enlazada/">linked list</a>.</li>
+          <li>If you insert and delete often, keeping the vector sorted costs O(n) per operation: a <a href="../arbol-binario-busqueda/">binary search tree</a> (<code>std::set</code>) does the same in O(log n). Each node plays the "mid".</li>
+          <li>If you only ask "is it there?" and the order doesn't matter, a <a href="../tabla-hash/">hash table</a> answers in O(1) on average.</li>
+          <li><strong>Over the answer</strong>: roots, the minimum size that's enough, the first version that broke something (<code>git bisect</code>).</li>
+          <li>Watch the bounds: <code>left &lt;= right</code> or <code>left &lt; right</code>, <code>mid - 1</code> or <code>mid</code>. Each version is consistent with itself; mixing them gives infinite loops.</li>
+        </ul>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra binary_search.cpp -o binary_search &amp;&amp; ./binary_search</span></pre>
+        <div data-codigo-completo="en/binary_search.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Write <code>int lastOccurrence(const std::vector&lt;int&gt;&amp; v, int x)</code>, which returns the last position of <code>x</code> or -1, using <code>upperBound</code>.</li>
+          <li>Change <code>right = mid - 1</code> to <code>right = mid</code> in <code>binarySearch</code> and search for a value that isn't there. What happens and why?</li>
+          <li>Search in a sorted array that was <strong>rotated</strong>, like <code>{27, 30, 34, 3, 8, 12, 15}</code>, in O(log n). Hint: one of the two halves is always sorted.</li>
+          <li>Search over the answer: given the weights of some packages in order and <code>d</code> days, find the minimum capacity of a truck that delivers them all in <code>d</code> trips.</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/busqueda-binaria/busqueda-binaria.js"></script>
+</body>
+</html>

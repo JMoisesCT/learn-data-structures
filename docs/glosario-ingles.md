@@ -98,3 +98,7 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Tabla hash | `Sondeo { Lineal, Cuadratico, DobleHash }` / `sondeo` / `paso` (doble hash) | `Probing { Linear, Quadratic, DoubleHash }` / `probing` / `step` |
 | Tabla hash | `esPrimo` / `siguientePrimo` / `siNo` | `isPrime` / `nextPrime` / `yesNo` |
 | Tabla hash | `amor`, `roma`, `mora`, `ramo` (anagramas que chocan con la suma de letras) | `listen`, `silent`, `enlist`, `tinsel` |
+| Búsqueda binaria | `busquedaBinaria` / `busquedaRecursiva` / `contarApariciones` / `raizEntera` | `binarySearch` / `recursiveSearch` / `countOccurrences` / `integerSqrt` |
+| Búsqueda binaria | `izq` / `medio` / `der` / `objetivo` | `left` / `mid` / `right` / `target` |
+| Búsqueda binaria | `desde` / `hasta` (de `contarApariciones`) / `respuesta` | `start` / `end` / `answer` |
+| Búsqueda binaria | `desordenado` / `propio` | `unsorted` / `own` |

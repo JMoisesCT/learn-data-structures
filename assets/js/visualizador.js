@@ -225,6 +225,7 @@
         titulo: "Binary search",
         resumen: "In a sorted array, looking at the middle discards half at once. Iterative and recursive versions, the overflowing midpoint, lower_bound and upper_bound with duplicates, and searching for the answer without an array.",
         etiquetas: ["O(log n) search", "needs order"],
+        archivo: "binary_search.cpp",
       },
     },
     {
