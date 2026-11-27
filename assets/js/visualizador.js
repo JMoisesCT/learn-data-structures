@@ -212,6 +212,7 @@
         titulo: "Hash table",
         resumen: "A hash function takes each key straight to its bucket. Hash functions, collisions with chaining and with probing, and rehashing.",
         etiquetas: ["O(1) average search", "collisions"],
+        archivo: "hash_table.cpp",
       },
     },
     {

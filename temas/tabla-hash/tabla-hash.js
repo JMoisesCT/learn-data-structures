@@ -3,15 +3,16 @@
 // Los fragmentos de código deben coincidir línea por línea con
 // ejemplos/cpp/tabla_hash.cpp (scripts/verificar-fragmentos.mjs lo revisa).
 (function () {
-  const { el } = DS;
+  const { el, tr } = DS;
   const SVG = "http://www.w3.org/2000/svg";
   const EJEMPLO = [15, 7, 42, 3, 99]; // los mismos números que usa main()
 
   // ------------------------------------------------------------------
-  // Fragmentos de C++ (copiados de ejemplos/cpp/tabla_hash.cpp)
+  // Fragmentos de C++ (copiados de ejemplos/cpp/tabla_hash.cpp y de
+  // ejemplos/cpp/en/hash_table.cpp)
   // ------------------------------------------------------------------
 
-  const FUNCIONES = {
+  const FUNCIONES = tr({
     hashDivision: `
       int hashDivision(int clave, int m) {
           int r = clave % m;
@@ -53,9 +54,51 @@
               h = (h * 31 + c) % m;
           return h;
       }`,
-  };
+  }, {
+    hashDivision: `
+      int divisionHash(int key, int m) {
+          int r = key % m;
+          return r < 0 ? r + m : r;   // in C++, -15 % 7 == -1
+      }`,
+    hashMultiplicacion: `
+      int multiplicationHash(int key, int m) {
+          const double A = 0.6180339887;   // (√5 - 1) / 2
+          double product = key * A;
+          double fraction = product - floor(product);
+          return (int)(m * fraction);
+      }`,
+    hashCuadradoMedio: `
+      int midSquareHash(int key, int m) {
+          int square = key * key;
+          int middle = (square / 100) % 100;
+          return middle % m;
+      }`,
+    hashPlegado: `
+      int foldingHash(int key, int m) {
+          int sum = 0;
+          while (key > 0) {
+              sum += key % 100;
+              key /= 100;
+          }
+          return sum % m;
+      }`,
+    hashSumaLetras: `
+      int letterSumHash(const string& text, int m) {
+          int sum = 0;
+          for (char c : text)
+              sum += c;
+          return sum % m;
+      }`,
+    hashPolinomial: `
+      int polynomialHash(const string& text, int m) {
+          int h = 0;
+          for (char c : text)
+              h = (h * 31 + c) % m;
+          return h;
+      }`,
+  });
 
-  const ENCADENADA = {
+  const ENCADENADA = tr({
     insertar: `
       void insertar(int clave) {
           int indice = hashDivision(clave, tamano());
@@ -106,9 +149,60 @@
           }
           tabla.swap(nueva);
       }`,
-  };
+  }, {
+    insertar: `
+      void insert(int key) {
+          int index = divisionHash(key, size());
+          Node* newNode = new Node(key);
+          newNode->next = table[index];   // inserts at the front
+          table[index] = newNode;
+          count++;
+      }`,
+    buscar: `
+      bool find(int key) const {
+          int index = divisionHash(key, size());
+          Node* current = table[index];
+          while (current) {
+              if (current->value == key) return true;
+              current = current->next;
+          }
+          return false;
+      }`,
+    eliminar: `
+      bool remove(int key) {
+          int index = divisionHash(key, size());
+          Node* current = table[index];
+          Node* prev = nullptr;
+          while (current) {
+              if (current->value == key) {
+                  if (prev) prev->next = current->next;
+                  else table[index] = current->next;
+                  delete current;
+                  count--;
+                  return true;
+              }
+              prev = current;
+              current = current->next;
+          }
+          return false;
+      }`,
+    rehash: `
+      void rehash(int newSize) {
+          vector<Node*> newTable(newSize, nullptr);
+          for (Node* current : table) {
+              while (current) {
+                  Node* nextNode = current->next;
+                  int index = divisionHash(current->value, newSize);
+                  current->next = newTable[index];   // at the front, as in insert
+                  newTable[index] = current;
+                  current = nextNode;
+              }
+          }
+          table.swap(newTable);
+      }`,
+  });
 
-  const ABIERTA = {
+  const ABIERTA = tr({
     posicion: `
       int posicion(int clave, int i) const {
           int h = hashDivision(clave, m);
@@ -152,9 +246,77 @@
           }
           return false;
       }`,
-  };
+  }, {
+    posicion: `
+      int position(int key, int i) const {
+          int h = divisionHash(key, m);
+          if (probing == Probing::Linear) return (h + i) % m;
+          if (probing == Probing::Quadratic) return (h + i * i) % m;
+          int step = 1 + divisionHash(key, m - 1);   // second hash: never 0
+          return (h + i * step) % m;
+      }`,
+    insertar: `
+      bool insert(int key) {
+          for (int i = 0; i < m; i++) {
+              int p = position(key, i);
+              if (states[p] != State::Occupied) {
+                  keys[p] = key;
+                  states[p] = State::Occupied;
+                  count++;
+                  return true;
+              }
+          }
+          return false;   // no attempt found a place
+      }`,
+    buscar: `
+      bool find(int key) const {
+          for (int i = 0; i < m; i++) {
+              int p = position(key, i);
+              if (states[p] == State::Empty) return false;
+              if (states[p] == State::Occupied && keys[p] == key) return true;
+          }
+          return false;
+      }`,
+    eliminar: `
+      bool remove(int key) {
+          for (int i = 0; i < m; i++) {
+              int p = position(key, i);
+              if (states[p] == State::Empty) return false;
+              if (states[p] == State::Occupied && keys[p] == key) {
+                  states[p] = State::Deleted;   // tombstone
+                  count--;
+                  return true;
+              }
+          }
+          return false;
+      }`,
+  });
 
   const elegir = (origen, ...claves) => Object.fromEntries(claves.map((c) => [c, origen[c]]));
+
+  // Nombre de cada función en el idioma de la página (las claves quedan en español).
+  const F = tr({}, {
+    hashDivision: "divisionHash", hashMultiplicacion: "multiplicationHash", hashCuadradoMedio: "midSquareHash",
+    hashPlegado: "foldingHash", hashSumaLetras: "letterSumHash", hashPolinomial: "polynomialHash",
+    insertar: "insert", buscar: "find", eliminar: "remove", posicion: "position", siguientePrimo: "nextPrime",
+  });
+  const nombreF = (clave) => F[clave] || clave;
+  const ENCADENADA_CLASE = tr("TablaHashEncadenada", "ChainedHashTable");
+  const ABIERTA_CLASE = tr("TablaHashAbierta", "OpenAddressingHashTable");
+
+  // Nombres del C++ que se dibujan. Los estados usan los de español y se
+  // traducen al pintar, así son iguales en los dos idiomas.
+  const NOMBRES = {
+    clave: "key", producto: "product", fraccion: "fraction", cuadrado: "square", centro: "middle", suma: "sum",
+    indice: "index", nuevo: "newNode", actual: "current", anterior: "prev", nuevoTamano: "newSize",
+    siguiente: "nextNode", paso: "step", estrategia: "strategy",
+  };
+  const ident = (k) => tr(k, NOMBRES[k] || k);
+  const variables = (vars, cambiadas) => DS.variables(
+    Object.fromEntries(Object.entries(vars).map(([k, v]) => [ident(k), v])), (cambiadas || []).map(ident));
+  const CLAVE = tr("Clave", "Key");
+  // insertar(clave) / insert(key): el parámetro se llama como la entrada.
+  const llamadaCon = (f) => `${nombreF(f)}(${ident("clave")})`;
 
   // ------------------------------------------------------------------
   // Las funciones hash en JavaScript (mismo resultado que en C++)
@@ -172,52 +334,61 @@
   const NUMERICAS = {
     division: {
       clave: "hashDivision",
-      nombre: "División",
-      idea: "clave % m, la más simple. Reparte mejor con m primo.",
+      nombre: tr("División", "Division"),
+      idea: tr("clave % m, la más simple. Reparte mejor con m primo.", "key % m, the simplest. It spreads better with a prime m."),
       calcular: (k, m) => hashDivision(k, m),
       pasos(k, m, paso) {
         const r = k % m;
-        paso(2, `r = ${k} % ${m} = ${r}: el resto de dividir ${k} entre ${m}. Siempre queda entre 0 y ${m - 1}.`, { clave: k, m, r });
-        return [3, `r no es negativo, así que se devuelve tal cual: ${r}.`, { clave: k, m, r }];
+        paso(2, tr(`r = ${k} % ${m} = ${r}: el resto de dividir ${k} entre ${m}. Siempre queda entre 0 y ${m - 1}.`,
+          `r = ${k} % ${m} = ${r}: the remainder of dividing ${k} by ${m}. It's always between 0 and ${m - 1}.`), { clave: k, m, r });
+        return [3, tr(`r no es negativo, así que se devuelve tal cual: ${r}.`, `r isn't negative, so it's returned as is: ${r}.`), { clave: k, m, r }];
       },
     },
     multiplicacion: {
       clave: "hashMultiplicacion",
-      nombre: "Multiplicación",
-      idea: "multiplica por A ≈ 0.618, se queda con los decimales y los escala a m (Knuth). El valor de m casi no importa.",
+      nombre: tr("Multiplicación", "Multiplication"),
+      idea: tr("multiplica por A ≈ 0.618, se queda con los decimales y los escala a m (Knuth). El valor de m casi no importa.",
+        "multiplies by A ≈ 0.618, keeps the decimals and scales them to m (Knuth). The value of m barely matters."),
       calcular: (k, m) => Math.trunc(m * fraccion(k)),
       pasos(k, m, paso) {
         const producto = k * A;
         const f = producto - Math.floor(producto);
         const vars = { clave: k, m };
-        paso(2, "A ≈ 0.618 es la parte decimal de la razón áurea. Knuth la recomienda porque mezcla muy bien los dígitos de la clave.", vars);
-        paso(3, `producto = ${k} × 0.618… = ${decimal(producto)}.`, Object.assign(vars, { producto: decimal(producto) }));
-        paso(4, `fraccion = ${decimal(producto)} − ${Math.floor(producto)} = ${decimal(f)}: nos quedamos solo con los decimales, un número entre 0 y 1.`,
+        paso(2, tr("A ≈ 0.618 es la parte decimal de la razón áurea. Knuth la recomienda porque mezcla muy bien los dígitos de la clave.",
+          "A ≈ 0.618 is the decimal part of the golden ratio. Knuth recommends it because it mixes the key's digits very well."), vars);
+        paso(3, `${ident("producto")} = ${k} × 0.618… = ${decimal(producto)}.`, Object.assign(vars, { producto: decimal(producto) }));
+        paso(4, tr(`fraccion = ${decimal(producto)} − ${Math.floor(producto)} = ${decimal(f)}: nos quedamos solo con los decimales, un número entre 0 y 1.`,
+          `fraction = ${decimal(producto)} − ${Math.floor(producto)} = ${decimal(f)}: we keep only the decimals, a number between 0 and 1.`),
           Object.assign(vars, { fraccion: decimal(f) }));
         const r = Math.trunc(m * f);
-        return [5, `${m} × ${decimal(f)} = ${decimal(m * f)}; al convertirlo a int se cortan los decimales: ${r}.`, vars];
+        return [5, tr(`${m} × ${decimal(f)} = ${decimal(m * f)}; al convertirlo a int se cortan los decimales: ${r}.`,
+          `${m} × ${decimal(f)} = ${decimal(m * f)}; converting it to int cuts off the decimals: ${r}.`), vars];
       },
     },
     cuadrado: {
       clave: "hashCuadradoMedio",
-      nombre: "Cuadrado medio",
-      idea: "eleva al cuadrado y toma los dígitos del centro, donde influyen todos los dígitos de la clave.",
+      nombre: tr("Cuadrado medio", "Mid-square"),
+      idea: tr("eleva al cuadrado y toma los dígitos del centro, donde influyen todos los dígitos de la clave.",
+        "squares the key and takes the middle digits, which all the key's digits affect."),
       calcular: (k, m) => (Math.floor((k * k) / 100) % 100) % m,
       pasos(k, m, paso) {
         const cuadrado = k * k;
         const centro = Math.floor(cuadrado / 100) % 100;
         const seis = String(cuadrado).padStart(6, "0");
         const vars = { clave: k, m, cuadrado };
-        paso(2, `cuadrado = ${k} × ${k} = ${cuadrado}. Al elevar al cuadrado, cada dígito de la clave influye en los del centro.`, vars);
-        paso(3, `centro = (${cuadrado} / 100) % 100 = ${centro}: de ${seis.slice(0, 2)}[${seis.slice(2, 4)}]${seis.slice(4)} quitamos los 2 últimos dígitos y nos quedamos con los 2 siguientes.`,
+        paso(2, tr(`cuadrado = ${k} × ${k} = ${cuadrado}. Al elevar al cuadrado, cada dígito de la clave influye en los del centro.`,
+          `square = ${k} × ${k} = ${cuadrado}. When squaring, each digit of the key affects the middle ones.`), vars);
+        paso(3, tr(`centro = (${cuadrado} / 100) % 100 = ${centro}: de ${seis.slice(0, 2)}[${seis.slice(2, 4)}]${seis.slice(4)} quitamos los 2 últimos dígitos y nos quedamos con los 2 siguientes.`,
+          `middle = (${cuadrado} / 100) % 100 = ${centro}: from ${seis.slice(0, 2)}[${seis.slice(2, 4)}]${seis.slice(4)} we drop the last 2 digits and keep the next 2.`),
           Object.assign(vars, { centro }));
         return [4, `return ${centro} % ${m} = ${centro % m}.`, vars];
       },
     },
     plegado: {
       clave: "hashPlegado",
-      nombre: "Plegado",
-      idea: "corta la clave en grupos de 2 dígitos y los suma. Sirve para claves largas, como teléfonos.",
+      nombre: tr("Plegado", "Folding"),
+      idea: tr("corta la clave en grupos de 2 dígitos y los suma. Sirve para claves largas, como teléfonos.",
+        "cuts the key into groups of 2 digits and adds them up. It's useful for long keys, like phone numbers."),
       calcular(k, m) {
         let suma = 0;
         for (let c = k; c > 0; c = Math.floor(c / 100)) suma += c % 100;
@@ -226,15 +397,17 @@
       pasos(k, m, paso) {
         let suma = 0;
         let c = k;
-        paso(2, `suma = 0. Vamos a cortar ${k} en grupos de 2 dígitos, de derecha a izquierda, y sumarlos.`, { clave: c, m, suma });
+        paso(2, tr(`suma = 0. Vamos a cortar ${k} en grupos de 2 dígitos, de derecha a izquierda, y sumarlos.`,
+          `sum = 0. We'll cut ${k} into groups of 2 digits, from right to left, and add them up.`), { clave: c, m, suma });
         while (c > 0) {
           const grupo = c % 100;
           suma += grupo;
-          paso(4, `suma += ${c} % 100 = ${grupo} (los 2 últimos dígitos): suma = ${suma}.`, { clave: c, m, suma });
+          paso(4, tr(`suma += ${c} % 100 = ${grupo} (los 2 últimos dígitos): suma = ${suma}.`, `sum += ${c} % 100 = ${grupo} (the last 2 digits): sum = ${suma}.`), { clave: c, m, suma });
           c = Math.floor(c / 100);
-          paso(5, c > 0 ? `clave /= 100: quedan los dígitos ${c}.` : "clave /= 100: ya no quedan dígitos (clave = 0).", { clave: c, m, suma });
+          paso(5, c > 0 ? tr(`clave /= 100: quedan los dígitos ${c}.`, `key /= 100: the digits ${c} are left.`)
+            : tr("clave /= 100: ya no quedan dígitos (clave = 0).", "key /= 100: no digits left (key = 0)."), { clave: c, m, suma });
         }
-        paso(3, "clave > 0 es falso: terminó el plegado.", { clave: c, m, suma });
+        paso(3, tr("clave > 0 es falso: terminó el plegado.", "key > 0 is false: the folding is done."), { clave: c, m, suma });
         return [7, `return ${suma} % ${m} = ${suma % m}.`, { clave: c, m, suma }];
       },
     },
@@ -243,26 +416,29 @@
   const TEXTO = {
     suma: {
       clave: "hashSumaLetras",
-      idea: "Suma de letras: suma el código ASCII de cada letra. Es fácil, pero amor, roma, mora y ramo tienen las mismas letras… y la misma suma.",
+      idea: tr("Suma de letras: suma el código ASCII de cada letra. Es fácil, pero amor, roma, mora y ramo tienen las mismas letras… y la misma suma.",
+        "Letter sum: adds up the ASCII code of each letter. It's easy, but listen, silent, enlist and tinsel have the same letters… and the same sum."),
       calcular: (t, m) => [...t].reduce((s, c) => s + codigo(c), 0) % m,
       pasos(t, m, paso) {
         let suma = 0;
-        paso(2, `suma = 0. Recorremos "${t}" letra por letra y sumamos su código ASCII.`, { suma }, null);
+        paso(2, tr(`suma = 0. Recorremos "${t}" letra por letra y sumamos su código ASCII.`, `sum = 0. We go through "${t}" letter by letter and add up its ASCII code.`), { suma }, null);
         [...t].forEach((c, k) => {
           const antes = suma;
           suma += codigo(c);
-          paso(4, `c = '${c}' (${codigo(c)}): suma = ${antes} + ${codigo(c)} = ${suma}.`, { c: `'${c}'`, suma }, k);
+          paso(4, `c = '${c}' (${codigo(c)}): ${ident("suma")} = ${antes} + ${codigo(c)} = ${suma}.`, { c: `'${c}'`, suma }, k);
         });
         return [5, `return ${suma} % ${m} = ${suma % m}.`, { suma }];
       },
     },
     polinomial: {
       clave: "hashPolinomial",
-      idea: "Polinomial (Horner): h = h · 31 + c en cada letra, así el orden importa. El % m de cada vuelta evita desbordar el int.",
+      idea: tr("Polinomial (Horner): h = h · 31 + c en cada letra, así el orden importa. El % m de cada vuelta evita desbordar el int.",
+        "Polynomial (Horner): h = h · 31 + c on each letter, so the order matters. The % m on each iteration keeps the int from overflowing."),
       calcular: (t, m) => [...t].reduce((h, c) => (h * 31 + codigo(c)) % m, 0),
       pasos(t, m, paso) {
         let h = 0;
-        paso(2, `h = 0. En cada letra, h se multiplica por 31 antes de sumar: así la posición de cada letra cuenta.`, { h }, null);
+        paso(2, tr("h = 0. En cada letra, h se multiplica por 31 antes de sumar: así la posición de cada letra cuenta.",
+          "h = 0. On each letter, h is multiplied by 31 before adding: that way each letter's position counts."), { h }, null);
         [...t].forEach((c, k) => {
           const antes = h;
           h = (h * 31 + codigo(c)) % m;
@@ -273,7 +449,9 @@
     },
   };
 
-  const PALABRAS = ["amor", "roma", "mora", "ramo", "casa", "saca", "sol", "luna", "gato", "perro"];
+  // Los anagramas chocan con la suma de letras (en los dos idiomas caen en la cubeta 4).
+  const ANAGRAMAS = tr(["amor", "roma", "mora", "ramo"], ["listen", "silent", "enlist", "tinsel"]);
+  const PALABRAS = ANAGRAMAS.concat(tr(["casa", "saca", "sol", "luna", "gato", "perro"], ["stop", "pots", "sun", "moon", "cat", "dog"]));
 
   // ------------------------------------------------------------------
   // Dibujo de cubetas simples (una fila por cubeta, como imprimir())
@@ -287,7 +465,8 @@
     const n = cubetas.reduce((t, c) => t + c.length, 0);
     const usadas = cubetas.filter((c) => c.length).length;
     const mayor = Math.max(0, ...cubetas.map((c) => c.length));
-    return `${n} clave(s) · ${usadas} de ${cubetas.length} cubetas usadas · ${n - usadas} colisión(es) · la más llena tiene ${mayor}`;
+    return tr(`${n} clave(s) · ${usadas} de ${cubetas.length} cubetas usadas · ${n - usadas} colisión(es) · la más llena tiene ${mayor}`,
+      `${n} key(s) · ${usadas} of ${cubetas.length} buckets used · ${n - usadas} collision(s) · the fullest has ${mayor}`);
   }
 
   // Con muchas cubetas (m = 10 u 11) van en dos columnas en pantallas anchas
@@ -309,6 +488,8 @@
   // ------------------------------------------------------------------
 
   const MAXIMO_FICHAS = 30;
+  const LIMITE_FICHAS = () => tr(`Para que quepa en pantalla, la tabla llega hasta ${MAXIMO_FICHAS} claves. Pulsa Reiniciar.`,
+    `So that it fits on screen, the table goes up to ${MAXIMO_FICHAS} keys. Press Reset.`);
 
   // Coloca la clave en su cubeta y arma el mensaje (con o sin colisión).
   function colocar(s, valor, indice) {
@@ -317,56 +498,58 @@
     s.vis.cubeta = indice;
     s.vis.nuevo = valor;
     return antes.length
-      ? `Cubeta ${indice}: ¡colisión! Ya estaba${antes.length > 1 ? "n" : ""} ${antes.join(", ")}.`
-      : `Cubeta ${indice}: estaba libre, no hay colisión.`;
+      ? tr(`Cubeta ${indice}: ¡colisión! Ya estaba${antes.length > 1 ? "n" : ""} ${antes.join(", ")}.`, `Bucket ${indice}: collision! ${antes.join(", ")} ${antes.length > 1 ? "were" : "was"} already there.`)
+      : tr(`Cubeta ${indice}: estaba libre, no hay colisión.`, `Bucket ${indice}: it was free, no collision.`);
   }
 
   function agregarLote(s, valores, paso) {
     const f = NUMERICAS[s.funcion];
     const nuevos = valores.filter((v) => !s.cubetas.some((c) => c.includes(v)));
     if (s.cubetas.flat().length + nuevos.length > MAXIMO_FICHAS) {
-      paso(f.clave, 0, `Para que quepa en pantalla, la tabla llega hasta ${MAXIMO_FICHAS} claves. Pulsa Reiniciar.`, "error");
+      paso(f.clave, 0, LIMITE_FICHAS(), "error");
       return;
     }
     if (!nuevos.length) {
-      paso(f.clave, 0, "Esas claves ya están en la tabla.", "error");
+      paso(f.clave, 0, tr("Esas claves ya están en la tabla.", "Those keys are already in the table."), "error");
       return;
     }
     nuevos.forEach((v) => {
       const indice = f.calcular(v, s.m);
       s.vis = { vars: { clave: v, m: s.m } };
       const texto = colocar(s, v, indice);
-      paso(f.clave, 0, `${f.clave}(${v}, ${s.m}) = ${indice}. ${texto}`);
+      paso(f.clave, 0, `${nombreF(f.clave)}(${v}, ${s.m}) = ${indice}. ${texto}`);
     });
     s.vis = { vars: { m: s.m } };
-    paso(f.clave, 0, `Así reparte ${f.nombre.toLowerCase()} con m = ${s.m}. ${resumen(s.cubetas)}. Cambia la función o m y compara.`, "exito");
+    paso(f.clave, 0, tr(`Así reparte ${f.nombre.toLowerCase()} con m = ${s.m}. ${resumen(s.cubetas)}. Cambia la función o m y compara.`,
+      `That's how ${f.nombre.toLowerCase()} spreads them with m = ${s.m}. ${resumen(s.cubetas)}. Change the function or m and compare.`), "exito");
   }
 
   DS.tema({
     contenedor: "vis-funciones",
     codigo: elegir(FUNCIONES, "hashDivision", "hashMultiplicacion", "hashCuadradoMedio", "hashPlegado"),
-    tituloCodigo: (clave) => `${clave}(clave, m)`,
+    tituloCodigo: (clave) => `${nombreF(clave)}(${ident("clave")}, m)`,
     codigoInicial: ({ funcion }) => NUMERICAS[funcion].clave,
-    mensajeInicial: ({ funcion, m }) => `${NUMERICAS[funcion].nombre} (m = ${m}): ${NUMERICAS[funcion].idea} Calcula una clave o agrega varias de golpe.`,
+    mensajeInicial: ({ funcion, m }) => `${NUMERICAS[funcion].nombre} (m = ${m}): ${NUMERICAS[funcion].idea} `
+      + tr("Calcula una clave o agrega varias de golpe.", "Compute one key or add several at once."),
     estadoInicial: ({ funcion, m }) => ({ funcion, m: Number(m), cubetas: cubetasVacias(Number(m)), vis: {} }),
     entradas: [
-      { id: "funcion", etiqueta: "Función", opciones: Object.entries(NUMERICAS).map(([k, f]) => [k, f.nombre]), valor: "division" },
-      { id: "m", etiqueta: "Cubetas (m)", opciones: [["7", "7"], ["10", "10"], ["11", "11"]], valor: "7" },
-      { id: "clave", etiqueta: "Clave", min: 0, max: 999, aleatorio: true },
+      { id: "funcion", etiqueta: tr("Función", "Function"), opciones: Object.entries(NUMERICAS).map(([k, f]) => [k, f.nombre]), valor: "division" },
+      { id: "m", etiqueta: tr("Cubetas (m)", "Buckets (m)"), opciones: [["7", "7"], ["10", "10"], ["11", "11"]], valor: "7" },
+      { id: "clave", etiqueta: CLAVE, min: 0, max: 999, aleatorio: true },
     ],
     operaciones: [
       {
         id: "calcular",
-        etiqueta: ({ funcion }) => `${NUMERICAS[funcion].clave}(clave, m)`,
+        etiqueta: ({ funcion }) => `${nombreF(NUMERICAS[funcion].clave)}(${ident("clave")}, m)`,
         usa: ["clave"],
         ejecutar(s, { clave }, paso) {
           const f = NUMERICAS[s.funcion];
           if (s.cubetas.some((c) => c.includes(clave))) {
-            paso(f.clave, 0, `${clave} ya está en la tabla. Prueba con otra clave.`, "error");
+            paso(f.clave, 0, tr(`${clave} ya está en la tabla. Prueba con otra clave.`, `${clave} is already in the table. Try another key.`), "error");
             return;
           }
           if (s.cubetas.flat().length >= MAXIMO_FICHAS) {
-            paso(f.clave, 0, `Para que quepa en pantalla, la tabla llega hasta ${MAXIMO_FICHAS} claves. Pulsa Reiniciar.`, "error");
+            paso(f.clave, 0, LIMITE_FICHAS(), "error");
             return;
           }
           const ver = (vars) => { s.vis = { vars }; };
@@ -378,19 +561,19 @@
       },
       {
         id: "main",
-        etiqueta: `Agregar ${EJEMPLO.join(", ")}`,
+        etiqueta: `+ ${EJEMPLO.join(", ")}`,
         secundaria: true,
         ejecutar(s, args, paso) { agregarLote(s, EJEMPLO, paso); },
       },
       {
         id: "decenas",
-        etiqueta: "Agregar 10, 20, …, 100",
+        etiqueta: "+ 10, 20, …, 100",
         secundaria: true,
         ejecutar(s, args, paso) { agregarLote(s, Array.from({ length: 10 }, (_, k) => 10 * (k + 1)), paso); },
       },
     ],
     dibujar(escenario, s) {
-      escenario.append(DS.variables(s.vis.vars || { m: s.m }), dibujarCubetas(s.cubetas, s.vis));
+      escenario.append(variables(s.vis.vars || { m: s.m }), dibujarCubetas(s.cubetas, s.vis));
     },
   });
 
@@ -403,23 +586,23 @@
   DS.tema({
     contenedor: "vis-palabras",
     codigo: elegir(FUNCIONES, "hashSumaLetras", "hashPolinomial"),
-    tituloCodigo: (clave) => `${clave}(texto, m)`,
+    tituloCodigo: (clave) => `${nombreF(clave)}(${tr("texto", "text")}, m)`,
     codigoInicial: ({ funcion }) => TEXTO[funcion].clave,
-    mensajeInicial: ({ funcion }) => `${TEXTO[funcion].idea} Prueba los anagramas con las dos funciones.`,
+    mensajeInicial: ({ funcion }) => `${TEXTO[funcion].idea} ${tr("Prueba los anagramas con las dos funciones.", "Try the anagrams with both functions.")}`,
     estadoInicial: ({ funcion }) => ({ funcion, cubetas: cubetasVacias(M_TEXTO), vis: {} }),
     entradas: [
-      { id: "funcion", etiqueta: "", opciones: [["suma", "Suma de letras"], ["polinomial", "Polinomial"]], valor: "suma" },
-      { id: "palabra", etiqueta: "", opciones: PALABRAS.map((p) => [p, p]), valor: "amor", reinicia: false },
+      { id: "funcion", etiqueta: "", opciones: [["suma", tr("Suma de letras", "Letter sum")], ["polinomial", tr("Polinomial", "Polynomial")]], valor: "suma" },
+      { id: "palabra", etiqueta: "", opciones: PALABRAS.map((p) => [p, p]), valor: PALABRAS[0], reinicia: false },
     ],
     operaciones: [
       {
         id: "calcular",
-        etiqueta: ({ funcion, palabra }) => `${TEXTO[funcion].clave}("${palabra}", ${M_TEXTO})`,
+        etiqueta: ({ funcion, palabra }) => `${nombreF(TEXTO[funcion].clave)}("${palabra}", ${M_TEXTO})`,
         usa: ["palabra"],
         ejecutar(s, { palabra }, paso) {
           const f = TEXTO[s.funcion];
           if (s.cubetas.some((c) => c.includes(palabra))) {
-            paso(f.clave, 0, `"${palabra}" ya está en la tabla. Elige otra palabra.`, "error");
+            paso(f.clave, 0, tr(`"${palabra}" ya está en la tabla. Elige otra palabra.`, `"${palabra}" is already in the table. Choose another word.`), "error");
             return;
           }
           const ver = (vars, letra) => { s.vis = { vars: Object.assign({ m: M_TEXTO }, vars), palabra, letra }; };
@@ -431,25 +614,27 @@
       },
       {
         id: "anagramas",
-        etiqueta: "+ anagramas",
+        etiqueta: tr("+ anagramas", "+ anagrams"),
         secundaria: true,
         ejecutar(s, args, paso) {
           const f = TEXTO[s.funcion];
-          const nuevos = ["amor", "roma", "mora", "ramo"].filter((p) => !s.cubetas.some((c) => c.includes(p)));
+          const nuevos = ANAGRAMAS.filter((p) => !s.cubetas.some((c) => c.includes(p)));
           if (!nuevos.length) {
-            paso(f.clave, 0, "Los cuatro anagramas ya están en la tabla.", "error");
+            paso(f.clave, 0, tr("Los cuatro anagramas ya están en la tabla.", "The four anagrams are already in the table."), "error");
             return;
           }
           for (const p of nuevos) {
             s.vis = { vars: { m: M_TEXTO }, palabra: p };
             const indice = f.calcular(p, M_TEXTO);
-            paso(f.clave, 0, `${f.clave}("${p}", ${M_TEXTO}) = ${indice}. ${colocar(s, p, indice)}`);
+            paso(f.clave, 0, `${nombreF(f.clave)}("${p}", ${M_TEXTO}) = ${indice}. ${colocar(s, p, indice)}`);
           }
           // La última palabra sigue a la vista: si su fila de letras se fuera, la tabla subiría de golpe.
           s.vis = { vars: { m: M_TEXTO }, palabra: nuevos[nuevos.length - 1] };
           paso(f.clave, 0, s.funcion === "suma"
-            ? "Las cuatro palabras tienen las mismas letras, así que la suma es la misma: todas caen en la misma cubeta, sin importar m."
-            : "Con el hash polinomial el orden cuenta y los anagramas se reparten. Dos aún pueden chocar (hay 7 cubetas), pero no por tener las mismas letras.", "exito");
+            ? tr("Las cuatro palabras tienen las mismas letras, así que la suma es la misma: todas caen en la misma cubeta, sin importar m.",
+              "The four words have the same letters, so the sum is the same: they all land in the same bucket, whatever m is.")
+            : tr("Con el hash polinomial el orden cuenta y los anagramas se reparten. Dos aún pueden chocar (hay 7 cubetas), pero no por tener las mismas letras.",
+              "With the polynomial hash the order counts and the anagrams spread out. Two could still collide (there are 7 buckets), but not because they share letters."), "exito");
         },
       },
     ],
@@ -460,7 +645,7 @@
           el("div", { class: `letra${vis.letra === k ? " actual" : ""}${vis.letra != null && k < vis.letra ? " hecha" : ""}` },
             el("span", { class: "letra-caracter", text: c }), el("span", { class: "indice", text: codigo(c) }))))
         : "";
-      escenario.append(DS.variables(vis.vars || { m: M_TEXTO }), letras, dibujarCubetas(s.cubetas, vis));
+      escenario.append(variables(vis.vars || { m: M_TEXTO }), letras, dibujarCubetas(s.cubetas, vis));
     },
   });
 
@@ -494,12 +679,13 @@
     return id;
   }
 
-  const nombreNodo = (s, id) => (id == null ? "nullptr" : `nodo ${s.nodos[id]}`);
+  const nombreNodo = (s, id) => (id == null ? "nullptr" : `${tr("nodo", "node")} ${s.nodos[id]}`);
 
   // Bloques que se dibujan: la tabla y, durante el rehash, la tabla nueva.
   function bloques(s, disponible) {
-    const lista = [{ id: "t", m: s.m, cubetas: s.cubetas, pendiente: s.pendiente, titulo: s.nueva ? `tabla (la vieja, m = ${s.m})` : `tabla (m = ${s.m})` }];
-    if (s.nueva) lista.push({ id: "n", m: s.nueva.m, cubetas: s.nueva.cubetas, titulo: `nueva (m = ${s.nueva.m})` });
+    const titulo = s.nueva ? tr(`tabla (la vieja, m = ${s.m})`, `table (the old one, m = ${s.m})`) : tr(`tabla (m = ${s.m})`, `table (m = ${s.m})`);
+    const lista = [{ id: "t", m: s.m, cubetas: s.cubetas, pendiente: s.pendiente, titulo }];
+    if (s.nueva) lista.push({ id: "n", m: s.nueva.m, cubetas: s.nueva.cubetas, titulo: `${tr("nueva", "newTable")} (m = ${s.nueva.m})` });
     let x = 0;
     let y = 0;
     for (const b of lista) {
@@ -605,7 +791,7 @@
     const lienzo = escenario.querySelector(".lienzo-hash") || crearLienzoCadenas(escenario);
     lienzo._estado = s;
     const vis = s.vis || {};
-    escenario.querySelector(".info-hash").replaceChildren(DS.variables(Object.assign({}, vis.vars, { "α": alfa(s) }), vis.cambiadas));
+    escenario.querySelector(".info-hash").replaceChildren(variables(Object.assign({}, vis.vars, { "α": alfa(s) }), vis.cambiadas));
 
     const lista = bloques(s, escenario.clientWidth - 32);
     const flechas = enlaces(s);
@@ -694,7 +880,8 @@
     cuadro();
   }
 
-  const MENSAJE_LIMITE = (maximo, conEliminar) => `Para que la animación quepa en pantalla, la tabla llega hasta ${maximo} nodos. ${conEliminar ? "Elimina alguno o pulsa" : "Pulsa"} Reiniciar.`;
+  const MENSAJE_LIMITE = (maximo, conEliminar) => tr(`Para que la animación quepa en pantalla, la tabla llega hasta ${maximo} nodos. ${conEliminar ? "Elimina alguno o pulsa" : "Pulsa"} Reiniciar.`,
+    `So that the animation fits on screen, the table goes up to ${maximo} nodes. ${conEliminar ? "Remove some or press" : "Press"} Reset.`);
 
   function animarInsertar(s, clave, paso, maximo, cierre) {
     if (totalNodos(s) >= maximo) {
@@ -704,49 +891,57 @@
     const indice = hashDivision(clave, s.m);
     const ocupantes = s.cubetas[indice].map((id) => s.nodos[id]);
     s.vis = { cubeta: indice, vars: { clave, indice } };
-    paso("insertar", 2, `indice = hashDivision(${clave}, ${s.m}) = ${clave} % ${s.m} = ${indice}. La clave va a la cubeta ${indice}.`);
+    paso("insertar", 2, tr(`indice = hashDivision(${clave}, ${s.m}) = ${clave} % ${s.m} = ${indice}. La clave va a la cubeta ${indice}.`,
+      `index = divisionHash(${clave}, ${s.m}) = ${clave} % ${s.m} = ${indice}. The key goes to bucket ${indice}.`));
     const id = crearNodo(s, clave);
     s.pendiente = { id, cubeta: indice, enlazado: false };
     s.vis = { cubeta: indice, activo: id, vars: { clave, indice, nuevo: nombreNodo(s, id) } };
-    paso("insertar", 3, `new Nodo(${clave}): un nodo nuevo en memoria. Todavía no está en la lista (su sig es nullptr).`);
+    paso("insertar", 3, tr(`new Nodo(${clave}): un nodo nuevo en memoria. Todavía no está en la lista (su sig es nullptr).`,
+      `new Node(${clave}): a new node in memory. It isn't in the list yet (its next is nullptr).`));
     s.pendiente.enlazado = true;
     s.vis = { cubeta: indice, activo: id, flecha: `n:${id}`, vars: { clave, indice, nuevo: nombreNodo(s, id) } };
     paso("insertar", 4, ocupantes.length
-      ? `¡Colisión! En la cubeta ${indice} ya ${ocupantes.length > 1 ? "están" : "está"} ${ocupantes.join(", ")}. nuevo->sig = tabla[${indice}]: el nodo nuevo apunta al que hoy es el primero (${ocupantes[0]}).`
-      : `nuevo->sig = tabla[${indice}], que es nullptr: la cubeta estaba vacía, así que no hay colisión.`);
+      ? tr(`¡Colisión! En la cubeta ${indice} ya ${ocupantes.length > 1 ? "están" : "está"} ${ocupantes.join(", ")}. nuevo->sig = tabla[${indice}]: el nodo nuevo apunta al que hoy es el primero (${ocupantes[0]}).`,
+        `Collision! Bucket ${indice} already has ${ocupantes.join(", ")}. newNode->next = table[${indice}]: the new node points to the one that's first right now (${ocupantes[0]}).`)
+      : tr(`nuevo->sig = tabla[${indice}], que es nullptr: la cubeta estaba vacía, así que no hay colisión.`,
+        `newNode->next = table[${indice}], which is nullptr: the bucket was empty, so there's no collision.`));
     s.cubetas[indice].unshift(id);
     s.pendiente = null;
     s.vis = { cubeta: indice, activo: id, flecha: `c:t-${indice}`, vars: { clave, indice, nuevo: nombreNodo(s, id) } };
-    paso("insertar", 5, `tabla[${indice}] = nuevo: la lista de la cubeta ahora empieza en ${clave}. No hubo que recorrerla: O(1), haya o no colisión.`);
+    paso("insertar", 5, tr(`tabla[${indice}] = nuevo: la lista de la cubeta ahora empieza en ${clave}. No hubo que recorrerla: O(1), haya o no colisión.`,
+      `table[${indice}] = newNode: the bucket's list now starts at ${clave}. It didn't have to be walked: O(1), collision or not.`));
     s.vis = { cubeta: indice, encontrado: id, vars: { clave, indice }, cambiadas: ["α"] };
-    paso("insertar", 6, `cantidad++: el factor de carga queda en α = ${alfa(s)}.${cierre ? ` ${cierre(s)}` : ""}`, "exito");
+    paso("insertar", 6, tr(`cantidad++: el factor de carga queda en α = ${alfa(s)}.`, `count++: the load factor is now α = ${alfa(s)}.`) + (cierre ? ` ${cierre(s)}` : ""), "exito");
   }
 
   function animarBuscar(s, clave, paso) {
     const indice = hashDivision(clave, s.m);
     s.vis = { cubeta: indice, vars: { clave, indice } };
-    paso("buscar", 2, `indice = ${clave} % ${s.m} = ${indice}. Si ${clave} está en la tabla, solo puede estar en la cubeta ${indice}: las demás ni se miran.`);
+    paso("buscar", 2, tr(`indice = ${clave} % ${s.m} = ${indice}. Si ${clave} está en la tabla, solo puede estar en la cubeta ${indice}: las demás ni se miran.`,
+      `index = ${clave} % ${s.m} = ${indice}. If ${clave} is in the table, it can only be in bucket ${indice}: the others aren't even looked at.`));
     let actual = s.cubetas[indice][0];
     let vistos = 0;
     s.vis = { cubeta: indice, activo: actual, vars: { clave, indice, actual: nombreNodo(s, actual) } };
-    paso("buscar", 3, actual ? `actual = tabla[${indice}]: empezamos por el primer nodo de la cubeta.` : `actual = tabla[${indice}] = nullptr: la cubeta está vacía.`);
+    paso("buscar", 3, actual ? tr(`actual = tabla[${indice}]: empezamos por el primer nodo de la cubeta.`, `current = table[${indice}]: we start with the bucket's first node.`)
+      : tr(`actual = tabla[${indice}] = nullptr: la cubeta está vacía.`, `current = table[${indice}] = nullptr: the bucket is empty.`));
     while (actual) {
       vistos++;
       const v = s.nodos[actual];
       if (v === clave) {
         s.vis = { cubeta: indice, encontrado: actual, vars: { clave, indice, actual: nombreNodo(s, actual) } };
-        paso("buscar", 5, `¿actual->valor (${v}) == ${clave}? Sí: return true. Revisamos ${vistos} nodo(s) de ${totalNodos(s)}.`, "exito");
+        paso("buscar", 5, tr(`¿actual->valor (${v}) == ${clave}? Sí: return true. Revisamos ${vistos} nodo(s) de ${totalNodos(s)}.`,
+          `current->value (${v}) == ${clave}? Yes: return true. We checked ${vistos} node(s) out of ${totalNodos(s)}.`), "exito");
         return;
       }
-      paso("buscar", 5, `¿actual->valor (${v}) == ${clave}? No.`);
+      paso("buscar", 5, tr(`¿actual->valor (${v}) == ${clave}? No.`, `current->value (${v}) == ${clave}? No.`));
       const pos = s.cubetas[indice].indexOf(actual);
       actual = s.cubetas[indice][pos + 1];
       s.vis = { cubeta: indice, activo: actual, flecha: `n:${s.cubetas[indice][pos]}`, vars: { clave, indice, actual: nombreNodo(s, actual) } };
-      paso("buscar", 6, `actual = actual->sig: avanzamos a ${nombreNodo(s, actual)}.`);
+      paso("buscar", 6, tr(`actual = actual->sig: avanzamos a ${nombreNodo(s, actual)}.`, `current = current->next: we move on to ${nombreNodo(s, actual)}.`));
     }
     s.vis = { cubeta: indice, vars: { clave, indice, actual: "nullptr" } };
-    paso("buscar", 4, "actual es nullptr: se acabó la lista de esta cubeta.");
-    paso("buscar", 8, `return false: ${clave} no está en la tabla. Solo revisamos ${vistos} nodo(s).`, "error");
+    paso("buscar", 4, tr("actual es nullptr: se acabó la lista de esta cubeta.", "current is nullptr: this bucket's list is over."));
+    paso("buscar", 8, tr(`return false: ${clave} no está en la tabla. Solo revisamos ${vistos} nodo(s).`, `return false: ${clave} isn't in the table. We only checked ${vistos} node(s).`), "error");
   }
 
   function animarEliminar(s, clave, paso) {
@@ -754,44 +949,52 @@
     const cadena = s.cubetas[indice];
     const vars = (actual, anterior) => ({ clave, indice, actual: nombreNodo(s, actual), anterior: nombreNodo(s, anterior) });
     s.vis = { cubeta: indice, vars: { clave, indice } };
-    paso("eliminar", 2, `indice = ${clave} % ${s.m} = ${indice}: solo hay que buscar en la lista de la cubeta ${indice}.`);
+    paso("eliminar", 2, tr(`indice = ${clave} % ${s.m} = ${indice}: solo hay que buscar en la lista de la cubeta ${indice}.`,
+      `index = ${clave} % ${s.m} = ${indice}: we only have to search the list of bucket ${indice}.`));
     let actual = cadena[0];
     let anterior = null;
     s.vis = { cubeta: indice, activo: actual, vars: { clave, indice, actual: nombreNodo(s, actual) } };
-    paso("eliminar", 3, actual ? "actual = tabla[indice]: el primer nodo de la cubeta." : "actual = tabla[indice] = nullptr: la cubeta está vacía.");
+    paso("eliminar", 3, actual ? tr("actual = tabla[indice]: el primer nodo de la cubeta.", "current = table[index]: the bucket's first node.")
+      : tr("actual = tabla[indice] = nullptr: la cubeta está vacía.", "current = table[index] = nullptr: the bucket is empty."));
     s.vis = { cubeta: indice, activo: actual, vars: vars(actual, anterior) };
-    paso("eliminar", 4, "anterior = nullptr: todavía no hay un nodo antes de actual. Lo necesitamos para \"saltar\" el nodo que borremos.");
+    paso("eliminar", 4, tr("anterior = nullptr: todavía no hay un nodo antes de actual. Lo necesitamos para \"saltar\" el nodo que borremos.",
+      "prev = nullptr: there's no node before current yet. We need it to \"skip\" the node we delete."));
     while (actual) {
       const v = s.nodos[actual];
       if (v === clave) {
         s.vis = { cubeta: indice, borrado: actual, anterior, vars: vars(actual, anterior) };
-        paso("eliminar", 6, `¿actual->valor (${v}) == ${clave}? Sí: este es el nodo a borrar.`);
+        paso("eliminar", 6, tr(`¿actual->valor (${v}) == ${clave}? Sí: este es el nodo a borrar.`, `current->value (${v}) == ${clave}? Yes: this is the node to delete.`));
         s.saltado = actual;
         const siguiente = cadena[cadena.indexOf(actual) + 1];
         s.vis = { cubeta: indice, borrado: actual, anterior, flecha: anterior ? `n:${anterior}` : `c:t-${indice}`, vars: vars(actual, anterior) };
-        if (anterior) paso("eliminar", 7, `anterior->sig = actual->sig: el ${s.nodos[anterior]} ahora apunta a ${nombreNodo(s, siguiente)} y se salta al ${clave}.`);
-        else paso("eliminar", 8, `anterior es nullptr (era el primero): tabla[${indice}] = actual->sig = ${nombreNodo(s, siguiente)}.`);
+        if (anterior) {
+          paso("eliminar", 7, tr(`anterior->sig = actual->sig: el ${s.nodos[anterior]} ahora apunta a ${nombreNodo(s, siguiente)} y se salta al ${clave}.`,
+            `prev->next = current->next: ${s.nodos[anterior]} now points to ${nombreNodo(s, siguiente)} and skips ${clave}.`));
+        } else {
+          paso("eliminar", 8, tr(`anterior es nullptr (era el primero): tabla[${indice}] = actual->sig = ${nombreNodo(s, siguiente)}.`,
+            `prev is nullptr (it was the first one): table[${indice}] = current->next = ${nombreNodo(s, siguiente)}.`));
+        }
         cadena.splice(cadena.indexOf(actual), 1);
         delete s.nodos[actual];
         s.saltado = null;
         s.vis = { cubeta: indice, vars: vars(null, anterior) };
-        paso("eliminar", 9, `delete actual: liberamos la memoria del nodo ${clave}.`);
+        paso("eliminar", 9, tr(`delete actual: liberamos la memoria del nodo ${clave}.`, `delete current: we free the memory of node ${clave}.`));
         s.vis = { cubeta: indice, vars: { clave, indice }, cambiadas: ["α"] };
-        paso("eliminar", 11, `cantidad-- y return true. Ahora α = ${alfa(s)}.`, "exito");
+        paso("eliminar", 11, tr(`cantidad-- y return true. Ahora α = ${alfa(s)}.`, `count-- and return true. Now α = ${alfa(s)}.`), "exito");
         return;
       }
       s.vis = { cubeta: indice, activo: actual, anterior, vars: vars(actual, anterior) };
-      paso("eliminar", 6, `¿actual->valor (${v}) == ${clave}? No.`);
+      paso("eliminar", 6, tr(`¿actual->valor (${v}) == ${clave}? No.`, `current->value (${v}) == ${clave}? No.`));
       anterior = actual;
       s.vis = { cubeta: indice, activo: actual, anterior, vars: vars(actual, anterior) };
-      paso("eliminar", 13, `anterior = actual (${v}).`);
+      paso("eliminar", 13, tr(`anterior = actual (${v}).`, `prev = current (${v}).`));
       actual = cadena[cadena.indexOf(actual) + 1];
       s.vis = { cubeta: indice, activo: actual, anterior, flecha: `n:${anterior}`, vars: vars(actual, anterior) };
-      paso("eliminar", 14, `actual = actual->sig: ${nombreNodo(s, actual)}.`);
+      paso("eliminar", 14, tr(`actual = actual->sig: ${nombreNodo(s, actual)}.`, `current = current->next: ${nombreNodo(s, actual)}.`));
     }
     s.vis = { cubeta: indice, anterior, vars: vars(null, anterior) };
-    paso("eliminar", 5, "actual es nullptr: recorrimos toda la lista de la cubeta.");
-    paso("eliminar", 16, `return false: ${clave} no estaba en la tabla.`, "error");
+    paso("eliminar", 5, tr("actual es nullptr: recorrimos toda la lista de la cubeta.", "current is nullptr: we walked the bucket's whole list."));
+    paso("eliminar", 16, tr(`return false: ${clave} no estaba en la tabla.`, `return false: ${clave} wasn't in the table.`), "error");
   }
 
   function esPrimo(n) {
@@ -810,37 +1013,44 @@
     const viejo = s.m;
     s.nueva = { m: nuevoTamano, cubetas: cubetasVacias(nuevoTamano) };
     s.vis = { vars: { nuevoTamano } };
-    paso("rehash", 2, `nuevoTamano = siguientePrimo(2 · ${viejo}) = ${nuevoTamano}. Creamos un arreglo nuevo de ${nuevoTamano} cubetas vacías.`);
+    paso("rehash", 2, tr(`nuevoTamano = siguientePrimo(2 · ${viejo}) = ${nuevoTamano}. Creamos un arreglo nuevo de ${nuevoTamano} cubetas vacías.`,
+      `newSize = nextPrime(2 · ${viejo}) = ${nuevoTamano}. We create a new array of ${nuevoTamano} empty buckets.`));
     for (let b = 0; b < viejo; b++) {
       const cadena = s.cubetas[b];
       s.vis = { cubeta: b, activo: cadena[0], vars: { nuevoTamano, actual: nombreNodo(s, cadena[0]) } };
       paso("rehash", 3, cadena.length
-        ? `Cubeta ${b} de la tabla vieja: actual = su primer nodo (${s.nodos[cadena[0]]}).`
-        : `Cubeta ${b} de la tabla vieja: está vacía, no hay nada que mover.`);
+        ? tr(`Cubeta ${b} de la tabla vieja: actual = su primer nodo (${s.nodos[cadena[0]]}).`, `Bucket ${b} of the old table: current = its first node (${s.nodos[cadena[0]]}).`)
+        : tr(`Cubeta ${b} de la tabla vieja: está vacía, no hay nada que mover.`, `Bucket ${b} of the old table: it's empty, there's nothing to move.`));
       while (cadena.length) {
         const actual = cadena[0];
         const siguiente = cadena[1];
         const v = s.nodos[actual];
         const vars = { nuevoTamano, actual: nombreNodo(s, actual), siguiente: nombreNodo(s, siguiente) };
         s.vis = { cubeta: b, activo: actual, vars };
-        paso("rehash", 5, `siguiente = actual->sig (${nombreNodo(s, siguiente)}): lo guardamos antes de cambiar el puntero del nodo.`);
+        paso("rehash", 5, tr(`siguiente = actual->sig (${nombreNodo(s, siguiente)}): lo guardamos antes de cambiar el puntero del nodo.`,
+          `nextNode = current->next (${nombreNodo(s, siguiente)}): we save it before changing the node's pointer.`));
         const indice = hashDivision(v, nuevoTamano);
         s.vis = { cubeta: b, cubetaNueva: indice, activo: actual, vars: Object.assign({ indice }, vars) };
-        paso("rehash", 6, `indice = ${v} % ${nuevoTamano} = ${indice}. Antes estaba en la cubeta ${b} (${v} % ${viejo})`
-          + (indice === b ? ": por casualidad, el número de cubeta no cambia." : ": con otro m, cambia de cubeta."));
+        paso("rehash", 6, tr(`indice = ${v} % ${nuevoTamano} = ${indice}. Antes estaba en la cubeta ${b} (${v} % ${viejo})`
+          + (indice === b ? ": por casualidad, el número de cubeta no cambia." : ": con otro m, cambia de cubeta."),
+        `index = ${v} % ${nuevoTamano} = ${indice}. Before, it was in bucket ${b} (${v} % ${viejo})`
+          + (indice === b ? ": by chance, the bucket number doesn't change." : ": with another m, it changes bucket.")));
         cadena.shift();
         s.nueva.cubetas[indice].unshift(actual);
         s.vis = { cubeta: b, cubetaNueva: indice, activo: actual, flecha: `c:n-${indice}`, vars: Object.assign({ indice }, vars) };
-        paso("rehash", 8, `actual->sig = nueva[${indice}] y nueva[${indice}] = actual: el mismo nodo se engancha al frente de su nueva cubeta. No se copia ni se crea nada.`);
+        paso("rehash", 8, tr(`actual->sig = nueva[${indice}] y nueva[${indice}] = actual: el mismo nodo se engancha al frente de su nueva cubeta. No se copia ni se crea nada.`,
+          `current->next = newTable[${indice}] and newTable[${indice}] = current: the same node hooks onto the front of its new bucket. Nothing is copied or created.`));
         s.vis = { cubeta: b, activo: siguiente, vars: { nuevoTamano, actual: nombreNodo(s, siguiente) } };
-        paso("rehash", 9, siguiente ? `actual = siguiente: seguimos con el ${s.nodos[siguiente]}.` : `actual = siguiente = nullptr: terminamos la cubeta ${b}.`);
+        paso("rehash", 9, siguiente ? tr(`actual = siguiente: seguimos con el ${s.nodos[siguiente]}.`, `current = nextNode: we continue with ${s.nodos[siguiente]}.`)
+          : tr(`actual = siguiente = nullptr: terminamos la cubeta ${b}.`, `current = nextNode = nullptr: we're done with bucket ${b}.`));
       }
     }
     s.cubetas = s.nueva.cubetas;
     s.m = nuevoTamano;
     s.nueva = null;
     s.vis = { vars: { nuevoTamano }, cambiadas: ["α"] };
-    paso("rehash", 12, `tabla.swap(nueva): la tabla nueva toma el lugar de la vieja. α bajó a ${alfa(s)}: las listas vuelven a ser cortas.`, "exito");
+    paso("rehash", 12, tr(`tabla.swap(nueva): la tabla nueva toma el lugar de la vieja. α bajó a ${alfa(s)}: las listas vuelven a ser cortas.`,
+      `table.swap(newTable): the new table takes the old one's place. α dropped to ${alfa(s)}: the lists are short again.`), "exito");
   }
 
   // Paso 4: encadenamiento con el ejemplo de main().
@@ -851,26 +1061,27 @@
     incremental: true,
     dibujar: dibujarCadenas,
     codigo: elegir(ENCADENADA, "insertar", "buscar", "eliminar"),
-    tituloCodigo: (clave) => `TablaHashEncadenada::${clave}()`,
-    mensajeInicial: `La tabla de main(), m = 7: las cubetas 0 y 1 tuvieron colisiones. Inserta 21 (cae en la 0), busca 99 y 10, y elimina 15.`,
+    tituloCodigo: (clave) => `${ENCADENADA_CLASE}::${nombreF(clave)}()`,
+    mensajeInicial: tr("La tabla de main(), m = 7: las cubetas 0 y 1 tuvieron colisiones. Inserta 21 (cae en la 0), busca 99 y 10, y elimina 15.",
+      "The table from main(), m = 7: buckets 0 and 1 had collisions. Insert 21 (it lands in 0), find 99 and 10, and remove 15."),
     estadoInicial: () => estadoCadenas(7, EJEMPLO),
-    entradas: [{ id: "clave", etiqueta: "Clave", min: 0, max: 999, valor: 21 }],
+    entradas: [{ id: "clave", etiqueta: CLAVE, min: 0, max: 999, valor: 21 }],
     operaciones: [
       {
         id: "insertar",
-        etiqueta: "insertar(clave)",
+        etiqueta: llamadaCon("insertar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) { animarInsertar(s, clave, paso, MAXIMO_ENCADENADA); },
       },
       {
         id: "buscar",
-        etiqueta: "buscar(clave)",
+        etiqueta: llamadaCon("buscar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) { animarBuscar(s, clave, paso); },
       },
       {
         id: "eliminar",
-        etiqueta: "eliminar(clave)",
+        etiqueta: llamadaCon("eliminar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) { animarEliminar(s, clave, paso); },
       },
@@ -886,27 +1097,29 @@
     incremental: true,
     dibujar: dibujarCadenas,
     codigo: elegir(ENCADENADA, "insertar", "rehash"),
-    tituloCodigo: (clave) => `TablaHashEncadenada::${clave}()`,
-    mensajeInicial: `m = 5 cubetas y ${EJEMPLO.length} claves: α = 1, un nodo por cubeta en promedio. Inserta 20 (α pasa de 1) y luego haz rehash.`,
+    tituloCodigo: (clave) => `${ENCADENADA_CLASE}::${nombreF(clave)}()`,
+    mensajeInicial: tr(`m = 5 cubetas y ${EJEMPLO.length} claves: α = 1, un nodo por cubeta en promedio. Inserta 20 (α pasa de 1) y luego haz rehash.`,
+      `m = 5 buckets and ${EJEMPLO.length} keys: α = 1, one node per bucket on average. Insert 20 (α goes over 1) and then rehash.`),
     estadoInicial: () => estadoCadenas(5, EJEMPLO),
-    entradas: [{ id: "clave", etiqueta: "Clave", min: 0, max: 999, valor: 20 }],
+    entradas: [{ id: "clave", etiqueta: CLAVE, min: 0, max: 999, valor: 20 }],
     operaciones: [
       {
         id: "insertar",
-        etiqueta: "insertar(clave)",
+        etiqueta: llamadaCon("insertar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) {
           animarInsertar(s, clave, paso, MAXIMO_CARGA, (t) => (totalNodos(t) / t.m > 1
-            ? "Pasó de 1: las listas se alargan y buscar se vuelve lento. Es hora de un rehash."
-            : "Mientras α no pase de 1, las listas siguen cortas."));
+            ? tr("Pasó de 1: las listas se alargan y buscar se vuelve lento. Es hora de un rehash.", "It went over 1: the lists get longer and finding gets slow. It's time for a rehash.")
+            : tr("Mientras α no pase de 1, las listas siguen cortas.", "As long as α doesn't go over 1, the lists stay short.")));
         },
       },
       {
         id: "rehash",
-        etiqueta: "rehash(siguientePrimo(2 · m))",
+        etiqueta: `rehash(${nombreF("siguientePrimo")}(2 · m))`,
         ejecutar(s, args, paso) {
           if (s.m >= MAXIMO_M) {
-            paso("rehash", 1, `Para que quepa en pantalla, la animación llega hasta m = ${MAXIMO_M}. Pulsa Reiniciar para volver a m = 5.`, "error");
+            paso("rehash", 1, tr(`Para que quepa en pantalla, la animación llega hasta m = ${MAXIMO_M}. Pulsa Reiniciar para volver a m = 5.`,
+              `So that it fits on screen, the animation goes up to m = ${MAXIMO_M}. Press Reset to go back to m = 5.`), "error");
             return;
           }
           animarRehash(s, paso);
@@ -923,20 +1136,23 @@
 
   const SONDEOS = {
     lineal: {
-      nombre: "Sondeo lineal", linea: 3, formula: "(h + i) % m",
-      idea: "prueba la celda siguiente. Es simple y bueno para la caché, pero forma racimos de celdas ocupadas que alargan los sondeos.",
+      nombre: tr("Sondeo lineal", "Linear probing"), linea: 3, formula: "(h + i) % m",
+      idea: tr("prueba la celda siguiente. Es simple y bueno para la caché, pero forma racimos de celdas ocupadas que alargan los sondeos.",
+        "tries the next cell. It's simple and cache-friendly, but it forms clusters of taken cells that make the probes longer."),
       pos: (k, i, m) => (hashDivision(k, m) + i) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}) % ${m}`,
     },
     cuadratico: {
-      nombre: "Sondeo cuadrático", linea: 4, formula: "(h + i²) % m",
-      idea: "salta cada vez más lejos y rompe los racimos, pero no visita todas las celdas: puede fallar aunque haya lugar.",
+      nombre: tr("Sondeo cuadrático", "Quadratic probing"), linea: 4, formula: "(h + i²) % m",
+      idea: tr("salta cada vez más lejos y rompe los racimos, pero no visita todas las celdas: puede fallar aunque haya lugar.",
+        "jumps farther each time and breaks up the clusters, but it doesn't visit every cell: it can fail even when there's room."),
       pos: (k, i, m) => (hashDivision(k, m) + i * i) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}²) % ${m}`,
     },
     doble: {
-      nombre: "Doble hash", linea: 6, formula: "(h + i · paso) % m",
-      idea: "cada clave salta distinto (paso sale de un segundo hash) y, con m primo, recorre todas las celdas. Calcula dos hashes.",
+      nombre: tr("Doble hash", "Double hashing"), linea: 6, formula: tr("(h + i · paso) % m", "(h + i · step) % m"),
+      idea: tr("cada clave salta distinto (paso sale de un segundo hash) y, con m primo, recorre todas las celdas. Calcula dos hashes.",
+        "each key jumps differently (step comes from a second hash) and, with a prime m, it goes through every cell. It computes two hashes."),
       pos: (k, i, m) => (hashDivision(k, m) + i * (1 + hashDivision(k, m - 1))) % m,
       cuenta: (k, i, m) => `(${hashDivision(k, m)} + ${i}·${1 + hashDivision(k, m - 1)}) % ${m}`,
     },
@@ -969,13 +1185,14 @@
     const h = hashDivision(clave, s.m);
     const vars = Object.assign({ clave, h }, s.sondeo === "doble" ? { paso: 1 + hashDivision(clave, s.m - 1) } : {});
     s.vis = Object.assign({}, base, { vars, inicio: h });
-    paso("posicion", 2, `h = ${clave} % ${s.m} = ${h}: la celda "ideal" de ${clave}. Es el intento i = 0.`);
+    paso("posicion", 2, tr(`h = ${clave} % ${s.m} = ${h}: la celda "ideal" de ${clave}. Es el intento i = 0.`, `h = ${clave} % ${s.m} = ${h}: the "ideal" cell for ${clave}. It's attempt i = 0.`));
     if (s.sondeo === "doble") {
-      paso("posicion", 5, `Doble hash: el salto depende de la clave. paso = 1 + ${clave} % ${s.m - 1} = ${vars.paso} (nunca 0, para no quedarse quieto).`);
+      paso("posicion", 5, tr(`Doble hash: el salto depende de la clave. paso = 1 + ${clave} % ${s.m - 1} = ${vars.paso} (nunca 0, para no quedarse quieto).`,
+        `Double hashing: the jump depends on the key. step = 1 + ${clave} % ${s.m - 1} = ${vars.paso} (never 0, so it doesn't stand still).`));
     }
     paso("posicion", t.linea, s.sondeo === "doble"
-      ? `El intento i avanza i veces ese paso: celda ${t.formula}.`
-      : `${t.nombre}: el intento i va a la celda ${t.formula}.`);
+      ? tr(`El intento i avanza i veces ese paso: celda ${t.formula}.`, `Attempt i moves i times that step: cell ${t.formula}.`)
+      : tr(`${t.nombre}: el intento i va a la celda ${t.formula}.`, `${t.nombre}: attempt i goes to cell ${t.formula}.`));
     return vars;
   }
 
@@ -988,30 +1205,32 @@
       const repetida = visitas.indexOf(p);
       visitas.push(p);
       s.vis = { visitas: visitas.slice(), actual: p, vars: Object.assign({}, vars, { i, p }) };
-      paso(claveCodigo, 3, `i = ${i}: p = posicion(${clave}, ${i}) = ${t.cuenta(clave, i, s.m)} = ${p}.`
-        + (repetida >= 0 ? ` ¡Ya la probamos en i = ${repetida}!` : ""));
+      paso(claveCodigo, 3, `i = ${i}: p = ${nombreF("posicion")}(${clave}, ${i}) = ${t.cuenta(clave, i, s.m)} = ${p}.`
+        + (repetida >= 0 ? tr(` ¡Ya la probamos en i = ${repetida}!`, ` We already tried it at i = ${repetida}!`) : ""));
       if (decide(i, p, visitas)) return { i, p, visitas };
     }
     return { i: s.m, p: null, visitas };
   }
 
-  const describir = (c) => (c.estado === "ocupada" ? `ocupada (${c.clave})` : c.estado === "borrada" ? `una lápida (ahí estuvo ${c.clave})` : "vacía");
+  const AGOTADOS = (m) => tr(`Agotamos los ${m} intentos sin encontrarla: return false.`, `We used up the ${m} attempts without finding it: return false.`);
+  const describir = (c) => (c.estado === "ocupada" ? tr(`ocupada (${c.clave})`, `taken (${c.clave})`)
+    : c.estado === "borrada" ? tr(`una lápida (ahí estuvo ${c.clave})`, `a tombstone (${c.clave} was there)`) : tr("vacía", "empty"));
 
   DS.tema({
     contenedor: "vis-abierta",
     codigo: ABIERTA,
-    tituloCodigo: (clave) => `TablaHashAbierta::${clave}()`,
+    tituloCodigo: (clave) => `${ABIERTA_CLASE}::${nombreF(clave)}()`,
     codigoInicial: "insertar",
     mensajeInicial: ({ sondeo }) => `${SONDEOS[sondeo].nombre}, ${SONDEOS[sondeo].formula}: ${SONDEOS[sondeo].idea}`,
     estadoInicial: ({ sondeo }) => estadoAbierta(sondeo),
     entradas: [
-      { id: "sondeo", etiqueta: "Estrategia", opciones: Object.entries(SONDEOS).map(([k, t]) => [k, t.nombre]), valor: "lineal" },
-      { id: "clave", etiqueta: "Clave", min: 0, max: 999, valor: 14 },
+      { id: "sondeo", etiqueta: tr("Estrategia", "Strategy"), opciones: Object.entries(SONDEOS).map(([k, t]) => [k, t.nombre]), valor: "lineal" },
+      { id: "clave", etiqueta: CLAVE, min: 0, max: 999, valor: 14 },
     ],
     operaciones: [
       {
         id: "insertar",
-        etiqueta: "insertar(clave)",
+        etiqueta: llamadaCon("insertar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) {
           const vars = explicarPosicion(s, clave, paso, {});
@@ -1019,26 +1238,30 @@
             const c = s.celdas[p];
             const libre = c.estado !== "ocupada";
             s.vis = { visitas, actual: p, vars: Object.assign({}, vars, { i, p }), resultado: libre ? "ok" : "" };
-            paso("insertar", 4, `¿estados[${p}] != Ocupada? La celda está ${describir(c)}: ${libre ? "¡hay lugar!" : "sigue al próximo intento."}`);
+            paso("insertar", 4, tr(`¿estados[${p}] != Ocupada? La celda está ${describir(c)}: ${libre ? "¡hay lugar!" : "sigue al próximo intento."}`,
+              `states[${p}] != Occupied? The cell is ${describir(c)}: ${libre ? "there's room!" : "on to the next attempt."}`));
             return libre;
           });
           if (r.p == null) {
             s.vis = { visitas: r.visitas, vars: Object.assign({}, vars, { i: s.m }) };
             const distintas = new Set(r.visitas).size;
             paso("insertar", 11, ocupadas(s) === s.m
-              ? `Probamos los ${s.m} intentos y la tabla está llena: return false. En direccionamiento abierto, α nunca puede pasar de 1.`
-              : `return false después de ${s.m} intentos, ¡aunque quedan ${s.m - ocupadas(s)} celda(s) libre(s)! Esta clave solo visitó ${distintas} celdas distintas: ${[...new Set(r.visitas)].join(", ")}.`, "error");
+              ? tr(`Probamos los ${s.m} intentos y la tabla está llena: return false. En direccionamiento abierto, α nunca puede pasar de 1.`,
+                `We tried the ${s.m} attempts and the table is full: return false. In open addressing, α can never go over 1.`)
+              : tr(`return false después de ${s.m} intentos, ¡aunque quedan ${s.m - ocupadas(s)} celda(s) libre(s)! Esta clave solo visitó ${distintas} celdas distintas: ${[...new Set(r.visitas)].join(", ")}.`,
+                `return false after ${s.m} attempts, even though ${s.m - ocupadas(s)} cell(s) are still free! This key only visited ${distintas} different cells: ${[...new Set(r.visitas)].join(", ")}.`), "error");
             return;
           }
           const reusada = s.celdas[r.p].estado === "borrada";
           s.celdas[r.p] = { estado: "ocupada", clave };
           s.vis = { visitas: r.visitas, resultado: "ok", actual: r.p, vars: Object.assign({}, vars, { i: r.i, p: r.p }), alfa: true };
-          paso("insertar", 8, `claves[${r.p}] = ${clave}, se marca Ocupada${reusada ? " (reutilizamos la lápida)" : ""} y return true. ${r.i ? `Hicieron falta ${r.i + 1} intentos` : "Bastó 1 intento"}. α = ${alfaAbierta(s)}.`, "exito");
+          paso("insertar", 8, tr(`claves[${r.p}] = ${clave}, se marca Ocupada${reusada ? " (reutilizamos la lápida)" : ""} y return true. ${r.i ? `Hicieron falta ${r.i + 1} intentos` : "Bastó 1 intento"}. α = ${alfaAbierta(s)}.`,
+            `keys[${r.p}] = ${clave}, it's marked Occupied${reusada ? " (we reuse the tombstone)" : ""} and return true. ${r.i ? `It took ${r.i + 1} attempts` : "1 attempt was enough"}. α = ${alfaAbierta(s)}.`), "exito");
         },
       },
       {
         id: "buscar",
-        etiqueta: "buscar(clave)",
+        etiqueta: llamadaCon("buscar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) {
           const vars = explicarPosicion(s, clave, paso, {});
@@ -1048,31 +1271,32 @@
             const base = { visitas, actual: p, vars: Object.assign({}, vars, { i, p }) };
             if (c.estado === "vacia") {
               s.vis = Object.assign(base, { resultado: "error" });
-              paso("buscar", 4, `La celda ${p} está vacía: si ${clave} existiera, se habría guardado aquí o antes. return false.`, "error");
+              paso("buscar", 4, tr(`La celda ${p} está vacía: si ${clave} existiera, se habría guardado aquí o antes. return false.`,
+                `Cell ${p} is empty: if ${clave} existed, it would have been stored here or earlier. return false.`), "error");
               fin = "vacia";
               return true;
             }
             if (c.estado === "ocupada" && c.clave === clave) {
               s.vis = Object.assign(base, { resultado: "ok" });
-              paso("buscar", 5, `claves[${p}] == ${clave}: ¡encontrada en el intento ${i}! return true.`, "exito");
+              paso("buscar", 5, tr(`claves[${p}] == ${clave}: ¡encontrada en el intento ${i}! return true.`, `keys[${p}] == ${clave}: found on attempt ${i}! return true.`), "exito");
               fin = "encontrada";
               return true;
             }
             s.vis = base;
             paso("buscar", 5, c.estado === "borrada"
-              ? `La celda ${p} es una lápida: no es ${clave}, pero no podemos parar aquí. Seguimos.`
-              : `La celda ${p} tiene ${c.clave}, no ${clave}. Seguimos.`);
+              ? tr(`La celda ${p} es una lápida: no es ${clave}, pero no podemos parar aquí. Seguimos.`, `Cell ${p} is a tombstone: it isn't ${clave}, but we can't stop here. We go on.`)
+              : tr(`La celda ${p} tiene ${c.clave}, no ${clave}. Seguimos.`, `Cell ${p} has ${c.clave}, not ${clave}. We go on.`));
             return false;
           });
           if (!fin) {
             s.vis = { visitas: r.visitas, vars: Object.assign({}, vars, { i: s.m }) };
-            paso("buscar", 7, `Agotamos los ${s.m} intentos sin encontrarla: return false.`, "error");
+            paso("buscar", 7, AGOTADOS(s.m), "error");
           }
         },
       },
       {
         id: "eliminar",
-        etiqueta: "eliminar(clave)",
+        etiqueta: llamadaCon("eliminar"),
         usa: ["clave"],
         ejecutar(s, { clave }, paso) {
           const vars = explicarPosicion(s, clave, paso, {});
@@ -1082,26 +1306,28 @@
             const base = { visitas, actual: p, vars: Object.assign({}, vars, { i, p }) };
             if (c.estado === "vacia") {
               s.vis = Object.assign(base, { resultado: "error" });
-              paso("eliminar", 4, `La celda ${p} está vacía: ${clave} no está en la tabla. return false.`, "error");
+              paso("eliminar", 4, tr(`La celda ${p} está vacía: ${clave} no está en la tabla. return false.`, `Cell ${p} is empty: ${clave} isn't in the table. return false.`), "error");
               fin = "vacia";
               return true;
             }
             if (c.estado === "ocupada" && c.clave === clave) {
               s.vis = base;
-              paso("eliminar", 5, `claves[${p}] == ${clave}: la encontramos.`);
+              paso("eliminar", 5, tr(`claves[${p}] == ${clave}: la encontramos.`, `keys[${p}] == ${clave}: we found it.`));
               s.celdas[p] = { estado: "borrada", clave };
               s.vis = Object.assign({}, base, { resultado: "lapida" });
-              paso("eliminar", 8, `estados[${p}] = Borrada: dejamos una lápida en vez de vaciarla. Si la vaciáramos, una búsqueda que pasa por aquí pararía antes de tiempo. α = ${alfaAbierta(s)}.`, "exito");
+              paso("eliminar", 8, tr(`estados[${p}] = Borrada: dejamos una lápida en vez de vaciarla. Si la vaciáramos, una búsqueda que pasa por aquí pararía antes de tiempo. α = ${alfaAbierta(s)}.`,
+                `states[${p}] = Deleted: we leave a tombstone instead of emptying it. If we emptied it, a search that goes through here would stop too early. α = ${alfaAbierta(s)}.`), "exito");
               fin = "borrada";
               return true;
             }
             s.vis = base;
-            paso("eliminar", 5, c.estado === "borrada" ? `La celda ${p} es una lápida: seguimos.` : `La celda ${p} tiene ${c.clave}, no ${clave}. Seguimos.`);
+            paso("eliminar", 5, c.estado === "borrada" ? tr(`La celda ${p} es una lápida: seguimos.`, `Cell ${p} is a tombstone: we go on.`)
+              : tr(`La celda ${p} tiene ${c.clave}, no ${clave}. Seguimos.`, `Cell ${p} has ${c.clave}, not ${clave}. We go on.`));
             return false;
           });
           if (!fin) {
             s.vis = { visitas: r.visitas, vars: Object.assign({}, vars, { i: s.m }) };
-            paso("eliminar", 11, `Agotamos los ${s.m} intentos sin encontrarla: return false.`, "error");
+            paso("eliminar", 11, AGOTADOS(s.m), "error");
           }
         },
       },
@@ -1120,13 +1346,14 @@
         if (vis.inicio === p) clase += " leida";
         return el("div", { class: "celda-col" },
           el("span", { class: "marcador", text: intentos.length ? `i=${intentos.join(",")}` : "" }),
-          el("div", { class: `celda ${clase}`, title: c.estado === "borrada" ? "lápida" : null, text: c.estado === "vacia" ? "" : c.clave }),
+          el("div", { class: `celda ${clase}`, title: c.estado === "borrada" ? tr("lápida", "tombstone") : null, text: c.estado === "vacia" ? "" : c.clave }),
           el("span", { class: "indice", text: p }));
       });
       escenario.append(
-        DS.variables(Object.assign({ estrategia: SONDEOS[s.sondeo].formula }, vis.vars, { "α": alfaAbierta(s) })),
+        variables(Object.assign({ estrategia: SONDEOS[s.sondeo].formula }, vis.vars, { "α": alfaAbierta(s) })),
         el("div", { class: "celdas-abiertas", style: `--m:${s.m}` }, celdas),
-        el("p", { class: "secuencia", text: visitas.length ? `Intentos: ${visitas.join(" → ")}` : "Celdas: azul = ocupada, punteada = vacía, tachada = lápida." }));
+        el("p", { class: "secuencia", text: visitas.length ? `${tr("Intentos", "Attempts")}: ${visitas.join(" → ")}`
+          : tr("Celdas: azul = ocupada, punteada = vacía, tachada = lápida.", "Cells: blue = taken, dotted = empty, crossed out = tombstone.") }));
     },
   });
 })();

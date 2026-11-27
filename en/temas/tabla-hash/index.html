@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hash table · Learn Data Structures</title>
+  <meta name="description" content="Step-by-step lesson: hash functions (division, multiplication, mid-square, folding and text hashing), collisions with chaining and with linear probing, quadratic probing and double hashing, load factor and rehash. Animations and a C++ example.">
+  <link rel="stylesheet" href="../../../assets/css/estilos.css">
+</head>
+<body data-raiz="../../../" data-tema="tabla-hash">
+  <header class="encabezado"></header>
+
+  <main class="contenedor">
+    <div class="tema-cabecera">
+      <div class="miga"><a href="../../">Home</a> / Hash table</div>
+      <h1>Hash table</h1>
+      <p class="resumen">An array of <strong>buckets</strong> and a <strong>hash function</strong> that turns each key into the number of its bucket. That way, finding, inserting and removing cost <strong>O(1) on average</strong>: you go straight to the right place instead of walking through everything.</p>
+    </div>
+
+    <div class="leccion">
+
+      <section class="paso-leccion" id="idea" data-titulo="The idea">
+        <h2>The idea: from key to index</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>Think of gym lockers numbered from 0 to 6. If the rule is "your locker is the remainder of dividing your member number by 7", you never have to check the lockers one by one: you do the math and go straight there.</p>
+            <p>That's a hash table. The rule is the <strong>hash function</strong>; the array of lockers is the <strong>buckets</strong>, and how many there are is called <code>m</code>.</p>
+            <pre class="codigo"><span class="linea"><span class="tk-tipo">int</span> index = key % m;   <span class="tk-comentario">// 15 % 7 = 1  →  bucket 1</span></span></pre>
+            <p>The problem: with infinitely many keys and only <code>m</code> buckets, sooner or later two keys land in the same one. That's a <strong>collision</strong>, and half of this lesson is about how to resolve them.</p>
+          </div>
+          <div>
+            <div class="pregunta">
+              <p class="pregunta-enunciado">With <code>m = 7</code>, the program inserts <code>{ 15, 7, 42, 3, 99 }</code>. Which bucket does 42 land in?</p>
+              <div class="opciones">
+                <button type="button" class="opcion" data-correcta data-explicacion="42 = 6 · 7 + 0: the remainder is 0. And 7 also lands in 0: there's a collision there.">In 0</button>
+                <button type="button" class="opcion" data-explicacion="That would be 42 % 10 (the last digit). With m = 7 you divide by 7.">In 2</button>
+                <button type="button" class="opcion" data-explicacion="42 / 7 = 6 is the quotient, but the index is the remainder of the division.">In 6</button>
+              </div>
+            </div>
+            <div class="pregunta">
+              <p class="pregunta-enunciado">Which of these keys collides with 15 (bucket 1)?</p>
+              <div class="opciones">
+                <button type="button" class="opcion" data-explicacion="3 % 7 = 3: it goes to bucket 3.">3</button>
+                <button type="button" class="opcion" data-correcta data-explicacion="99 = 14 · 7 + 1. Same remainder as 15: both go to bucket 1.">99</button>
+                <button type="button" class="opcion" data-explicacion="7 % 7 = 0: it goes to bucket 0 (along with 42).">7</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="funciones" data-titulo="Hash functions for numbers">
+        <h2>Hash functions for numbers</h2>
+        <p>A good hash function is <strong>fast</strong>, <strong>always gives the same result for the same key</strong> and <strong>spreads evenly</strong>. Pick one of the four classics. <strong>Try it:</strong> <em>Division</em>, <code>m = 10</code> and <em>+ 10, 20, …, 100</em>; then with <code>m = 11</code>.</p>
+        <div id="vis-funciones" class="controles-compactos"></div>
+
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With the division method and <code>m = 10</code>, why do 10, 20, …, 100 almost all land in the same bucket?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="key % 10 is the last digit, and they all end in 0. With a prime m (like 11), the remainder depends on all the digits and they spread out.">Because <code>% 10</code> only looks at the last digit</button>
+            <button type="button" class="opcion" data-explicacion="10 buckets are enough for 10 keys; the problem is how they're spread, not how many there are.">Because there are few buckets</button>
+            <button type="button" class="opcion" data-explicacion="Quite the opposite: division is very fast. The problem is that m = 10 shares a pattern with the keys.">Because division is slow</button>
+          </div>
+        </div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">In C++, <code>-15 % 7</code> is <code>-1</code>. What would happen if we used that result as an index?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="C++ doesn't wrap around: table[-1] reads memory outside the array.">It would go to the last bucket</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="table[-1] is outside the array: undefined behavior. That's why divisionHash adds m when the remainder is negative: -1 + 7 = 6.">It would access outside the array</button>
+            <button type="button" class="opcion" data-explicacion="The compiler doesn't catch it: the index is computed while the program runs.">It wouldn't compile</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="texto" data-titulo="Hash functions for text">
+        <h2>Hash functions for text</h2>
+        <p>The <strong>letter sum</strong> ignores the order; the <strong>polynomial</strong> hash multiplies each letter by a power of 31: <strong>the order matters</strong>.</p>
+        <div id="vis-palabras" class="controles-compactos"></div>
+      </section>
+
+      <section class="paso-leccion" id="encadenamiento" data-titulo="Collisions: chaining">
+        <h2>Collisions with chaining</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>The most common solution: each bucket keeps a pointer to a <strong>linked list</strong> with all the keys that landed there. <code>insert</code> puts the new node <strong>at the front</strong>, like <code>insertAtFront</code> in the <a href="../lista-enlazada/">linked list</a>: O(1), collision or not.</p>
+          </div>
+          <div>
+            <p><code>find</code> and <code>remove</code> only walk the list of <strong>one</strong> bucket: if the lists are short, it's almost instant. This <code>insert</code> doesn't check for duplicates; <code>std::unordered_set</code> does (it's an exercise at the end).</p>
+          </div>
+        </div>
+        <div id="vis-encadenamiento"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">You insert 21, 28 and 35 into this table of 7 buckets. What happens?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="With chaining it never fills up: each list grows as much as needed.">The table fills up and fails</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="They're multiples of 7: they all go to bucket 0, which ends up with 5 nodes. It works, but finding there already means walking a long list.">They all go to bucket 0 and its list grows</button>
+            <button type="button" class="opcion" data-explicacion="Chaining doesn't look for another bucket: the key always goes to the one the hash function says.">They spread into the empty buckets</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="sondeo" data-titulo="Collisions: open addressing">
+        <h2>Collisions with open addressing</h2>
+        <p>No lists: the keys live in the array and, if the cell is taken, another one is tried on <strong>attempt</strong> <code>i = 0, 1, 2…</code> according to the <strong>probing</strong>. <strong>Try it:</strong> with each strategy, insert 14 (it lands in 0); then remove 7 and find 42.</p>
+        <div id="vis-abierta"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">With quadratic probing, inserting 14 fails even though 2 cells are still free. Why?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-correcta data-explicacion="i² % 7 only gives 0, 1, 4 or 2. From h = 0, the 7 attempts go through cells 0, 1, 4 and 2, all taken: it never reaches 5 or 6.">Because <code>i²</code> only visits some cells</button>
+            <button type="button" class="opcion" data-explicacion="The table has 5 of 7 cells taken; it isn't full.">Because the table is full</button>
+            <button type="button" class="opcion" data-explicacion="The for tries all 7 attempts; the problem is that several land on the same cell.">Because it gives up too soon</button>
+          </div>
+        </div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">When removing, why is a <strong>tombstone</strong> left instead of emptying the cell?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="Emptying it would also be O(1); the problem is something else.">Because emptying it would be slower</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="find stops at the first empty cell. If 7 left a hole in cell 0, find(42) would stop there and say 42 isn't there, even though it's further along its path.">So that find doesn't stop too early</button>
+            <button type="button" class="opcion" data-explicacion="insert does reuse tombstones: it looks for the first cell that isn't Occupied.">So that nobody uses that cell again</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="carga" data-titulo="Load factor and rehash">
+        <h2>Load factor and rehash</h2>
+        <div class="dos-columnas">
+          <div>
+            <p>What rules is the <strong>load factor</strong> <code>α = n / m</code>. With chaining it's the <strong>average length of the lists</strong>: finding costs O(1 + α). With open addressing it doesn't go over 1, and near 1 the attempts shoot up.</p>
+          </div>
+          <div>
+            <p>If <code>α</code> goes over a limit (1.0 in <code>std::unordered_map</code>), there's a <strong>rehash</strong> into a table with about twice the buckets (the next prime after <code>2 · m</code>). <strong>All keys change bucket</strong>: <code>key % m</code> depends on <code>m</code>.</p>
+          </div>
+        </div>
+        <div id="vis-carga" class="controles-compactos"></div>
+        <div class="pregunta">
+          <p class="pregunta-enunciado">Rehash costs O(n). Why do we still say inserting is O(1)?</p>
+          <div class="opciones">
+            <button type="button" class="opcion" data-explicacion="It does cost O(n): it goes through all the nodes. But it doesn't happen often.">Because rehash is really O(1)</button>
+            <button type="button" class="opcion" data-correcta data-explicacion="Since m doubles, after a rehash about n more insertions are needed for the next one. Spread among them, each insertion pays O(1): it's amortized O(1), just like push_back in the dynamic array.">Because it happens less and less often (amortized O(1))</button>
+            <button type="button" class="opcion" data-explicacion="It's done all at once, on the insertion that crosses the limit. There are incremental variants, but they're not the STL's.">Because it's done bit by bit in the background</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="paso-leccion" id="resumen" data-titulo="Complexity and uses">
+        <h2>Complexity and where it's used</h2>
+        <div class="tabla-envoltura">
+          <table>
+            <thead><tr><th>Operation</th><th>Average</th><th>Worst case</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>Computing the index</td><td class="o-grande bueno">O(1)</td><td class="o-grande bueno">O(1)</td><td>A few arithmetic operations (O(length) for text).</td></tr>
+              <tr><td><code>insert</code> (chaining)</td><td class="o-grande bueno">O(1)</td><td class="o-grande bueno">O(1)</td><td>It's added at the front of the list, without walking it.</td></tr>
+              <tr><td><code>find</code> / <code>remove</code></td><td class="o-grande bueno">O(1 + α)</td><td class="o-grande malo">O(n)</td><td>If all the keys land in the same bucket, it's a linked list.</td></tr>
+              <tr><td><code>insert</code> / <code>find</code> (open)</td><td class="o-grande bueno">O(1 / (1 − α))</td><td class="o-grande malo">O(m)</td><td>It depends on how many attempts are needed.</td></tr>
+              <tr><td><code>rehash</code></td><td class="o-grande malo">O(n + m)</td><td class="o-grande malo">O(n + m)</td><td>It relocates each node; amortized over insertions it's O(1).</td></tr>
+              <tr><td>Going through in order</td><td class="o-grande malo">O(n log n)</td><td class="o-grande malo">O(n log n)</td><td>The keys keep no order at all: they have to be sorted separately.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="dos-columnas">
+          <div class="tabla-envoltura">
+            <table>
+              <thead><tr><th></th><th>Chaining</th><th>Open</th></tr></thead>
+              <tbody>
+                <tr><td>The keys</td><td>In separate nodes</td><td>In the array</td></tr>
+                <tr><td>Load factor</td><td>Can go over 1</td><td>≤ 1 (better &lt; 0.7)</td></tr>
+                <tr><td>Removing</td><td>Simple: the node is taken out</td><td>Needs tombstones</td></tr>
+                <tr><td>Memory</td><td>Pointers and jumps</td><td>Contiguous cells</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>Dictionaries and sets:</strong> counting words, removing duplicates, knowing whether you've already seen something (<code>std::unordered_set</code>).</li>
+            <li><strong>Caches:</strong> keeping results already computed (memoization), web page and DNS caches.</li>
+            <li><strong>Database indexes</strong> and compilers' symbol tables.</li>
+            <li><strong>Classic problems:</strong> "two numbers that add up to k" in O(n), grouping anagrams, detecting cycles.</li>
+          </ul>
+        </div>
+        <p>In C++, <code>std::unordered_map</code> and <code>std::unordered_set</code> are tables with chaining (look at <code>bucket_count()</code> and <code>load_factor()</code>). For keys in order, <code>std::map</code> (a tree, O(log n)).</p>
+      </section>
+
+      <section class="paso-leccion" id="codigo" data-titulo="Full code and practice">
+        <h2>Full C++ code</h2>
+        <p>Compile and run it with:</p>
+        <pre class="codigo"><span class="linea">g++ -std=c++17 -Wall -Wextra hash_table.cpp -o hash_table &amp;&amp; ./hash_table</span></pre>
+        <div data-codigo-completo="en/hash_table.cpp"></div>
+
+        <h2>Practice</h2>
+        <ol>
+          <li>Change <code>ChainedHashTable</code>'s <code>insert</code> so that it doesn't insert duplicate keys (use <code>find</code> first).</li>
+          <li>Make <code>insert</code> call <code>rehash(nextPrime(2 * size()))</code> on its own when <code>loadFactor()</code> goes over 1.</li>
+          <li>Add an attempt counter to <code>OpenAddressingHashTable</code> and compare, with 1000 random keys and α = 0.5, 0.7 and 0.9, how many attempts each probing strategy makes on average.</li>
+          <li>Turn <code>ChainedHashTable</code> into a dictionary: make each node keep a <code>string</code> as the key and an <code>int</code> as the value, using <code>polynomialHash</code>.</li>
+          <li>Solve "group anagrams" with a <code>std::unordered_map&lt;string, vector&lt;string&gt;&gt;</code>: what would you use as the key?</li>
+        </ol>
+
+        <div id="navegacion-temas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor pie-interior">
+      <span>Open project on <a href="https://github.com/JMoisesCT/learn-data-structures">GitHub</a>. Found a mistake? Open an issue.</span>
+      <span class="pie-autor">Made by <a href="https://github.com/JMoisesCT">Moisés C.</a></span>
+    </div>
+  </footer>
+
+  <script src="../../../assets/js/visualizador.js"></script>
+  <script src="../../../temas/tabla-hash/tabla-hash.js"></script>
+</body>
+</html>

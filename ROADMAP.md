@@ -54,7 +54,7 @@ Cada tema se traduce en su propio PR (`[<Tema>] Agregar la lección en inglés`)
 | Merge sort y quicksort | Hecho: lección, árbol de llamadas, carrera hasta n = 10 000, animaciones y `ejemplos/cpp/en/merge_sort_quicksort.cpp` (`merge`, `mergeSort`, `iterativeMergeSort`, `partition`, `quickSort`, `randomPartition`, `randomQuickSort` y `quickselect`, con `left`/`mid`/`right` y `low`/`high`) |
 | Ordenamientos sin comparaciones | Hecho: lección, carrera contra quicksort, animaciones y `ejemplos/cpp/en/non_comparison_sorting.cpp` (`countAndRewrite`, `countingSort`, `sortByDigit`, `radixSort` y `bucketSort`, con `count`, `output`, `maxValue` y `buckets`/`numBuckets`) |
 | Montículo (min-heap / max-heap) y heapsort | Hecho: lección, explorador de índices, animaciones y `ejemplos/cpp/en/heap.cpp` (`maxHeapify`/`minHeapify` con `largest`/`smallest` y `left`/`right`, `buildMaxHeap`, `buildMinHeap`, `insertMax`, `insertMin`, `maximum`, `minimum`, `extractMax`/`extractMin` con `root` y `heapSort`) |
-| Tabla hash | Pendiente |
+| Tabla hash | Hecho: lección, animaciones y `ejemplos/cpp/en/hash_table.cpp` (`divisionHash`, `multiplicationHash`, `midSquareHash`, `foldingHash`, `letterSumHash`, `polynomialHash`, `ChainedHashTable` y `OpenAddressingHashTable` con `insert`, `find`, `remove`, `rehash`, `position` y `loadFactor`; los anagramas son `listen`, `silent`, `enlist` y `tinsel`) |
 | Búsqueda binaria | Pendiente |
 | Árbol binario de búsqueda | Pendiente |
 | Árbol AVL | Pendiente |
