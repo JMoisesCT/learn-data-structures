@@ -89,3 +89,12 @@ Nombres en inglés de los identificadores de los ejemplos (`ejemplos/cpp/en/`), 
 | Montículo | `mayor` / `menor` (hijo elegido en heapify) | `largest` / `smallest` |
 | Montículo | `padre` / `raiz` (valor que devuelve extract) | `parent` / `root` |
 | Montículo | `maxHeapify`, `buildMaxHeap`, `insertMax`, `extractMax`, `maximum`… | iguales (ya estaban en inglés) |
+| Tabla hash | `TablaHashEncadenada` / `TablaHashAbierta` | `ChainedHashTable` / `OpenAddressingHashTable` |
+| Tabla hash | `hashDivision` / `hashMultiplicacion` / `hashCuadradoMedio` / `hashPlegado` | `divisionHash` / `multiplicationHash` / `midSquareHash` / `foldingHash` |
+| Tabla hash | `hashSumaLetras` / `hashPolinomial` | `letterSumHash` / `polynomialHash` |
+| Tabla hash | `insertar` / `buscar` / `eliminar` / `posicion` / `factorCarga` | `insert` / `find` / `remove` / `position` / `loadFactor` |
+| Tabla hash | `clave` / `claves` / `tabla` / `indice` / `nueva` / `nuevoTamano` / `siguiente` (variable de `rehash`) | `key` / `keys` / `table` / `index` / `newTable` / `newSize` / `nextNode` |
+| Tabla hash | `Estado { Vacia, Ocupada, Borrada }` / `estados` / lápida | `State { Empty, Occupied, Deleted }` / `states` / tombstone |
+| Tabla hash | `Sondeo { Lineal, Cuadratico, DobleHash }` / `sondeo` / `paso` (doble hash) | `Probing { Linear, Quadratic, DoubleHash }` / `probing` / `step` |
+| Tabla hash | `esPrimo` / `siguientePrimo` / `siNo` | `isPrime` / `nextPrime` / `yesNo` |
+| Tabla hash | `amor`, `roma`, `mora`, `ramo` (anagramas que chocan con la suma de letras) | `listen`, `silent`, `enlist`, `tinsel` |

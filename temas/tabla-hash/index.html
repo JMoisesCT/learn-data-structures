@@ -51,7 +51,7 @@
 
       <section class="paso-leccion" id="funciones" data-titulo="Funciones hash para números">
         <h2>Funciones hash para números</h2>
-        <p>Una buena función hash es <strong>rápida</strong>, <strong>da siempre lo mismo para la misma clave</strong> y <strong>reparte parejo</strong>. Elige una de las cuatro clásicas. <strong>Pruébalo:</strong> <em>División</em>, <code>m = 10</code> y <em>Agregar 10, 20, …, 100</em>; luego con <code>m = 11</code>.</p>
+        <p>Una buena función hash es <strong>rápida</strong>, <strong>da siempre lo mismo para la misma clave</strong> y <strong>reparte parejo</strong>. Elige una de las cuatro clásicas. <strong>Pruébalo:</strong> <em>División</em>, <code>m = 10</code> y <em>+ 10, 20, …, 100</em>; luego con <code>m = 11</code>.</p>
         <div id="vis-funciones" class="controles-compactos"></div>
 
         <div class="pregunta">
@@ -74,7 +74,7 @@
 
       <section class="paso-leccion" id="texto" data-titulo="Funciones hash para texto">
         <h2>Funciones hash para texto</h2>
-        <p>Un texto primero se convierte en un número. La <strong>suma de letras</strong> ignora el orden; la <strong>polinomial</strong> multiplica cada letra por una potencia distinta de 31, así que <strong>el orden importa</strong>.</p>
+        <p>La <strong>suma de letras</strong> ignora el orden; la <strong>polinomial</strong> multiplica cada letra por una potencia de 31: <strong>el orden importa</strong>.</p>
         <div id="vis-palabras" class="controles-compactos"></div>
       </section>
 
